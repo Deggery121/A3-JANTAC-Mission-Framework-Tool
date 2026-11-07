@@ -1,0 +1,494 @@
+<title>JANTAC Unit Library</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Saira+Semi+Condensed:wght@500;700&display=swap">
+<style>
+/* Layout: an ORBAT board. Package list (left) feeds a sticky "mission manifest" (right) that stacks below on phones. */
+:root {
+  --bg: #eceee8;
+  --surface: #f8f9f5;
+  --sunken: #e2e5dd;
+  --line: #c9cec2;
+  --fg: #1d221e;
+  --muted: #5a645c;
+  --friendly: #2a62a8;          /* APP-6 friendly blue */
+  --friendly-soft: #dbe6f4;
+  --team-red: #c8322b;
+  --team-blue: #2e64c8;
+  --team-green: #2f8a3e;
+  --team-white: #f4f4f0;
+  --warn: #8a5a00;
+  --warn-soft: #f6e8c8;
+  --ok: #2f7a3a;
+  --font-display: "Saira Semi Condensed", "Arial Narrow", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  --radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131714; --surface: #1b201c; --sunken: #232924; --line: #343c35;
+    --fg: #e3e7df; --muted: #9aa49b; --friendly: #7aa8e2; --friendly-soft: #1f2d40;
+    --team-red: #e0564e; --team-blue: #5d8ee8; --team-green: #4fb05f; --team-white: #e9e9e4;
+    --warn: #e2b04a; --warn-soft: #3a2f17; --ok: #62b56e; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131714; --surface: #1b201c; --sunken: #232924; --line: #343c35;
+  --fg: #e3e7df; --muted: #9aa49b; --friendly: #7aa8e2; --friendly-soft: #1f2d40;
+  --team-red: #e0564e; --team-blue: #5d8ee8; --team-green: #4fb05f; --team-white: #e9e9e4;
+  --warn: #e2b04a; --warn-soft: #3a2f17; --ok: #62b56e; color-scheme: dark;
+}
+
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+}
+.wrap {
+  max-width: 1180px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+}
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 24px; margin-bottom: 24px; }
+h1 {
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 4vw, 40px);
+  letter-spacing: 0.01em; line-height: 1.05; margin: 0; text-wrap: balance;
+}
+h1 .cs { color: var(--friendly); }
+.lede { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+.build { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+
+.board { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
+@media (max-width: 900px) { .board { grid-template-columns: minmax(0, 1fr); } }
+
+.eyebrow {
+  font-family: var(--font-display); font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.12em; font-size: 12px; color: var(--muted); margin: 0 0 10px;
+}
+
+/* package list */
+.pkgs { display: flex; flex-direction: column; gap: 12px; }
+.pkg { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.pkg[aria-current="true"] { border-color: var(--friendly); box-shadow: 0 0 0 1px var(--friendly); }
+.pkg-head {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center;
+  width: 100%; padding: 14px 16px; background: none; border: 0; color: inherit; font: inherit;
+  text-align: left; cursor: pointer; border-radius: var(--radius);
+}
+.pkg-head:focus-visible { outline: 2px solid var(--friendly); outline-offset: 2px; }
+.radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; }
+.pkg[aria-current="true"] .radio { border-color: var(--friendly); }
+.pkg[aria-current="true"] .radio::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--friendly); }
+.pkg-name { font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.15; }
+.pkg-meta { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.pkg-slots { font-family: var(--font-mono); font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.pkg-body { border-top: 1px solid var(--line); padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+.squad-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.squad-pick .lbl { font-size: 13px; color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.seg button {
+  font: 500 14px var(--font-mono); padding: 6px 14px; border: 0; background: var(--surface); color: var(--fg);
+  cursor: pointer; border-left: 1px solid var(--line); font-variant-numeric: tabular-nums;
+}
+.seg button:first-child { border-left: 0; }
+.seg button[aria-pressed="true"] { background: var(--friendly); color: var(--surface); }
+.seg button:focus-visible { outline: 2px solid var(--friendly); outline-offset: -2px; }
+
+/* ORBAT */
+.orbat { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.grp { background: var(--sunken); border-radius: var(--radius); padding: 10px 12px 8px; min-width: 0; }
+.grp-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.grp-head svg { flex: none; }
+.cs-big { font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1; }
+.grp-kind { font-size: 12px; color: var(--muted); line-height: 1.2; }
+.chan {
+  margin-left: auto; font: 500 11.5px var(--font-mono); padding: 2px 7px; border-radius: 999px;
+  background: var(--friendly-soft); color: var(--friendly); white-space: nowrap;
+}
+.slots { list-style: none; margin: 0; padding: 0; }
+.slots li {
+  display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 8px; align-items: center;
+  padding: 3px 0; border-top: 1px dashed var(--line); font-size: 13.5px;
+}
+.slots li:first-child { border-top: 0; }
+.slots .d { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slots .r { font: 12px var(--font-mono); color: var(--muted); }
+.dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--muted); background: var(--team-white); }
+.dot.RED { background: var(--team-red); border-color: var(--team-red); }
+.dot.BLUE { background: var(--team-blue); border-color: var(--team-blue); }
+.dot.GREEN { background: var(--team-green); border-color: var(--team-green); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* manifest */
+.manifest {
+  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 16px; display: flex; flex-direction: column; gap: 14px;
+}
+@media (max-width: 900px) { .manifest { position: static; } }
+.m-title { font-family: var(--font-display); font-weight: 700; font-size: 19px; margin: 0; line-height: 1.2; }
+.facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; margin: 0; font-size: 13.5px; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; overflow-wrap: break-word; min-width: 0; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; cursor: pointer; }
+.check input { margin-top: 3px; accent-color: var(--friendly); }
+.check small { display: block; color: var(--muted); font-size: 12.5px; }
+
+.btn {
+  display: inline-flex; justify-content: center; align-items: center; gap: 8px; width: 100%;
+  font: 600 14.5px var(--font-body); padding: 10px 14px; border-radius: var(--radius); cursor: pointer;
+  border: 1px solid var(--friendly); background: var(--friendly); color: var(--surface);
+}
+.btn.secondary { background: transparent; color: var(--friendly); }
+.btn:disabled { opacity: 0.55; cursor: progress; }
+.btn:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+.actions { display: flex; flex-direction: column; gap: 8px; }
+.hint { font-size: 12.5px; color: var(--muted); margin: 0; }
+
+.code {
+  font: 12.5px/1.5 var(--font-mono); background: var(--sunken); border-radius: var(--radius);
+  padding: 8px 10px; overflow-x: auto; white-space: pre; margin: 0;
+}
+.code-row { display: flex; gap: 8px; align-items: stretch; }
+.code-row .code { flex: 1; min-width: 0; }
+.copy { font: 500 12px var(--font-body); border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: var(--radius); padding: 0 10px; cursor: pointer; }
+
+.log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
+.log li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 6px; overflow-wrap: anywhere; }
+.log .ok { color: var(--ok); } .log .warn { color: var(--warn); } .log .err { color: var(--team-red); }
+.note { background: var(--warn-soft); color: var(--fg); border-radius: var(--radius); padding: 8px 10px; font-size: 12.5px; }
+
+details.howto { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; margin-top: 24px; }
+details.howto summary { cursor: pointer; font-weight: 600; }
+details.howto ol { margin: 10px 0 4px; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 75ch; }
+details.howto code { font: 12.5px var(--font-mono); background: var(--sunken); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+
+@media (prefers-reduced-motion: no-preference) { .pkg { transition: border-color .15s, box-shadow .15s; } .seg button { transition: background-color .15s; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>JANTAC Unit Library <span class="cs">1'0</span></h1>
+      <p class="lede">Pick a platoon and how many squads. Every slot comes with its gear script, team color, lobby name and ACRE channel already set.</p>
+    </div>
+    <div class="build" id="build"></div>
+  </header>
+
+  <div class="board">
+    <section aria-labelledby="pk-h">
+      <p class="eyebrow" id="pk-h">Platoon packages</p>
+      <div class="pkgs" id="pkgs"></div>
+      <div class="legend" style="margin-top:12px">
+        <span><i class="dot RED"></i>Red team</span>
+        <span><i class="dot BLUE"></i>Blue team</span>
+        <span><i class="dot GREEN"></i>Medic</span>
+        <span><i class="dot"></i>Leader / default</span>
+      </div>
+    </section>
+
+    <aside class="manifest" aria-labelledby="m-h">
+      <div>
+        <p class="eyebrow" id="m-h">Mission manifest</p>
+        <h2 class="m-title" id="m-title"></h2>
+      </div>
+      <dl class="facts" id="facts"></dl>
+      <label class="check"><input type="checkbox" id="sys" checked><span>Include JANTAC SYSTEM<small>Headless client, respawn logic and ACE headless module</small></span></label>
+      <div class="actions">
+        <button class="btn" id="zip" type="button">Download zip</button>
+        <button class="btn secondary" id="inst-comp" type="button" hidden>Install compositions…</button>
+        <button class="btn secondary" id="inst-miss" type="button" hidden>Add loadout to a mission…</button>
+        <p class="hint" id="fs-hint"></p>
+      </div>
+      <div>
+        <p class="eyebrow" style="margin-bottom:6px">gear.sqf line</p>
+        <div class="code-row"><pre class="code" id="incl"></pre><button class="copy" id="copy" type="button">Copy</button></div>
+      </div>
+      <ul class="log" id="log" aria-live="polite"></ul>
+    </aside>
+  </div>
+
+  <details class="howto">
+    <summary>Installing by hand</summary>
+    <ol>
+      <li>Unzip the download.</li>
+      <li>Copy the folders inside <code>compositions</code> to your Arma profile's compositions folder: <code>Documents\Arma 3 - Other Profiles\&lt;profile&gt;\compositions</code> (or <code>Documents\Arma 3\compositions</code>). If your Documents folder lives in OneDrive, look under <code>OneDrive\Documents</code>.</li>
+      <li>Copy the loadout file to your mission's <code>customization\loadouts</code> folder and add the gear.sqf line inside <code>switch (_type) do { … }</code>. A ready-made <code>gear.sqf</code> is in the zip if your mission has no custom lines.</li>
+      <li>In Eden, open Compositions → JANTAC Mission Framework and place your package.</li>
+      <li>Set <code>maxPlayers</code> in <code>customization\missionSettings.hpp</code> to the slot count shown in the manifest.</li>
+    </ol>
+  </details>
+</div>
+
+<script type="application/json" id="lib">__LIBRARY_JSON__</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  const LIB = JSON.parse(document.getElementById("lib").textContent);
+  const $ = (id) => document.getElementById(id);
+  const prefixes = Object.keys(LIB.packages);
+  const state = { prefix: prefixes[0], n: {}, sys: true };
+  prefixes.forEach((p) => (state.n[p] = LIB.packages[p].maxSquads));
+  try {
+    const saved = JSON.parse(localStorage.getItem("jantac-sel") || "null");
+    if (saved && LIB.packages[saved.prefix]) {
+      state.prefix = saved.prefix;
+      if (saved.n) Object.keys(saved.n).forEach((p) => { if (LIB.packages[p]) state.n[p] = Math.min(saved.n[p], LIB.packages[p].maxSquads); });
+      state.sys = saved.sys !== false;
+    }
+  } catch (e) { /* storage unavailable */ }
+  const remember = () => { try { localStorage.setItem("jantac-sel", JSON.stringify(state)); } catch (e) {} };
+
+  $("build").textContent = LIB.build;
+
+  // ---- data helpers ----------------------------------------------------------
+  const pkg = () => LIB.packages[state.prefix];
+  const groupsFor = (p, n) => LIB.packages[p].groups.filter((g) => g.squad <= n);
+  const channelFor = (squad, n) => (squad === 0 ? n + 1 : squad);
+  const slotCount = (p, n) => groupsFor(p, n).reduce((a, g) => a + g.units.length, 0);
+  const compFor = (p, n) => LIB.packages[p].compositions[String(n)];
+  const includeLine = (file) => '#include "loadouts\\' + file + '"';
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  // NATO APP-6 friendly infantry frame; HQ gets the staff.
+  function symbol(isHQ) {
+    return '<svg width="34" height="' + (isHQ ? 30 : 22) + '" viewBox="0 0 34 ' + (isHQ ? 30 : 22) + '" aria-hidden="true">' +
+      '<rect x="1" y="1" width="32" height="20" fill="var(--friendly-soft)" stroke="var(--friendly)" stroke-width="2"/>' +
+      '<path d="M1 1 L33 21 M33 1 L1 21" stroke="var(--friendly)" stroke-width="1.6" fill="none"/>' +
+      (isHQ ? '<path d="M1 21 L1 29" stroke="var(--friendly)" stroke-width="2" fill="none"/>' : "") +
+      "</svg>";
+  }
+
+  // ---- render ----------------------------------------------------------------
+  function render() {
+    const host = $("pkgs");
+    host.innerHTML = prefixes.map((p) => {
+      const P = LIB.packages[p], on = p === state.prefix, n = state.n[p];
+      let body = "";
+      if (on) {
+        const seg = Array.from({ length: P.maxSquads }, (_, i) => i + 1).map((k) =>
+          '<button type="button" data-n="' + k + '" aria-pressed="' + (k === n) + '">' + k + "</button>").join("");
+        const grid = groupsFor(p, n).map((g) => {
+          const hq = g.squad === 0;
+          const rows = g.units.map((u) =>
+            '<li><i class="dot ' + (u.color || "") + '" title="' + (u.color || "Default") + ' team"></i>' +
+            '<span class="d">' + esc(u.desc) + '</span><span class="r">' + esc(u.role) + "</span></li>").join("");
+          return '<div class="grp"><div class="grp-head">' + symbol(hq) +
+            '<div><div class="cs-big">1\'' + g.squad + '</div><div class="grp-kind">' + (hq ? "Platoon HQ" : "Squad " + g.squad) + "</div></div>" +
+            '<span class="chan">PRC-343 CH ' + channelFor(g.squad, n) + "</span></div>" +
+            '<ul class="slots">' + rows + "</ul></div>";
+        }).join("");
+        body = '<div class="pkg-body"><div class="squad-pick"><span class="lbl">Squads under 1\'0</span>' +
+          '<div class="seg" role="group" aria-label="Number of squads">' + seg + "</div></div>" +
+          '<div class="orbat">' + grid + "</div></div>";
+      }
+      return '<article class="pkg" aria-current="' + on + '" data-p="' + p + '">' +
+        '<button class="pkg-head" type="button" aria-expanded="' + on + '"><span class="radio"></span>' +
+        '<span><span class="pkg-name">' + esc(P.name) + '</span><span class="pkg-meta"><span>' + esc(p) +
+        "</span><span>" + esc(P.loadout) + "</span></span></span>" +
+        '<span class="pkg-slots">' + slotCount(p, n) + " slots</span></button>" + body + "</article>";
+    }).join("");
+
+    host.querySelectorAll(".pkg-head").forEach((b) => b.addEventListener("click", () => {
+      state.prefix = b.closest(".pkg").dataset.p; remember(); render();
+    }));
+    host.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
+      state.n[state.prefix] = Number(b.dataset.n); remember(); render();
+    }));
+
+    const P = pkg(), n = state.n[state.prefix], slots = slotCount(state.prefix, n);
+    $("m-title").textContent = P.name + " — HQ + " + n + " squad" + (n > 1 ? "s" : "");
+    $("facts").innerHTML =
+      "<dt>Player slots</dt><dd>" + slots + (state.sys ? " + 1 headless client" : "") + "</dd>" +
+      "<dt>Callsigns</dt><dd>1'0 – 1'" + n + "</dd>" +
+      "<dt>Radios</dt><dd>squads CH 1–" + n + ", HQ CH " + (n + 1) + "</dd>" +
+      "<dt>Loadout</dt><dd>customization\\<wbr>loadouts\\<wbr>" + esc(P.loadout) + "</dd>" +
+      "<dt>Composition</dt><dd>" + esc(compFor(state.prefix, n).name) + "</dd>";
+    $("incl").textContent = includeLine(P.loadout);
+    $("sys").checked = state.sys;
+  }
+
+  $("sys").addEventListener("change", (e) => { state.sys = e.target.checked; remember(); render(); });
+
+  // ---- gear.sqf ----------------------------------------------------------------
+  // Adds the include inside switch(_type); uncomments it if present but commented.
+  function addInclude(text, file) {
+    const nl = text.includes("\r\n") ? "\r\n" : "\n";
+    const name = file.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const active = new RegExp('^[ \\t]*#include\\s+"loadouts\\\\' + name + '"', "mi");
+    if (active.test(text)) return { text, action: "present" };
+    const commented = new RegExp('^([ \\t]*)//+[ \\t]*(#include\\s+"loadouts\\\\' + name + '")', "mi");
+    if (commented.test(text)) return { text: text.replace(commented, "$1$2"), action: "uncommented" };
+    const lines = text.split(/\r?\n/);
+    let last = -1;
+    lines.forEach((l, i) => { if (/^\s*(\/\/+\s*)?#?include\s+"loadouts\\/i.test(l)) last = i; });
+    let at = -1, indent = "\t";
+    if (last >= 0) { at = last + 1; indent = lines[last].match(/^\s*/)[0]; }
+    else {
+      const sw = lines.findIndex((l) => /switch\s*\(\s*_type\s*\)\s*do\s*\{/.test(l));
+      if (sw < 0) return { text, action: "failed" };
+      at = sw + 1;
+    }
+    lines.splice(at, 0, indent + includeLine(file));
+    return { text: lines.join(nl), action: "added" };
+  }
+  window.__jantacAddInclude = addInclude; // exposed for testing
+
+  function gearFor(file) {
+    const base = LIB.gearTemplate.split(/\r?\n/).filter((l) => !/^\s*(\/\/+\s*)?#include\s+"loadouts\\/i.test(l)).join("\r\n");
+    return addInclude(base, file).text;
+  }
+
+  // ---- zip ---------------------------------------------------------------------
+  function selectedComps() {
+    const list = [compFor(state.prefix, state.n[state.prefix])];
+    if (state.sys) list.push(LIB.system);
+    return list;
+  }
+  function installText() {
+    const P = pkg(), n = state.n[state.prefix];
+    return [
+      "JANTAC Unit Library - " + P.name + " - HQ + " + n + " squads", LIB.build, "",
+      "1. Copy the folders in 'compositions' into your Arma profile's compositions folder:",
+      "   Documents\\Arma 3 - Other Profiles\\<profile>\\compositions   (or Documents\\Arma 3\\compositions)",
+      "   If Documents is in OneDrive: OneDrive\\Documents\\...",
+      "2. Copy customization\\loadouts\\" + P.loadout + " into your mission's customization\\loadouts folder.",
+      "3. In your mission's customization\\gear.sqf, inside switch (_type) do { ... }, add:",
+      "      " + includeLine(P.loadout),
+      "   (Or use the gear.sqf in this zip if your mission has no custom gear lines.)",
+      "4. In Eden: Compositions > JANTAC Mission Framework > " + compFor(state.prefix, n).name,
+      "5. Set maxPlayers in customization\\missionSettings.hpp to " + slotCount(state.prefix, n) + " player slots.",
+      "",
+    ].join("\r\n");
+  }
+  async function buildZip() {
+    const P = pkg();
+    const zip = new JSZip();
+    selectedComps().forEach((c) => {
+      zip.file("compositions/" + c.folder + "/header.sqe", c.header);
+      zip.file("compositions/" + c.folder + "/composition.sqe", c.composition);
+    });
+    zip.file("customization/gear.sqf", gearFor(P.loadout));
+    zip.file("customization/loadouts/" + P.loadout, P.loadoutText);
+    zip.file("INSTALL.txt", installText());
+    return zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+  }
+  const zipName = () => "JANTAC " + state.prefix.replace(/_$/, "") + " HQ+" + state.n[state.prefix] + ".zip";
+
+  // ---- log ---------------------------------------------------------------------
+  function log(kind, msg) {
+    const li = document.createElement("li");
+    li.innerHTML = '<span class="' + kind + '">' + ({ ok: "✓", warn: "!", err: "✕" }[kind]) + "</span><span></span>";
+    li.lastChild.textContent = msg;
+    $("log").appendChild(li);
+  }
+  const clearLog = () => ($("log").innerHTML = "");
+
+  // ---- download ----------------------------------------------------------------
+  let downloads = null;
+  const hasViewer = typeof window.claude !== "undefined" && window.claude && typeof window.claude.use === "function";
+  if (hasViewer) window.claude.use("downloads").then((d) => { downloads = d; }).catch(() => {});
+
+  $("zip").addEventListener("click", async () => {
+    const b = $("zip"); b.disabled = true; clearLog();
+    try {
+      const blob = await buildZip();
+      if (hasViewer) {
+        if (!downloads) downloads = await window.claude.use("downloads");
+        if (!downloads) { log("err", "Downloads are not available in this view. Open the page from GitHub Pages instead."); return; }
+        try { await downloads.save({ filename: zipName(), data: blob }); log("ok", "Saved " + zipName()); }
+        catch (e) { log(e && e.code === "declined" ? "warn" : "err", e && e.code === "declined" ? "Download cancelled." : "Download failed: " + (e && e.message || e)); }
+      } else {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob); a.download = zipName();
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        log("ok", "Downloaded " + zipName());
+      }
+    } catch (e) { log("err", "Could not build the zip: " + (e && e.message || e)); }
+    finally { b.disabled = false; }
+  });
+
+  // ---- copy ----------------------------------------------------------------------
+  $("copy").addEventListener("click", () => {
+    const t = $("incl").textContent;
+    const sel = () => { const r = document.createRange(); r.selectNodeContents($("incl")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+    try { navigator.clipboard.writeText(t).then(() => { $("copy").textContent = "Copied"; setTimeout(() => ($("copy").textContent = "Copy"), 1500); }, sel); }
+    catch (e) { sel(); }
+  });
+
+  // ---- direct install (Chrome / Edge, top-level page only) ---------------------------
+  const canFS = typeof window.showDirectoryPicker === "function" && window.self === window.top;
+  if (canFS) {
+    $("inst-comp").hidden = false; $("inst-miss").hidden = false;
+    $("fs-hint").textContent = "Install writes straight into the folders you pick. Nothing else on your computer is touched.";
+  } else {
+    $("fs-hint").textContent = "Open this page in Chrome or Edge from the JANTAC GitHub page to install straight into your folders.";
+  }
+
+  async function writeFile(dir, name, text) {
+    const fh = await dir.getFileHandle(name, { create: true });
+    const w = await fh.createWritable(); await w.write(text); await w.close();
+  }
+  async function readFile(dir, name) {
+    try { const fh = await dir.getFileHandle(name); return await (await fh.getFile()).text(); }
+    catch (e) { return null; }
+  }
+  const aborted = (e) => e && e.name === "AbortError";
+
+  $("inst-comp").addEventListener("click", async () => {
+    clearLog();
+    let dir;
+    try { dir = await window.showDirectoryPicker({ id: "jantac-compositions", mode: "readwrite" }); }
+    catch (e) { if (!aborted(e)) log("err", "Could not open the folder: " + e.message); return; }
+    if (dir.name.toLowerCase() !== "compositions") log("warn", "The folder you picked is '" + dir.name + "', not 'compositions'. Eden only reads compositions from your profile's compositions folder.");
+    try {
+      for (const c of selectedComps()) {
+        const d = await dir.getDirectoryHandle(c.folder, { create: true });
+        await writeFile(d, "header.sqe", c.header);
+        await writeFile(d, "composition.sqe", c.composition);
+        log("ok", "Installed " + c.name);
+      }
+      log("ok", "Restart Eden or reopen the Compositions tab to see them.");
+    } catch (e) { log("err", "Install failed: " + e.message); }
+  });
+
+  $("inst-miss").addEventListener("click", async () => {
+    clearLog();
+    const P = pkg();
+    let dir;
+    try { dir = await window.showDirectoryPicker({ id: "jantac-mission", mode: "readwrite" }); }
+    catch (e) { if (!aborted(e)) log("err", "Could not open the folder: " + e.message); return; }
+    try {
+      const isMission = (await readFile(dir, "mission.sqm")) !== null || (await readFile(dir, "description.ext")) !== null;
+      if (!isMission) { log("err", "'" + dir.name + "' has no mission.sqm or description.ext. Pick the mission folder itself (e.g. MyMission.Altis)."); return; }
+      const cust = await dir.getDirectoryHandle("customization", { create: true });
+      const lo = await cust.getDirectoryHandle("loadouts", { create: true });
+      const old = await readFile(lo, P.loadout);
+      if (old !== null && old !== P.loadoutText) {
+        await writeFile(lo, P.loadout + ".bak", old);
+        log("warn", "Your existing " + P.loadout + " was different. It is saved as " + P.loadout + ".bak.");
+      }
+      await writeFile(lo, P.loadout, P.loadoutText);
+      log("ok", (old === P.loadoutText ? "Already up to date: " : "Copied ") + "customization\\loadouts\\" + P.loadout);
+      const gear = await readFile(cust, "gear.sqf");
+      if (gear === null) {
+        await writeFile(cust, "gear.sqf", gearFor(P.loadout));
+        log("ok", "Created customization\\gear.sqf");
+      } else {
+        const r = addInclude(gear, P.loadout);
+        if (r.action === "failed") log("err", "Could not find switch (_type) do { in gear.sqf. Add this line by hand: " + includeLine(P.loadout));
+        else if (r.action === "present") log("ok", "gear.sqf already includes " + P.loadout);
+        else { await writeFile(cust, "gear.sqf", r.text); log("ok", "gear.sqf: " + (r.action === "added" ? "added " : "uncommented ") + includeLine(P.loadout)); }
+      }
+      log("ok", "Set maxPlayers in customization\\missionSettings.hpp to " + slotCount(state.prefix, state.n[state.prefix]) + ".");
+    } catch (e) { log("err", "Update failed: " + e.message); }
+  });
+
+  render();
+})();
+</script>

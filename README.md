@@ -6,14 +6,16 @@ has the right init, team color, lobby name and ACRE radio channel.
 
 ## For mission makers
 
-1. Download the latest release: `JANTAC-compositions.zip` and `JANTAC-customization.zip`.
-2. Unzip the compositions into your Arma profile's `compositions` folder, e.g.
-   `Documents\Arma 3 - Other Profiles\<profile>\compositions\`.
-3. Copy the `customization` folder into your mission (it adds `gear.sqf` and
-   `customization\loadouts\`). If your mission already has custom lines in `gear.sqf`,
-   copy just the loadout file and add its `#include` line instead.
-4. In Eden open **Compositions → JANTAC Mission Framework** and place the package you want,
-   e.g. *TCR units - HQ + 2 squads*.
+Open the **JANTAC Unit Library** page:
+https://deggery121.github.io/A3-JANTAC-Mission-Framework-Tool/
+
+1. Pick a platoon package and how many squads you want under 1'0.
+2. In Chrome or Edge, press **Install compositions…** and pick your Arma profile's
+   `compositions` folder, then **Add loadout to a mission…** and pick your mission folder.
+   The page copies the loadout and adds its line to `gear.sqf` (your other lines are kept;
+   a changed loadout file is backed up as `.bak` first).
+3. In any other browser, press **Download zip** and follow `INSTALL.txt` inside it.
+4. In Eden open **Compositions → JANTAC Mission Framework** and place the package.
 
 Radio channels follow the squad count: squad 1'N is on PRC-343 channel N and the HQ (1'0) is
 always on the channel after the last squad.
@@ -30,16 +32,21 @@ master/UnitLibrary.VR/
 packages.json                      display name, loadout file and required addons per prefix
 tools/check_master.py              rules every push must pass
 tools/build_compositions.py        builds HQ + 1..N squad compositions per package
+tools/build_site.py                bakes the library into the web page (site/template.html)
 ```
 
 Edit the master in Eden (save **unbinarized**), then push. GitHub runs the checker and,
-if it passes, builds the compositions. Tag a commit `v1.0`, `v1.1`, ... to publish a release.
+if it passes, builds the compositions and redeploys the web page. Tag a commit `v1.0`,
+`v1.1`, ... to also publish the zips as a release.
+
+One-time setup: in the repo's **Settings → Pages**, set **Source** to **GitHub Actions**.
 
 Run locally:
 
 ```
 python tools/check_master.py
 python tools/build_compositions.py      # output in build/compositions
+python tools/build_site.py              # output in build/site/index.html
 ```
 
 ### Rules the checker enforces
