@@ -58,6 +58,10 @@ h1 {
 h1 .cs { color: var(--friendly); }
 .lede { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
 .build { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.by { font-family: var(--font-body); font-weight: 400; font-size: 13px; color: var(--muted); margin-left: 8px; letter-spacing: 0; }
+.links { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 8px 0 0; font-size: 13.5px; }
+.links a, .credits a { color: var(--friendly); }
+.credits { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 18px; }
 
 .board { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
 @media (max-width: 900px) { .board { grid-template-columns: minmax(0, 1fr); } }
@@ -277,6 +281,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     <div>
       <h1>JANTAC Unit Library <span class="cs">1'0</span></h1>
       <p class="lede">Pick a platoon, build your own, or bring the units you already placed. Then write the briefing and mission settings and take it all to your mission.</p>
+      <p class="links"><a href="https://www.janfu.work/" target="_blank" rel="noopener">janfu.work</a><a href="https://github.com/dklollol/Olsen-Framework-Arma-3" target="_blank" rel="noopener">Built on the Olsen Framework</a></p>
     </div>
     <div class="build" id="build"></div>
   </header>
@@ -473,6 +478,10 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       </section>
     </div>
   </div>
+  <footer class="credits">
+    <span>JANTAC Mission Framework is built on the <a href="https://github.com/dklollol/Olsen-Framework-Arma-3" target="_blank" rel="noopener">Olsen Framework for Arma 3</a>. Thanks to Olsen and its contributors.</span>
+    <span><a href="https://www.janfu.work/" target="_blank" rel="noopener">janfu.work</a></span>
+  </footer>
 </div>
 
 <script type="application/json" id="lib">__LIBRARY_JSON__</script>
@@ -607,7 +616,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         body = '<div class="squad-pick"><span class="lbl">Squads under 1\'0</span><div class="seg" role="group" aria-label="Number of squads">' + seg + "</div></div>" +
           orbat(groupsNow(), n);
       }
-      return card("pkg:" + p, on, esc(P.name), "<span>" + esc(p) + "</span><span>" + esc(P.loadout) + "</span>", slots + " slots", body);
+      return card("pkg:" + p, on, esc(P.name) + (P.by ? '<span class="by">By ' + esc(P.by) + "</span>" : ""), "<span>" + esc(p) + "</span><span>" + esc(P.loadout) + "</span>", slots + " slots", body);
     }).join("");
 
     const cOn = state.source === "custom";
@@ -708,7 +717,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       const rows = palette.map((u, i) => ({ u, i })).filter((x) => x.u.prefix === p).map(({ u, i }) =>
         '<li><button type="button" data-i="' + i + '" title="Add ' + esc(u.desc) + '"><i class="dot ' + forcedColor(u.role, u.color) + '"></i>' +
         "<span>" + esc(u.desc) + '</span><span class="r">' + esc(u.role) + "</span></button></li>").join("");
-      return '<details class="pal" open><summary>' + esc(P.name) + '<span class="pkg-meta">' + esc(p) + "</span></summary><ul>" + rows + "</ul></details>";
+      return '<details class="pal" open><summary>' + esc(P.name) + (P.by ? '<span class="by">By ' + esc(P.by) + "</span>" : "") + "</summary><ul>" + rows + "</ul></details>";
     }).join("");
     $("palette").querySelectorAll("button[data-i]").forEach((b) => b.addEventListener("click", () => {
       design.groups[design.active].slots.push(slotFrom(palette[Number(b.dataset.i)]));

@@ -98,6 +98,7 @@ def main():
         tag = prefix.rstrip("_")
         packages[prefix] = {
             "name": cfg["name"],
+            "by": cfg.get("by", ""),
             "loadout": cfg["loadout"],
             "requiredAddons": cfg["requiredAddons"],
             "loadoutText": read(os.path.join(MASTER, "customization", "loadouts", cfg["loadout"])),
