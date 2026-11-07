@@ -28,6 +28,15 @@ screen name and messages, an optional loading image (copied into the mission's `
 folder), game type and player limits. `maxPlayers` fills in from the package: player slots
 plus the headless client.
 
+**Custom units** tab: build your own HQ and squads from every unit in the library, mixing
+packages if you like. Start from a package or from empty, add slots from the list, reorder,
+rename, set red/blue teams and duplicate squads. The page builds the Eden composition and adds
+every loadout the design uses to `gear.sqf`.
+
+**My mission already has units**: pick this on the Units tab to use only the briefing and
+mission settings. Enter your squad count, playable slots and CO unit class so the radios,
+`maxPlayers` and CO tab come out right.
+
 Radio channels follow the squad count: squad 1'N is on PRC-343 channel N and the HQ (1'0) is
 always on the channel after the last squad.
 

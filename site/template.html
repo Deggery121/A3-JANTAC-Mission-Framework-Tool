@@ -201,20 +201,89 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 .preview-head .m-title { font-size: 17px; }
 .preview-actions { display: flex; gap: 8px; }
 
-@media (prefers-reduced-motion: no-preference) { .pkg { transition: border-color .15s, box-shadow .15s; } .seg button { transition: background-color .15s; } }
+/* source cards */
+.own-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+.summary-line { font-size: 13.5px; color: var(--muted); margin: 0; }
+.field select {
+  font: 14px var(--font-body); color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 7px 9px; width: 100%; box-sizing: border-box;
+}
+
+/* custom designer */
+.designer { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 900px) { .designer { grid-template-columns: minmax(0, 1fr); } }
+.palette { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 32px); overflow: auto; }
+@media (max-width: 900px) { .palette { position: static; max-height: none; } }
+.pal { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.pal summary { cursor: pointer; padding: 10px 12px; font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+.pal summary .pkg-meta { display: inline; margin-left: 6px; font-weight: 400; }
+.pal ul { list-style: none; margin: 0; padding: 0 8px 8px; }
+.pal li button {
+  display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; width: 100%;
+  font: 13.5px var(--font-body); color: var(--fg); background: none; border: 0; border-radius: 4px;
+  padding: 5px 6px; text-align: left; cursor: pointer;
+}
+.pal li button:hover { background: var(--sunken); }
+.pal li button:focus-visible { outline: 2px solid var(--friendly); outline-offset: -2px; }
+.pal li .r { font: 12px var(--font-mono); color: var(--muted); }
+.pal-target { font-size: 13px; color: var(--muted); margin: 0; }
+.pal-target b { color: var(--fg); font-family: var(--font-mono); }
+
+.dboard { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.toolbar .field { flex: 1 1 200px; }
+.tbtn {
+  font: 500 13.5px var(--font-body); padding: 7px 12px; border-radius: var(--radius); cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--fg); white-space: nowrap;
+}
+.tbtn:hover { border-color: var(--friendly); }
+.tbtn:focus-visible { outline: 2px solid var(--friendly); outline-offset: 2px; }
+.tbtn[aria-pressed="true"] { background: var(--friendly); color: var(--surface); border-color: var(--friendly); }
+.dgrp { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px 12px; }
+.dgrp.active { border-color: var(--friendly); box-shadow: 0 0 0 1px var(--friendly); }
+.dgrp .grp-head { flex-wrap: wrap; }
+.dgrp-actions { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+.dgrp-actions .chan { margin-left: 0; align-self: center; }
+.srow {
+  display: grid; grid-template-columns: 22px 92px minmax(0, 1fr) auto auto; gap: 8px; align-items: center;
+  padding: 4px 0; border-top: 1px dashed var(--line);
+}
+.srow:first-of-type { border-top: 0; }
+.srow .idx { font: 12px var(--font-mono); color: var(--muted); text-align: right; }
+.srow select, .srow input {
+  font: 13.5px var(--font-body); color: var(--fg); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 4px; padding: 4px 6px; min-width: 0; width: 100%; box-sizing: border-box;
+}
+.srow .r { font: 12px var(--font-mono); color: var(--muted); white-space: nowrap; }
+.srow .lead { font: 600 10.5px var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--friendly); }
+.ibtns { display: flex; gap: 2px; }
+.ibtn { width: 26px; height: 26px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 4px; cursor: pointer; font: 13px var(--font-mono); padding: 0; }
+.ibtn:disabled { opacity: .35; cursor: default; }
+.ibtn:focus-visible { outline: 2px solid var(--friendly); outline-offset: 1px; }
+.empty { font-size: 13px; color: var(--muted); padding: 6px 0 0; margin: 0; }
+.issues { margin: 0; padding-left: 18px; color: var(--warn); font-size: 13px; }
+@media (max-width: 560px) {
+  .srow { grid-template-columns: 22px minmax(0, 1fr) auto; }
+  .srow select { grid-column: 2; }
+  .srow input { grid-column: 2 / 4; }
+  .srow .r { grid-column: 2; }
+}
+
+@media (prefers-reduced-motion: no-preference) { .pkg, .dgrp { transition: border-color .15s, box-shadow .15s; } .seg button { transition: background-color .15s; } }
 </style>
 
 <div class="wrap">
   <header class="top">
     <div>
       <h1>JANTAC Unit Library <span class="cs">1'0</span></h1>
-      <p class="lede">Pick a platoon and how many squads. Every slot comes with its gear script, team color, lobby name and ACRE channel already set.</p>
+      <p class="lede">Pick a platoon, build your own, or bring the units you already placed. Then write the briefing and mission settings and take it all to your mission.</p>
     </div>
     <div class="build" id="build"></div>
   </header>
 
   <nav class="tabs" aria-label="Views">
     <a href="#units" id="tab-units">Units</a>
+    <a href="#custom-units" id="tab-custom">Custom units</a>
     <a href="#briefing" id="tab-briefing">Briefing</a>
     <a href="#mission-settings" id="tab-settings">Mission settings</a>
   </nav>
@@ -222,7 +291,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   <div id="view-units">
   <div class="board">
     <section aria-labelledby="pk-h">
-      <p class="eyebrow" id="pk-h">Platoon packages</p>
+      <p class="eyebrow" id="pk-h">Units for this mission</p>
       <div class="pkgs" id="pkgs"></div>
       <div class="legend" style="margin-top:12px">
         <span><i class="dot RED"></i>Red team</span>
@@ -238,17 +307,17 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         <h2 class="m-title" id="m-title"></h2>
       </div>
       <dl class="facts" id="facts"></dl>
-      <label class="check"><input type="checkbox" id="sys" checked><span>Include JANTAC SYSTEM<small>Headless client, respawn logic and ACE headless module</small></span></label>
-      <label class="check"><input type="checkbox" id="brief-inc"><span>Include briefing.sqf<small id="brief-inc-note">Replaces the mission's customization\briefing.sqf. <a href="#briefing">Write the briefing</a></small></span></label>
+      <label class="check" id="sys-row"><input type="checkbox" id="sys" checked><span>Include JANTAC SYSTEM<small>Headless client, respawn logic and ACE headless module</small></span></label>
+      <label class="check"><input type="checkbox" id="brief-inc"><span>Include briefing.sqf<small>Replaces the mission's customization\briefing.sqf. <a href="#briefing">Write the briefing</a></small></span></label>
       <label class="check"><input type="checkbox" id="set-inc"><span>Include missionSettings.hpp<small>Replaces the mission's customization\missionSettings.hpp. <a href="#mission-settings">Edit settings</a></small></span></label>
       <div class="actions">
         <button class="btn" id="zip" type="button">Download zip</button>
-        <button class="btn secondary" id="inst-comp" type="button" hidden>Install compositions…</button>
+        <button class="btn secondary" id="inst-comp" type="button" hidden>Install compositions… (Not Required)</button>
         <button class="btn secondary" id="inst-miss" type="button" hidden>Add to a mission…</button>
         <p class="hint" id="fs-hint"></p>
       </div>
-      <div>
-        <p class="eyebrow" style="margin-bottom:6px">gear.sqf line</p>
+      <div id="incl-box">
+        <p class="eyebrow" style="margin-bottom:6px" id="incl-h">gear.sqf line</p>
         <div class="code-row"><pre class="code" id="incl"></pre><button class="copy" id="copy" type="button">Copy</button></div>
       </div>
       <ul class="log" id="log" aria-live="polite"></ul>
@@ -260,12 +329,40 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     <ol>
       <li>Unzip the download.</li>
       <li>Copy the folders inside <code>compositions</code> to your Arma profile's compositions folder: <code>Documents\Arma 3 - Other Profiles\&lt;profile&gt;\compositions</code> (or <code>Documents\Arma 3\compositions</code>). If your Documents folder lives in OneDrive, look under <code>OneDrive\Documents</code>.</li>
-      <li>Copy the loadout file to your mission's <code>customization\loadouts</code> folder and add the gear.sqf line inside <code>switch (_type) do { … }</code>. A ready-made <code>gear.sqf</code> is in the zip if your mission has no custom lines.</li>
-      <li>In Eden, open Compositions → JANTAC Mission Framework and place your package.</li>
+      <li>Copy the loadout files to your mission's <code>customization\loadouts</code> folder and add their gear.sqf lines inside <code>switch (_type) do { … }</code>. A ready-made <code>gear.sqf</code> is in the zip if your mission has no custom lines.</li>
+      <li>In Eden, open Compositions → JANTAC Mission Framework and place your units.</li>
       <li>If you wrote a briefing, copy <code>customization\briefing.sqf</code> over your mission's.</li>
       <li>Copy <code>customization\missionSettings.hpp</code> over your mission's, or set <code>maxPlayers</code> in yours to the number shown in the manifest (it counts the headless client).</li>
     </ol>
   </details>
+  </div>
+
+  <div id="view-custom" hidden>
+    <div class="designer">
+      <aside class="palette" aria-labelledby="pal-h">
+        <p class="eyebrow" id="pal-h" style="margin:0">Available units</p>
+        <p class="pal-target">Adding to <b id="pal-target"></b>. Pick a group on the right to change.</p>
+        <div id="palette"></div>
+      </aside>
+
+      <section class="dboard" aria-labelledby="d-h">
+        <h2 class="m-title" id="d-h" hidden>Custom designer</h2>
+        <div class="toolbar">
+          <div class="field"><label for="d-name">Design name</label><input id="d-name" placeholder="Raid platoon"></div>
+          <div class="field" style="flex:0 1 220px"><label for="d-start">Start from</label>
+            <select id="d-start"></select>
+          </div>
+          <button class="tbtn" id="d-load" type="button">Load</button>
+          <button class="tbtn" id="d-add" type="button">Add squad</button>
+        </div>
+        <div id="dgroups" class="dboard"></div>
+        <ul class="issues" id="d-issues"></ul>
+        <div class="toolbar">
+          <button class="btn" id="d-use" type="button" style="width:auto">Use this design</button>
+          <p class="hint" id="d-hint">Each group's first slot is its leader. Medics are always green; SL and PL roles keep the default team.</p>
+        </div>
+      </section>
+    </div>
   </div>
 
   <div id="view-briefing" hidden>
@@ -285,7 +382,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         </fieldset>
         <fieldset>
           <legend>Friendly forces</legend>
-          <div class="field"><label for="b-fcomp">Composition <button type="button" class="linkbtn" id="b-fcomp-auto" hidden>Use the package's</button></label><textarea id="b-fcomp"></textarea></div>
+          <div class="field"><label for="b-fcomp">Composition <button type="button" class="linkbtn" id="b-fcomp-auto" hidden>Use the units'</button></label><textarea id="b-fcomp"></textarea></div>
           <div class="field"><label for="b-fdisp">Disposition</label><textarea id="b-fdisp" placeholder="Staged in the northern part of the AO."></textarea></div>
           <div class="field"><label for="b-fpid">Uniform / PID</label><textarea id="b-fpid" placeholder="DPM uniforms, MK 5 Steel helmets, FALs and L7A2s with LAWs and a Carl Gustaf."></textarea></div>
         </fieldset>
@@ -304,11 +401,11 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         <fieldset>
           <legend>Command and signal</legend>
           <div class="field"><label for="b-lr">Long-range radio</label><input id="b-lr" placeholder="All squads on LR channel 1"></div>
-          <div class="field"><label>Short-range (from the package)</label><pre class="autolist" id="b-radios"></pre></div>
+          <div class="field"><label>Short-range (from your units)</label><pre class="autolist" id="b-radios"></pre></div>
           <div class="field"><label for="b-signal">Other signals</label><textarea id="b-signal" placeholder="1'1 is wearing blue chemlights, 1'2 green."></textarea></div>
         </fieldset>
         <fieldset>
-          <legend>Mission notes <span class="aux" style="font:400 12px var(--font-body);color:var(--muted)">every side sees this tab</span></legend>
+          <legend>Mission notes <span style="font:400 12px var(--font-body);color:var(--muted)">every side sees this tab</span></legend>
           <div class="field"><label for="b-modules">Modules <span class="aux">one per line</span></label><textarea id="b-modules" placeholder="ACE Advanced Medical&#10;ACE Cargo&#10;ACE Explosives"></textarea></div>
           <div class="field"><label for="b-author">Mission by</label><input id="b-author" placeholder="Kelly"></div>
           <div class="field"><label for="b-fw">Framework line</label><input id="b-fw" placeholder="Uses JANFU A3 Framework v1.54"></div>
@@ -353,13 +450,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         <fieldset>
           <legend>Header</legend>
           <div class="field"><label for="s-gametype">Game type</label>
-            <select id="s-gametype" style="font:14px var(--font-body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:7px 9px">
+            <select id="s-gametype">
               <option value="Coop">Coop (co-op mission)</option>
               <option value="TDM">TDM (TvT mission)</option>
             </select>
           </div>
           <div class="field"><label for="s-minp">Minimum players</label><input id="s-minp" type="number" min="1" step="1" placeholder="1"></div>
-          <div class="field"><label for="s-maxp">Maximum players <button type="button" class="linkbtn" id="s-maxp-auto" hidden>Use the package count</button></label><input id="s-maxp" type="number" min="1" step="1"><p class="hint" id="s-maxp-note"></p></div>
+          <div class="field"><label for="s-maxp">Maximum players <button type="button" class="linkbtn" id="s-maxp-auto" hidden>Use the units' count</button></label><input id="s-maxp" type="number" min="1" step="1"><p class="hint" id="s-maxp-note"></p></div>
         </fieldset>
       </form>
 
@@ -386,218 +483,382 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const LIB = JSON.parse(document.getElementById("lib").textContent);
   const $ = (id) => document.getElementById(id);
   const prefixes = Object.keys(LIB.packages);
-  const state = { prefix: prefixes[0], n: {}, sys: true };
-  prefixes.forEach((p) => (state.n[p] = LIB.packages[p].maxSquads));
-  try {
-    const saved = JSON.parse(localStorage.getItem("jantac-sel") || "null");
-    if (saved && LIB.packages[saved.prefix]) {
-      state.prefix = saved.prefix;
-      if (saved.n) Object.keys(saved.n).forEach((p) => { if (LIB.packages[p]) state.n[p] = Math.min(saved.n[p], LIB.packages[p].maxSquads); });
-      state.sys = saved.sys !== false;
-    }
-  } catch (e) { /* storage unavailable */ }
-  const remember = () => { try { localStorage.setItem("jantac-sel", JSON.stringify(state)); } catch (e) {} };
-
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const posInt = (s, d) => { const n = parseInt(s, 10); return n > 0 ? n : d; };
+  const load = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
+  const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  const MAX_SQUADS = 15; // PRC-343 block 1 has 16 channels; HQ takes the one after the last squad
   $("build").textContent = LIB.build;
 
-  // ---- data helpers ----------------------------------------------------------
+  // ---- selection state -----------------------------------------------------------
+  // source: "pkg" (a package), "custom" (the Custom units design) or "own" (units already in the mission)
+  const state = { source: "pkg", prefix: prefixes[0], n: {}, sys: true, own: { squads: "3", slots: "", co: "B_officer_F" } };
+  prefixes.forEach((p) => (state.n[p] = LIB.packages[p].maxSquads));
+  (() => {
+    const s = load("jantac-sel");
+    if (!s) return;
+    if (["pkg", "custom", "own"].includes(s.source)) state.source = s.source;
+    if (LIB.packages[s.prefix]) state.prefix = s.prefix;
+    if (s.n) Object.keys(s.n).forEach((p) => { if (LIB.packages[p]) state.n[p] = Math.min(posInt(s.n[p], 1), LIB.packages[p].maxSquads); });
+    state.sys = s.sys !== false;
+    if (s.own) Object.assign(state.own, s.own);
+  })();
+  const remember = () => store("jantac-sel", state);
+
+  // ---- custom design state -----------------------------------------------------------
+  const design = { name: "", groups: [{ slots: [] }, { slots: [] }], active: 0 };
+  (() => {
+    const d = load("jantac-design");
+    if (d && Array.isArray(d.groups) && d.groups.length) {
+      design.name = d.name || "";
+      design.groups = d.groups.map((g) => ({ slots: (g.slots || []).filter((u) => LIB.packages[u.prefix]) }));
+      design.active = Math.min(d.active || 0, design.groups.length - 1);
+    }
+  })();
+  const saveDesign = () => store("jantac-design", design);
+
+  // ---- package helpers ---------------------------------------------------------------
   const pkg = () => LIB.packages[state.prefix];
   const groupsFor = (p, n) => LIB.packages[p].groups.filter((g) => g.squad <= n);
   const channelFor = (squad, n) => (squad === 0 ? n + 1 : squad);
-  const slotCount = (p, n) => groupsFor(p, n).reduce((a, g) => a + g.units.length, 0);
   const compFor = (p, n) => LIB.packages[p].compositions[String(n)];
   const includeLine = (file) => '#include "loadouts\\' + file + '"';
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const forcedColor = (role, color) => (role === "MD" ? "GREEN" : role === "SL" || role === "PL" ? "" : (color === "GREEN" ? "" : color || ""));
+
+  // ---- what the mission gets, whatever the source ---------------------------------------
+  function groupsNow() {
+    if (state.source === "pkg") {
+      return groupsFor(state.prefix, state.n[state.prefix]).map((g) => ({ squad: g.squad, units: g.units.map((u) => Object.assign({ prefix: state.prefix }, u)) }));
+    }
+    if (state.source === "custom") return design.groups.map((g, i) => ({ squad: i, units: g.slots }));
+    return [];
+  }
+  function squadsNow() {
+    if (state.source === "pkg") return state.n[state.prefix];
+    if (state.source === "custom") return design.groups.length - 1;
+    return Math.min(posInt(state.own.squads, 1), MAX_SQUADS);
+  }
+  const slotsNow = () => groupsNow().reduce((a, g) => a + g.units.length, 0);
+  function maxAuto() {
+    if (state.source === "own") return posInt(state.own.slots, 0);
+    return slotsNow() + (state.sys ? 1 : 0);
+  }
+  function prefixesNow() {
+    if (state.source === "pkg") return [state.prefix];
+    if (state.source === "custom") return [...new Set(design.groups.flatMap((g) => g.slots.map((u) => u.prefix)))];
+    return [];
+  }
+  const loadoutsNow = () => prefixesNow().map((p) => LIB.packages[p]);
+  function coClassNow() {
+    if (state.source === "own") return (state.own.co || "").trim() || "B_officer_F";
+    const hq = groupsNow().find((g) => g.squad === 0);
+    return (hq && hq.units[0] && hq.units[0].type) || "B_officer_F";
+  }
+  function compsNow() {
+    const list = [];
+    if (state.source === "pkg") list.push(compFor(state.prefix, state.n[state.prefix]));
+    if (state.source === "custom" && !customIssues().length) list.push(customComp());
+    if (state.sys && state.source !== "own" && list.length) list.push(LIB.system);
+    return list;
+  }
+  function unitsTitle() {
+    const n = squadsNow(), sq = "HQ + " + n + " squad" + (n === 1 ? "" : "s");
+    if (state.source === "pkg") return pkg().name + " — " + sq;
+    if (state.source === "custom") return safeName() + " — " + sq;
+    return "Your own units — " + sq;
+  }
 
   // NATO APP-6 friendly infantry frame; HQ gets the staff.
   function symbol(isHQ) {
     return '<svg width="34" height="' + (isHQ ? 30 : 22) + '" viewBox="0 0 34 ' + (isHQ ? 30 : 22) + '" aria-hidden="true">' +
       '<rect x="1" y="1" width="32" height="20" fill="var(--friendly-soft)" stroke="var(--friendly)" stroke-width="2"/>' +
       '<path d="M1 1 L33 21 M33 1 L1 21" stroke="var(--friendly)" stroke-width="1.6" fill="none"/>' +
-      (isHQ ? '<path d="M1 21 L1 29" stroke="var(--friendly)" stroke-width="2" fill="none"/>' : "") +
-      "</svg>";
+      (isHQ ? '<path d="M1 21 L1 29" stroke="var(--friendly)" stroke-width="2" fill="none"/>' : "") + "</svg>";
+  }
+  function orbat(groups, n) {
+    return '<div class="orbat">' + groups.map((g) => {
+      const hq = g.squad === 0;
+      const rows = g.units.map((u) =>
+        '<li><i class="dot ' + (u.color || "") + '" title="' + (u.color || "Default") + ' team"></i>' +
+        '<span class="d">' + esc(u.desc) + '</span><span class="r">' + esc(u.role) + "</span></li>").join("");
+      return '<div class="grp"><div class="grp-head">' + symbol(hq) +
+        '<div><div class="cs-big">1\'' + g.squad + '</div><div class="grp-kind">' + (hq ? "Platoon HQ" : "Squad " + g.squad) + "</div></div>" +
+        '<span class="chan">PRC-343 CH ' + channelFor(g.squad, n) + "</span></div>" +
+        '<ul class="slots">' + (rows || '<li><span></span><span class="d" style="color:var(--muted)">No slots yet</span><span></span></li>') + "</ul></div>";
+    }).join("") + "</div>";
   }
 
-  // ---- render ----------------------------------------------------------------
-  function render() {
-    const host = $("pkgs");
-    host.innerHTML = prefixes.map((p) => {
-      const P = LIB.packages[p], on = p === state.prefix, n = state.n[p];
+  // ---- Units tab -------------------------------------------------------------------------
+  function card(key, on, name, meta, right, body) {
+    return '<article class="pkg" aria-current="' + on + '" data-k="' + key + '">' +
+      '<button class="pkg-head" type="button" aria-expanded="' + on + '"><span class="radio"></span>' +
+      '<span><span class="pkg-name">' + name + '</span><span class="pkg-meta">' + meta + "</span></span>" +
+      '<span class="pkg-slots">' + right + "</span></button>" + (on ? '<div class="pkg-body">' + body + "</div>" : "") + "</article>";
+  }
+
+  function renderUnits() {
+    let html = prefixes.map((p) => {
+      const P = LIB.packages[p], on = state.source === "pkg" && p === state.prefix, n = state.n[p];
+      const slots = groupsFor(p, n).reduce((a, g) => a + g.units.length, 0);
       let body = "";
       if (on) {
         const seg = Array.from({ length: P.maxSquads }, (_, i) => i + 1).map((k) =>
           '<button type="button" data-n="' + k + '" aria-pressed="' + (k === n) + '">' + k + "</button>").join("");
-        const grid = groupsFor(p, n).map((g) => {
-          const hq = g.squad === 0;
-          const rows = g.units.map((u) =>
-            '<li><i class="dot ' + (u.color || "") + '" title="' + (u.color || "Default") + ' team"></i>' +
-            '<span class="d">' + esc(u.desc) + '</span><span class="r">' + esc(u.role) + "</span></li>").join("");
-          return '<div class="grp"><div class="grp-head">' + symbol(hq) +
-            '<div><div class="cs-big">1\'' + g.squad + '</div><div class="grp-kind">' + (hq ? "Platoon HQ" : "Squad " + g.squad) + "</div></div>" +
-            '<span class="chan">PRC-343 CH ' + channelFor(g.squad, n) + "</span></div>" +
-            '<ul class="slots">' + rows + "</ul></div>";
-        }).join("");
-        body = '<div class="pkg-body"><div class="squad-pick"><span class="lbl">Squads under 1\'0</span>' +
-          '<div class="seg" role="group" aria-label="Number of squads">' + seg + "</div></div>" +
-          '<div class="orbat">' + grid + "</div></div>";
+        body = '<div class="squad-pick"><span class="lbl">Squads under 1\'0</span><div class="seg" role="group" aria-label="Number of squads">' + seg + "</div></div>" +
+          orbat(groupsNow(), n);
       }
-      return '<article class="pkg" aria-current="' + on + '" data-p="' + p + '">' +
-        '<button class="pkg-head" type="button" aria-expanded="' + on + '"><span class="radio"></span>' +
-        '<span><span class="pkg-name">' + esc(P.name) + '</span><span class="pkg-meta"><span>' + esc(p) +
-        "</span><span>" + esc(P.loadout) + "</span></span></span>" +
-        '<span class="pkg-slots">' + slotCount(p, n) + " slots</span></button>" + body + "</article>";
+      return card("pkg:" + p, on, esc(P.name), "<span>" + esc(p) + "</span><span>" + esc(P.loadout) + "</span>", slots + " slots", body);
     }).join("");
 
-    host.querySelectorAll(".pkg-head").forEach((b) => b.addEventListener("click", () => {
-      state.prefix = b.closest(".pkg").dataset.p; remember(); render();
+    const cOn = state.source === "custom";
+    const cSlots = design.groups.reduce((a, g) => a + g.slots.length, 0);
+    const cPre = [...new Set(design.groups.flatMap((g) => g.slots.map((u) => u.prefix)))];
+    let cBody = "";
+    if (cOn) {
+      const iss = customIssues();
+      cBody = (iss.length ? '<ul class="issues">' + iss.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "") +
+        '<p class="summary-line"><a href="#custom-units" style="color:var(--friendly)">Edit in Custom units</a></p>' +
+        orbat(groupsNow(), squadsNow());
+    }
+    html += card("custom", cOn, esc(safeName()),
+      "<span>Custom units tab</span>" + (cPre.length ? "<span>" + esc(cPre.join(" ")) + "</span>" : ""), cSlots + " slots", cBody);
+
+    const oOn = state.source === "own";
+    const oBody = '<p class="summary-line">Your mission already has its loadout and units placed. You get the briefing and mission settings only.</p>' +
+      '<div class="own-grid">' +
+      '<div class="field"><label for="o-squads">Squads under 1\'0</label><input id="o-squads" type="number" min="1" max="' + MAX_SQUADS + '" step="1" value="' + esc(state.own.squads) + '"></div>' +
+      '<div class="field"><label for="o-slots">Playable slots (with HC)</label><input id="o-slots" type="number" min="1" step="1" placeholder="33" value="' + esc(state.own.slots) + '"></div>' +
+      '<div class="field"><label for="o-co">CO unit class</label><input id="o-co" placeholder="B_officer_F" value="' + esc(state.own.co) + '"></div>' +
+      "</div>";
+    html += card("own", oOn, "My mission already has units", "<span>briefing and settings only</span>", "", oBody);
+
+    $("pkgs").innerHTML = html;
+    $("pkgs").querySelectorAll(".pkg-head").forEach((b) => b.addEventListener("click", () => {
+      const k = b.closest(".pkg").dataset.k;
+      if (k.startsWith("pkg:")) { state.source = "pkg"; state.prefix = k.slice(4); } else state.source = k;
+      remember(); render();
     }));
-    host.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
+    $("pkgs").querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
       state.n[state.prefix] = Number(b.dataset.n); remember(); render();
     }));
+    [["o-squads", "squads"], ["o-slots", "slots"], ["o-co", "co"]].forEach(([id, key]) => {
+      const el = $(id);
+      if (el) el.addEventListener("input", () => { state.own[key] = el.value; remember(); renderManifest(); updateBriefing(); updateSettings(); });
+    });
+  }
 
-    const P = pkg(), n = state.n[state.prefix], slots = slotCount(state.prefix, n);
-    $("m-title").textContent = P.name + " — HQ + " + n + " squad" + (n > 1 ? "s" : "");
-    $("facts").innerHTML =
-      "<dt>Player slots</dt><dd>" + slots + (state.sys ? " + 1 headless client" : "") + "</dd>" +
-      "<dt>maxPlayers</dt><dd>" + maxAuto() + "</dd>" +
-      "<dt>Callsigns</dt><dd>1'0 – 1'" + n + "</dd>" +
-      "<dt>Radios</dt><dd>squads CH 1–" + n + ", HQ CH " + (n + 1) + "</dd>" +
-      "<dt>Loadout</dt><dd>customization\\<wbr>loadouts\\<wbr>" + esc(P.loadout) + "</dd>" +
-      "<dt>Composition</dt><dd>" + esc(compFor(state.prefix, n).name) + "</dd>";
-    $("incl").textContent = includeLine(P.loadout);
+  function renderManifest() {
+    const own = state.source === "own", n = squadsNow(), L = loadoutsNow();
+    $("m-title").textContent = unitsTitle();
+    let facts = "";
+    if (!own) facts += "<dt>Player slots</dt><dd>" + slotsNow() + (state.sys ? " + 1 headless client" : "") + "</dd>";
+    facts += "<dt>maxPlayers</dt><dd>" + (maxAuto() || "enter your playable slots") + "</dd>";
+    facts += "<dt>Callsigns</dt><dd>1'0 – 1'" + n + "</dd>";
+    facts += "<dt>Radios</dt><dd>squads CH 1–" + n + ", HQ CH " + (n + 1) + "</dd>";
+    if (!own) {
+      facts += "<dt>Loadout" + (L.length > 1 ? "s" : "") + "</dt><dd>" + (L.map((P) => esc(P.loadout)).join("<br>") || "none yet") + "</dd>";
+      const c = compsNow()[0];
+      facts += "<dt>Composition</dt><dd>" + (c ? esc(c.name) : "fix the design first") + "</dd>";
+    }
+    $("facts").innerHTML = facts;
+    $("sys-row").hidden = own;
     $("sys").checked = state.sys;
+    $("incl-box").hidden = own || !L.length;
+    $("incl-h").textContent = "gear.sqf line" + (L.length > 1 ? "s" : "");
+    $("incl").textContent = L.map((P) => includeLine(P.loadout)).join("\n");
+    $("brief-inc").checked = brief.include;
+    $("set-inc").checked = sett.include;
+    $("inst-comp").hidden = !canFS || own;
+    const nothing = own && !brief.include && !sett.include;
+    const broken = state.source === "custom" && customIssues().length;
+    $("zip").disabled = nothing || broken;
+    $("inst-miss").disabled = nothing || broken;
+    $("inst-comp").disabled = broken;
+    $("fs-hint").textContent = broken ? "Fix the custom design before downloading." :
+      nothing ? "Tick the briefing or mission settings to have something to take to your mission." :
+      canFS ? "Install writes straight into the folders you pick. Nothing else on your computer is touched." :
+      "Open this page in Chrome or Edge from the JANTAC GitHub page to install straight into your folders.";
+  }
+
+  function render() {
+    renderUnits();
+    renderManifest();
+    renderDesigner();
     updateBriefing();
     updateSettings();
   }
+  $("sys").addEventListener("change", (e) => { state.sys = e.target.checked; remember(); render(); });
 
-  // ---- mission settings ----------------------------------------------------------
-  const SF = ["name", "loadmsg", "intro", "screen", "gametype", "minp", "maxp"];
-  const sett = { v: {}, mtime: false, itime: false, maxEdited: false, screenEdited: false, include: false, includeTouched: false };
-  try {
-    const s = JSON.parse(localStorage.getItem("jantac-settings") || "null");
-    if (s && s.v) Object.assign(sett, s);
-  } catch (e) { /* storage unavailable */ }
-  const saveSett = () => { try { localStorage.setItem("jantac-settings", JSON.stringify(sett)); } catch (e) {} };
-  let shot = null; // the loading image chosen this visit: {name, blob}
-  const maxAuto = () => slotCount(state.prefix, state.n[state.prefix]) + (state.sys ? 1 : 0);
-  const hppStr = (s) => '"' + String(s).replace(/[\r\n]+/g, " ").replace(/"/g, '""') + '"';
-  const posInt = (s, d) => { const n = parseInt(s, 10); return n > 0 ? n : d; };
-  function screenPath() {
-    if (shot && !sett.screenEdited) return "images\\" + shot.name;
-    return (sett.v.screen || "").trim();
-  }
-  function settName() { return (sett.v.name || "").trim() || (brief.v.title || "").trim() || "Untitled mission"; }
-  function maxPlayers() { return sett.maxEdited ? posInt(sett.v.maxp, maxAuto()) : maxAuto(); }
+  // ---- Custom units: palette + designer ------------------------------------------------------
+  const palette = [];
+  prefixes.forEach((p) => {
+    const seen = new Set();
+    LIB.packages[p].groups.forEach((g) => g.units.forEach((u) => {
+      const key = u.role + "|" + u.desc;
+      if (seen.has(key)) return;
+      seen.add(key);
+      palette.push(Object.assign({ prefix: p }, u));
+    }));
+  });
+  const slotFrom = (u) => ({ prefix: u.prefix, role: u.role, desc: u.desc, color: forcedColor(u.role, u.color), type: u.type, rank: u.rank || "" });
 
-  function genSettings() {
-    const v = (k) => (sett.v[k] || "").trim();
-    const scr = screenPath();
-    return [
-      "onLoadName \t\t\t\t= " + hppStr(settName()) + ";",
-      "onLoadMission\t\t\t= " + hppStr(v("loadmsg")) + ";\t// Displays a message while the mission is loading.",
-      "onLoadIntro\t\t\t\t= " + hppStr(v("intro") || "Made with JANFU Mission Framework v1.54") + ";\t// Displays a message while the intro is loading.",
-      "onLoadMissionTime\t\t= " + (sett.mtime ? 1 : 0) + ";\t// Define whether you will see the time and date displayed while the mission loads.",
-      "onLoadIntroTime\t\t\t= " + (sett.itime ? 1 : 0) + ";\t// Define whether you will see the time and date displayed while the intro loads.",
-      scr ? "loadScreen = " + hppStr(scr) + "; //Sets the image displayed during the loading screen"
-          : '//loadScreen = "images\\loading.jpg"; //Sets the image displayed during the loading screen',
-      "",
-      "class Header {",
-      "\t",
-      "\tgameType = " + (v("gametype") === "TDM" ? "TDM" : "Coop") + ";  //Coop for a COOP mission, TDM for a TVT",
-      "\tminPlayers = " + posInt(v("minp"), 1) + ";",
-      "\tmaxPlayers = " + maxPlayers() + "; //maxPlayers must always be accurate to the amount of playable units, this includes the headless client game logic",
-      "\t",
-      "};",
-      "",
-    ].join("\r\n");
-  }
-  window.__jantacSettings = { gen: genSettings, sett }; // exposed for testing
-
-  function updateSettings() {
-    if (!sett.maxEdited) $("s-maxp").value = maxAuto();
-    $("s-maxp-auto").hidden = !sett.maxEdited;
-    const diff = sett.maxEdited && maxPlayers() !== maxAuto();
-    $("s-maxp-note").textContent = diff
-      ? "The selected package has " + maxAuto() + " playable slots including the headless client. maxPlayers must match."
-      : slotCount(state.prefix, state.n[state.prefix]) + " player slots" + (state.sys ? " + 1 headless client" : "") + ", from the Units tab.";
-    if (!sett.screenEdited) $("s-screen").value = shot ? "images\\" + shot.name : (sett.v.screen || "");
-    $("s-screen-auto").hidden = !(shot && sett.screenEdited);
-    $("s-name-aux").textContent = !(sett.v.name || "").trim() && (brief.v.title || "").trim() ? "using the briefing title" : "";
-    $("s-image-note").textContent = shot
-      ? "Added " + shot.name + " (" + Math.round(shot.blob.size / 1024) + " KB). It goes into the mission's images folder. Add it again if you reload the page."
-      : "Optional. The image is copied into the mission's images folder.";
-    $("s-out").textContent = genSettings();
-    $("set-inc").checked = sett.include;
-    $("s-status").textContent = sett.include
-      ? "Included in your download and in “Add to a mission…”. It replaces the mission's missionSettings.hpp."
-      : "Not included yet. Tick “Include missionSettings.hpp” on the Units tab to add it.";
+  function renderPalette() {
+    $("palette").innerHTML = prefixes.map((p) => {
+      const P = LIB.packages[p];
+      const rows = palette.map((u, i) => ({ u, i })).filter((x) => x.u.prefix === p).map(({ u, i }) =>
+        '<li><button type="button" data-i="' + i + '" title="Add ' + esc(u.desc) + '"><i class="dot ' + forcedColor(u.role, u.color) + '"></i>' +
+        "<span>" + esc(u.desc) + '</span><span class="r">' + esc(u.role) + "</span></button></li>").join("");
+      return '<details class="pal" open><summary>' + esc(P.name) + '<span class="pkg-meta">' + esc(p) + "</span></summary><ul>" + rows + "</ul></details>";
+    }).join("");
+    $("palette").querySelectorAll("button[data-i]").forEach((b) => b.addEventListener("click", () => {
+      design.groups[design.active].slots.push(slotFrom(palette[Number(b.dataset.i)]));
+      saveDesign(); render();
+    }));
   }
 
-  function bindSettings() {
-    const touched = () => { if (!sett.includeTouched) sett.include = true; saveSett(); updateSettings(); };
-    SF.forEach((k) => {
-      const el = $("s-" + k);
-      if (k === "gametype") el.value = sett.v.gametype === "TDM" ? "TDM" : "Coop";
-      else if ((k !== "maxp" || sett.maxEdited) && (k !== "screen" || sett.screenEdited || !shot)) el.value = sett.v[k] || "";
-      el.addEventListener(k === "gametype" ? "change" : "input", () => {
-        sett.v[k] = el.value;
-        if (k === "maxp") sett.maxEdited = true;
-        if (k === "screen") sett.screenEdited = true;
-        touched();
+  function customIssues() {
+    const out = [];
+    if (!design.groups.length) out.push("Add an HQ group.");
+    design.groups.forEach((g, i) => { if (!g.slots.length) out.push("1'" + i + " has no slots. Add units or remove it."); });
+    if (design.groups.length - 1 > MAX_SQUADS) out.push("At most " + MAX_SQUADS + " squads fit on the PRC-343's first block.");
+    return out;
+  }
+
+  function renderDesigner() {
+    $("d-name").value === design.name || ($("d-name").value = design.name);
+    $("pal-target").textContent = "1'" + design.active + (design.active === 0 ? " (HQ)" : "");
+    const n = design.groups.length - 1;
+    $("dgroups").innerHTML = design.groups.map((g, gi) => {
+      const rows = g.slots.map((u, si) => {
+        const locked = u.role === "MD" || u.role === "SL" || u.role === "PL";
+        const opt = (v, t) => '<option value="' + v + '"' + (u.color === v ? " selected" : "") + ">" + t + "</option>";
+        const sel = locked
+          ? '<select disabled aria-label="Team color"><option>' + (u.role === "MD" ? "Green" : "Default") + "</option></select>"
+          : '<select data-a="color" aria-label="Team color">' + opt("", "Default") + opt("RED", "Red") + opt("BLUE", "Blue") + "</select>";
+        return '<div class="srow" data-g="' + gi + '" data-s="' + si + '">' +
+          '<span class="idx">' + (si + 1) + "</span>" + sel +
+          '<input data-a="desc" aria-label="Slot name" value="' + esc(u.desc) + '">' +
+          '<span class="r">' + (si === 0 ? '<span class="lead">Leader</span> ' : "") + esc(u.prefix + u.role) + "</span>" +
+          '<span class="ibtns">' +
+          '<button class="ibtn" type="button" data-a="up" aria-label="Move up"' + (si === 0 ? " disabled" : "") + ">↑</button>" +
+          '<button class="ibtn" type="button" data-a="down" aria-label="Move down"' + (si === g.slots.length - 1 ? " disabled" : "") + ">↓</button>" +
+          '<button class="ibtn" type="button" data-a="del" aria-label="Remove slot">×</button></span></div>';
+      }).join("");
+      const hq = gi === 0;
+      return '<div class="dgrp' + (gi === design.active ? " active" : "") + '" data-g="' + gi + '"><div class="grp-head">' + symbol(hq) +
+        '<div><div class="cs-big">1\'' + gi + '</div><div class="grp-kind">' + (hq ? "Platoon HQ" : "Squad " + gi) + " · " + g.slots.length + " slots</div></div>" +
+        '<div class="dgrp-actions"><span class="chan">PRC-343 CH ' + channelFor(gi, n) + "</span>" +
+        '<button class="tbtn" type="button" data-a="pick" aria-pressed="' + (gi === design.active) + '">' + (gi === design.active ? "Adding here" : "Add units here") + "</button>" +
+        (hq ? "" : '<button class="tbtn" type="button" data-a="dup">Duplicate</button><button class="tbtn" type="button" data-a="rm">Remove</button>') +
+        "</div></div>" + (rows || '<p class="empty">Pick units from the list on the left.</p>') + "</div>";
+    }).join("");
+    const iss = customIssues();
+    $("d-issues").innerHTML = iss.map((x) => "<li>" + esc(x) + "</li>").join("");
+    $("d-use").disabled = iss.length > 0;
+    $("d-add").disabled = design.groups.length - 1 >= MAX_SQUADS;
+  }
+
+  $("dgroups").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-a]");
+    if (!b) return;
+    const gEl = b.closest("[data-g]"), gi = Number(gEl.dataset.g), a = b.dataset.a;
+    const g = design.groups[gi];
+    if (a === "pick") design.active = gi;
+    else if (a === "dup") { design.groups.splice(gi + 1, 0, { slots: g.slots.map((u) => Object.assign({}, u)) }); design.active = gi + 1; }
+    else if (a === "rm") { design.groups.splice(gi, 1); design.active = Math.min(design.active, design.groups.length - 1); }
+    else {
+      const si = Number(b.closest(".srow").dataset.s);
+      if (a === "del") g.slots.splice(si, 1);
+      if (a === "up" && si > 0) [g.slots[si - 1], g.slots[si]] = [g.slots[si], g.slots[si - 1]];
+      if (a === "down" && si < g.slots.length - 1) [g.slots[si + 1], g.slots[si]] = [g.slots[si], g.slots[si + 1]];
+    }
+    saveDesign(); render();
+  });
+  $("dgroups").addEventListener("change", (e) => {
+    if (e.target.dataset.a !== "color") return;
+    const r = e.target.closest(".srow");
+    design.groups[Number(r.dataset.g)].slots[Number(r.dataset.s)].color = e.target.value;
+    saveDesign(); render();
+  });
+  $("dgroups").addEventListener("input", (e) => {
+    if (e.target.dataset.a !== "desc") return;
+    const r = e.target.closest(".srow");
+    design.groups[Number(r.dataset.g)].slots[Number(r.dataset.s)].desc = e.target.value.replace(/@/g, "");
+    saveDesign(); renderUnits(); renderManifest();
+  });
+  $("d-name").addEventListener("input", (e) => { design.name = e.target.value; saveDesign(); renderUnits(); renderManifest(); updateSettings(); });
+  $("d-add").addEventListener("click", () => { design.groups.push({ slots: [] }); design.active = design.groups.length - 1; saveDesign(); render(); });
+  $("d-start").innerHTML = '<option value="">Empty HQ + 1 squad</option>' + prefixes.map((p) => '<option value="' + p + '">' + esc(LIB.packages[p].name) + "</option>").join("");
+  $("d-load").addEventListener("click", () => {
+    const p = $("d-start").value;
+    if (!p) design.groups = [{ slots: [] }, { slots: [] }];
+    else design.groups = LIB.packages[p].groups.map((g) => ({ slots: g.units.map((u) => slotFrom(Object.assign({ prefix: p }, u))) }));
+    design.active = 0;
+    saveDesign(); render();
+  });
+  $("d-use").addEventListener("click", () => { state.source = "custom"; remember(); location.hash = "#units"; render(); });
+
+  // Build an Eden composition for the custom design, in the same shape Eden saves.
+  const sqmStr = (s) => '"' + String(s).replace(/"/g, '""') + '"';
+  const ACRE_EXPR = '"_this setVariable [""acre_sys_radio_setup"", _value, true]"';
+  const acreValue = (ch) => sqmStr('[["ACRE_PRC343",[1,' + ch + ']],["ACRE_PRC152",1],["ACRE_PRC117F",1]]');
+  const safeName = () => (design.name.trim() || "Custom platoon").replace(/[@"]/g, "");
+  function customComp() {
+    const n = design.groups.length - 1, out = [];
+    let id = 0;
+    const put = (d, s) => out.push("\t".repeat(d) + s);
+    const label = "HQ + " + n + " squad" + (n === 1 ? "" : "s");
+    put(0, "version=54;"); put(0, "center[]={0,0,0};"); put(0, "class items"); put(0, "{"); put(1, "items=1;");
+    put(1, "class Item0"); put(1, "{"); put(2, 'dataType="Layer";'); put(2, "name=" + sqmStr("CUSTOM | " + safeName() + " | " + label) + ";");
+    put(2, "class Entities"); put(2, "{"); put(3, "items=" + design.groups.length + ";");
+    design.groups.forEach((g, gi) => {
+      const ch = channelFor(gi, n), gid = id++;
+      put(3, "class Item" + gi); put(3, "{"); put(4, 'dataType="Group";'); put(4, 'side="West";');
+      put(4, "class Entities"); put(4, "{"); put(5, "items=" + g.slots.length + ";");
+      g.slots.forEach((u, si) => {
+        const color = forcedColor(u.role, u.color);
+        let init = "[this, " + '"' + u.prefix + u.role + '"' + "] call FNC_GearScript;";
+        if (color) init += ' [this, "' + color + '"] call FNC_Autocolor;';
+        let desc = String(u.desc || "").replace(/@/g, "").trim() || u.role;
+        if (si === 0) desc += "@1'" + gi;
+        const x = (si - (g.slots.length - 1) / 2) * 2, z = -gi * 8;
+        put(5, "class Item" + si); put(5, "{"); put(6, 'dataType="Object";');
+        put(6, "class PositionInfo"); put(6, "{"); put(7, "position[]={" + x + ",0," + z + "};"); put(7, "angles[]={0,3.1415927,0};"); put(6, "};");
+        put(6, 'side="West";'); put(6, "flags=" + (si === 0 ? 7 : 5) + ";");
+        put(6, "class Attributes"); put(6, "{");
+        if (u.rank) put(7, "rank=" + sqmStr(u.rank) + ";");
+        put(7, "init=" + sqmStr(init) + ";"); put(7, "description=" + sqmStr(desc) + ";"); put(7, "isPlayable=1;");
+        put(7, "class Inventory"); put(7, "{"); put(7, "};"); put(6, "};");
+        put(6, "id=" + (id++) + ";"); put(6, "type=" + sqmStr(u.type) + ";");
+        put(6, "class CustomAttributes"); put(6, "{"); put(7, "class Attribute0"); put(7, "{");
+        put(8, 'property="acre_sys_radio_edenSetup";'); put(8, "expression=" + ACRE_EXPR + ";");
+        put(8, "class Value"); put(8, "{"); put(9, "class data"); put(9, "{"); put(10, 'singleType="STRING";'); put(10, "value=" + acreValue(ch) + ";");
+        put(9, "};"); put(8, "};"); put(7, "};"); put(7, "nAttributes=1;"); put(6, "};");
+        put(5, "};");
       });
+      put(4, "};"); put(4, "class Attributes"); put(4, "{"); put(4, "};"); put(4, "id=" + gid + ";"); put(3, "};");
     });
-    $("s-mtime").checked = sett.mtime; $("s-itime").checked = sett.itime;
-    $("s-mtime").addEventListener("change", (e) => { sett.mtime = e.target.checked; touched(); });
-    $("s-itime").addEventListener("change", (e) => { sett.itime = e.target.checked; touched(); });
-    $("s-maxp-auto").addEventListener("click", () => { sett.maxEdited = false; sett.v.maxp = ""; saveSett(); updateSettings(); });
-    $("s-screen-auto").addEventListener("click", () => { sett.screenEdited = false; sett.v.screen = ""; saveSett(); updateSettings(); });
-    $("s-image").addEventListener("change", (e) => {
-      const f = e.target.files && e.target.files[0];
-      if (!f) return;
-      if (!/\.(jpe?g|paa)$/i.test(f.name)) { $("s-image-note").textContent = "Arma loading screens need a .jpg or .paa file."; e.target.value = ""; return; }
-      shot = { name: f.name.replace(/[^\w.\-]+/g, "_"), blob: f };
-      sett.screenEdited = false; sett.v.screen = "";
-      touched();
-    });
-    $("sform").addEventListener("submit", (e) => e.preventDefault());
-    $("set-inc").addEventListener("change", (e) => { sett.include = e.target.checked; sett.includeTouched = true; saveSett(); updateSettings(); });
-    $("s-copy").addEventListener("click", () => {
-      const sel = () => { const r = document.createRange(); r.selectNodeContents($("s-out")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
-      try { navigator.clipboard.writeText(genSettings()).then(() => { $("s-copy").textContent = "Copied"; setTimeout(() => ($("s-copy").textContent = "Copy"), 1500); }, sel); }
-      catch (e) { sel(); }
-    });
-    let armed = 0;
-    $("s-clear").addEventListener("click", () => {
-      if (Date.now() - armed < 3000) {
-        armed = 0; shot = null; $("s-image").value = "";
-        Object.assign(sett, { v: {}, mtime: false, itime: false, maxEdited: false, screenEdited: false, include: false, includeTouched: false });
-        SF.forEach((k) => { if (k !== "gametype") $("s-" + k).value = ""; });
-        $("s-gametype").value = "Coop"; $("s-mtime").checked = false; $("s-itime").checked = false;
-        saveSett(); updateSettings(); $("s-clear").textContent = "Clear";
-      } else {
-        armed = Date.now(); $("s-clear").textContent = "Click again to clear";
-        setTimeout(() => { if (armed && Date.now() - armed >= 3000) { armed = 0; $("s-clear").textContent = "Clear"; } }, 3100);
-      }
-    });
+    put(2, "};"); put(2, "id=" + (id++) + ";"); put(1, "};"); put(0, "};");
+    const addons = [...new Set(prefixesNow().flatMap((p) => LIB.packages[p].requiredAddons))];
+    const header = ["version=54;", "name=" + sqmStr("Custom - " + safeName() + " - " + label) + ";", "author=" + sqmStr(LIB.author) + ";",
+      "category=" + sqmStr(LIB.category) + ";", "requiredAddons[]=", "{"].concat(addons.map((a, i) => '\t"' + a + '"' + (i < addons.length - 1 ? "," : "")), ["};"]);
+    const folder = ("JANTAC CUSTOM " + safeName().replace(/[^\w \-]+/g, "").trim()).slice(0, 60).trim();
+    return { folder, name: "Custom - " + safeName() + " - " + label, header: header.join("\r\n") + "\r\n", composition: out.join("\r\n") + "\r\n" };
   }
+  window.__jantacCustom = { comp: customComp, design, issues: customIssues }; // exposed for testing
 
-  // ---- briefing ----------------------------------------------------------------
+  // ---- briefing ----------------------------------------------------------------------------
   const BF = ["title", "background", "weather", "intent", "primary", "secondary", "fcomp", "fdisp", "fpid",
     "ecomp", "edisp", "civ", "epid", "exec", "support", "lr", "signal", "modules", "author", "fw", "co"];
-  const brief = { v: {}, fcompEdited: false, include: false, includeTouched: false };
-  try {
-    const s = JSON.parse(localStorage.getItem("jantac-brief") || "null");
-    if (s && s.v) Object.assign(brief, s);
-  } catch (e) { /* storage unavailable */ }
-  const saveBrief = () => { try { localStorage.setItem("jantac-brief", JSON.stringify(brief)); } catch (e) {} };
-  const autoComp = () => { const n = state.n[state.prefix]; return n + "x squad" + (n > 1 ? "s" : "") + " of infantry with a 1x PLT HQ."; };
+  const brief = Object.assign({ v: {}, fcompEdited: false, include: false, includeTouched: false }, load("jantac-brief") || {});
+  const saveBrief = () => store("jantac-brief", brief);
+  const autoComp = () => { const n = squadsNow(); return n + "x squad" + (n === 1 ? "" : "s") + " of infantry with a 1x PLT HQ."; };
   const radioLines = () => {
-    const n = state.n[state.prefix], out = [];
+    const n = squadsNow(), out = [];
     for (let k = 1; k <= n; k++) out.push("1'" + k + " on 343 channel " + k);
     out.push("1'0 on 343 channel " + (n + 1));
     return out;
   };
-  const coClass = () => { const hq = pkg().groups.find((g) => g.squad === 0); return (hq && hq.units[0] && hq.units[0].type) || "B_officer_F"; };
   const hasContent = () => BF.some((k) => k !== "fcomp" && (brief.v[k] || "").trim());
 
   // Briefing text sits inside a string the preprocessor cannot see, so typed text is made safe:
@@ -668,7 +929,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     out.push('NEWTAB("' + ROMAN[i++] + '. Mission notes:")', "<br />", ...notes, "<br />", "ENDTAB;", "");
     if (v("co")) {
       out.push("//Only the platoon commander's unit class gets this tab.", "_unit = player;", "",
-        "switch (typeOf _unit) do {", 'case "' + coClass() + '": {', 'NEWTAB("CO Briefing Meta:")',
+        "switch (typeOf _unit) do {", "case " + sqmStr(coClassNow()) + ": {", 'NEWTAB("CO Briefing Meta:")',
         "<font color='#f44336' size='18' face='PuristaBold'>This tab is only visible to CO, please don't share the information.</font><br/>",
         ...sqfLines(v("co")), "ENDTAB;", "};", "};", "");
     }
@@ -681,9 +942,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (!brief.fcompEdited) $("b-fcomp").value = autoComp();
     $("b-fcomp-auto").hidden = !brief.fcompEdited;
     $("b-radios").textContent = (brief.v.lr || "All squads on LR channel 1") + "\n" + radioLines().join("\n");
-    $("b-co-class").textContent = "unit class " + coClass();
+    $("b-co-class").textContent = "unit class " + coClassNow();
     $("b-out").textContent = genBriefing();
-    $("brief-inc").checked = brief.include;
     $("b-status").textContent = brief.include
       ? "Included in your download and in “Add to a mission…”. It replaces the mission's briefing.sqf."
       : "Not included yet. Tick “Include briefing.sqf” on the Units tab to add it.";
@@ -697,43 +957,148 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         brief.v[k] = el.value;
         if (k === "fcomp") brief.fcompEdited = true;
         if (!brief.includeTouched && hasContent()) brief.include = true;
-        saveBrief(); updateBriefing();
+        saveBrief(); updateBriefing(); renderManifest();
         if (k === "title") updateSettings();
       });
     });
     $("bform").addEventListener("submit", (e) => e.preventDefault());
     $("b-fcomp-auto").addEventListener("click", () => { brief.fcompEdited = false; brief.v.fcomp = ""; saveBrief(); updateBriefing(); });
-    $("brief-inc").addEventListener("change", (e) => { brief.include = e.target.checked; brief.includeTouched = true; saveBrief(); updateBriefing(); });
-    $("b-copy").addEventListener("click", () => {
-      const sel = () => { const r = document.createRange(); r.selectNodeContents($("b-out")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
-      try { navigator.clipboard.writeText(genBriefing()).then(() => { $("b-copy").textContent = "Copied"; setTimeout(() => ($("b-copy").textContent = "Copy"), 1500); }, sel); }
-      catch (e) { sel(); }
-    });
-    let armed = 0;
-    $("b-clear").addEventListener("click", () => {
-      if (Date.now() - armed < 3000) {
-        armed = 0; brief.v = {}; brief.fcompEdited = false; brief.include = false; brief.includeTouched = false;
-        BF.forEach((k) => ($("b-" + k).value = ""));
-        saveBrief(); updateBriefing(); $("b-clear").textContent = "Clear";
-      } else {
-        armed = Date.now(); $("b-clear").textContent = "Click again to clear";
-        setTimeout(() => { if (armed && Date.now() - armed >= 3000) { armed = 0; $("b-clear").textContent = "Clear"; } }, 3100);
-      }
+    $("brief-inc").addEventListener("change", (e) => { brief.include = e.target.checked; brief.includeTouched = true; saveBrief(); updateBriefing(); renderManifest(); });
+    bindCopy("b-copy", "b-out", genBriefing);
+    bindClear("b-clear", () => {
+      Object.assign(brief, { v: {}, fcompEdited: false, include: false, includeTouched: false });
+      BF.forEach((k) => ($("b-" + k).value = ""));
+      saveBrief(); updateBriefing(); renderManifest();
     });
   }
 
+  // ---- mission settings -----------------------------------------------------------------------
+  const SF = ["name", "loadmsg", "intro", "screen", "gametype", "minp", "maxp"];
+  const sett = Object.assign({ v: {}, mtime: false, itime: false, maxEdited: false, screenEdited: false, include: false, includeTouched: false }, load("jantac-settings") || {});
+  const saveSett = () => store("jantac-settings", sett);
+  let shot = null; // the loading image chosen this visit: {name, blob}
+  const hppStr = (s) => '"' + String(s).replace(/[\r\n]+/g, " ").replace(/"/g, '""') + '"';
+  function screenPath() {
+    if (shot && !sett.screenEdited) return "images\\" + shot.name;
+    return (sett.v.screen || "").trim();
+  }
+  const settName = () => (sett.v.name || "").trim() || (brief.v.title || "").trim() || "Untitled mission";
+  const maxPlayers = () => (sett.maxEdited ? posInt(sett.v.maxp, maxAuto() || 1) : maxAuto() || 1);
+
+  function genSettings() {
+    const v = (k) => (sett.v[k] || "").trim();
+    const scr = screenPath();
+    return [
+      "onLoadName \t\t\t\t= " + hppStr(settName()) + ";",
+      "onLoadMission\t\t\t= " + hppStr(v("loadmsg")) + ";\t// Displays a message while the mission is loading.",
+      "onLoadIntro\t\t\t\t= " + hppStr(v("intro") || "Made with JANFU Mission Framework v1.54") + ";\t// Displays a message while the intro is loading.",
+      "onLoadMissionTime\t\t= " + (sett.mtime ? 1 : 0) + ";\t// Define whether you will see the time and date displayed while the mission loads.",
+      "onLoadIntroTime\t\t\t= " + (sett.itime ? 1 : 0) + ";\t// Define whether you will see the time and date displayed while the intro loads.",
+      scr ? "loadScreen = " + hppStr(scr) + "; //Sets the image displayed during the loading screen"
+          : '//loadScreen = "images\\loading.jpg"; //Sets the image displayed during the loading screen',
+      "",
+      "class Header {",
+      "\t",
+      "\tgameType = " + (v("gametype") === "TDM" ? "TDM" : "Coop") + ";  //Coop for a COOP mission, TDM for a TVT",
+      "\tminPlayers = " + posInt(v("minp"), 1) + ";",
+      "\tmaxPlayers = " + maxPlayers() + "; //maxPlayers must always be accurate to the amount of playable units, this includes the headless client game logic",
+      "\t",
+      "};",
+      "",
+    ].join("\r\n");
+  }
+  window.__jantacSettings = { gen: genSettings, sett }; // exposed for testing
+
+  function updateSettings() {
+    const auto = maxAuto();
+    if (!sett.maxEdited) $("s-maxp").value = auto || "";
+    $("s-maxp-auto").hidden = !sett.maxEdited;
+    let note;
+    if (state.source === "own") note = auto ? auto + " playable slots, from the Units tab." : "Enter your mission's playable slots on the Units tab, or type the number here.";
+    else note = slotsNow() + " player slots" + (state.sys ? " + 1 headless client" : "") + ", from the Units tab.";
+    if (sett.maxEdited && auto && maxPlayers() !== auto) note = "Your units have " + auto + " playable slots including the headless client. maxPlayers must match.";
+    $("s-maxp-note").textContent = note;
+    if (!sett.screenEdited) $("s-screen").value = shot ? "images\\" + shot.name : (sett.v.screen || "");
+    $("s-screen-auto").hidden = !(shot && sett.screenEdited);
+    $("s-name-aux").textContent = !(sett.v.name || "").trim() && (brief.v.title || "").trim() ? "using the briefing title" : "";
+    $("s-image-note").textContent = shot
+      ? "Added " + shot.name + " (" + Math.round(shot.blob.size / 1024) + " KB). It goes into the mission's images folder. Add it again if you reload the page."
+      : "Optional. The image is copied into the mission's images folder.";
+    $("s-out").textContent = genSettings();
+    $("s-status").textContent = sett.include
+      ? "Included in your download and in “Add to a mission…”. It replaces the mission's missionSettings.hpp."
+      : "Not included yet. Tick “Include missionSettings.hpp” on the Units tab to add it.";
+  }
+
+  function bindSettings() {
+    const touched = () => { if (!sett.includeTouched) sett.include = true; saveSett(); updateSettings(); renderManifest(); };
+    SF.forEach((k) => {
+      const el = $("s-" + k);
+      if (k === "gametype") el.value = sett.v.gametype === "TDM" ? "TDM" : "Coop";
+      else if ((k !== "maxp" || sett.maxEdited) && k !== "screen") el.value = sett.v[k] || "";
+      el.addEventListener(k === "gametype" ? "change" : "input", () => {
+        sett.v[k] = el.value;
+        if (k === "maxp") sett.maxEdited = true;
+        if (k === "screen") sett.screenEdited = true;
+        touched();
+      });
+    });
+    $("s-mtime").checked = sett.mtime; $("s-itime").checked = sett.itime;
+    $("s-mtime").addEventListener("change", (e) => { sett.mtime = e.target.checked; touched(); });
+    $("s-itime").addEventListener("change", (e) => { sett.itime = e.target.checked; touched(); });
+    $("s-maxp-auto").addEventListener("click", () => { sett.maxEdited = false; sett.v.maxp = ""; saveSett(); updateSettings(); });
+    $("s-screen-auto").addEventListener("click", () => { sett.screenEdited = false; sett.v.screen = ""; saveSett(); updateSettings(); });
+    $("s-image").addEventListener("change", (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      if (!/\.(jpe?g|paa)$/i.test(f.name)) { $("s-image-note").textContent = "Arma loading screens need a .jpg or .paa file."; e.target.value = ""; return; }
+      shot = { name: f.name.replace(/[^\w.\-]+/g, "_"), blob: f };
+      sett.screenEdited = false; sett.v.screen = "";
+      touched();
+    });
+    $("sform").addEventListener("submit", (e) => e.preventDefault());
+    $("set-inc").addEventListener("change", (e) => { sett.include = e.target.checked; sett.includeTouched = true; saveSett(); updateSettings(); renderManifest(); });
+    bindCopy("s-copy", "s-out", genSettings);
+    bindClear("s-clear", () => {
+      shot = null; $("s-image").value = "";
+      Object.assign(sett, { v: {}, mtime: false, itime: false, maxEdited: false, screenEdited: false, include: false, includeTouched: false });
+      SF.forEach((k) => { if (k !== "gametype") $("s-" + k).value = ""; });
+      $("s-gametype").value = "Coop"; $("s-mtime").checked = false; $("s-itime").checked = false;
+      saveSett(); updateSettings(); renderManifest();
+    });
+  }
+
+  // ---- shared buttons ----------------------------------------------------------------------------
+  function bindCopy(btnId, preId, textFn) {
+    $(btnId).addEventListener("click", () => {
+      const sel = () => { const r = document.createRange(); r.selectNodeContents($(preId)); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+      try { navigator.clipboard.writeText(textFn()).then(() => { $(btnId).textContent = "Copied"; setTimeout(() => ($(btnId).textContent = "Copy"), 1500); }, sel); }
+      catch (e) { sel(); }
+    });
+  }
+  function bindClear(btnId, doClear) {
+    let armed = 0;
+    $(btnId).addEventListener("click", () => {
+      if (Date.now() - armed < 3000) { armed = 0; doClear(); $(btnId).textContent = "Clear"; }
+      else {
+        armed = Date.now(); $(btnId).textContent = "Click again to clear";
+        setTimeout(() => { if (armed && Date.now() - armed >= 3000) { armed = 0; $(btnId).textContent = "Clear"; } }, 3100);
+      }
+    });
+  }
+  bindCopy("copy", "incl", () => $("incl").textContent);
+
+  // ---- views ---------------------------------------------------------------------------------------
   function route() {
-    const view = { "#briefing": "briefing", "#mission-settings": "settings" }[location.hash] || "units";
-    ["units", "briefing", "settings"].forEach((v) => {
+    const view = { "#briefing": "briefing", "#mission-settings": "settings", "#custom-units": "custom" }[location.hash] || "units";
+    ["units", "custom", "briefing", "settings"].forEach((v) => {
       $("view-" + v).hidden = v !== view;
       $("tab-" + v).setAttribute("aria-current", v === view ? "page" : "false");
     });
   }
   window.addEventListener("hashchange", route);
 
-  $("sys").addEventListener("change", (e) => { state.sys = e.target.checked; remember(); render(); });
-
-  // ---- gear.sqf ----------------------------------------------------------------
+  // ---- gear.sqf ------------------------------------------------------------------------------------
   // Adds the include inside switch(_type); uncomments it if present but commented.
   function addInclude(text, file) {
     const nl = text.includes("\r\n") ? "\r\n" : "\n";
@@ -757,49 +1122,43 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   }
   window.__jantacAddInclude = addInclude; // exposed for testing
 
-  function gearFor(file) {
-    const base = LIB.gearTemplate.split(/\r?\n/).filter((l) => !/^\s*(\/\/+\s*)?#include\s+"loadouts\\/i.test(l)).join("\r\n");
-    return addInclude(base, file).text;
+  function gearFor(files) {
+    let t = LIB.gearTemplate.split(/\r?\n/).filter((l) => !/^\s*(\/\/+\s*)?#include\s+"loadouts\\/i.test(l)).join("\r\n");
+    files.forEach((f) => { t = addInclude(t, f).text; });
+    return t;
   }
 
-  // ---- zip ---------------------------------------------------------------------
-  function selectedComps() {
-    const list = [compFor(state.prefix, state.n[state.prefix])];
-    if (state.sys) list.push(LIB.system);
-    return list;
-  }
+  // ---- zip ---------------------------------------------------------------------------------------------
   function installText() {
-    const P = pkg(), n = state.n[state.prefix];
-    return [
-      "JANTAC Unit Library - " + P.name + " - HQ + " + n + " squads", LIB.build, "",
-      "1. Copy the folders in 'compositions' into your Arma profile's compositions folder:",
-      "   Documents\\Arma 3 - Other Profiles\\<profile>\\compositions   (or Documents\\Arma 3\\compositions)",
-      "   If Documents is in OneDrive: OneDrive\\Documents\\...",
-      "2. Copy customization\\loadouts\\" + P.loadout + " into your mission's customization\\loadouts folder.",
-      "3. In your mission's customization\\gear.sqf, inside switch (_type) do { ... }, add:",
-      "      " + includeLine(P.loadout),
-      "   (Or use the gear.sqf in this zip if your mission has no custom gear lines.)",
-      "4. In Eden: Compositions > JANTAC Mission Framework > " + compFor(state.prefix, n).name,
-    ].concat(sett.include ? [
-      "5. Copy customization\\missionSettings.hpp over your mission's customization\\missionSettings.hpp" +
-        (shot ? ", and the images folder into the mission folder." : "."),
-    ] : [
-      "5. Set maxPlayers in customization\\missionSettings.hpp to " + maxAuto() + " (player slots plus the headless client).",
-    ]).concat(brief.include ? [
-      "6. Copy customization\\briefing.sqf over your mission's customization\\briefing.sqf.",
-    ] : []).concat([
-      "",
-    ]).join("\r\n");
+    const L = loadoutsNow(), comps = compsNow(), own = state.source === "own";
+    const out = ["JANTAC Unit Library - " + unitsTitle(), LIB.build, ""];
+    let k = 1;
+    if (!own) {
+      out.push(k++ + ". Copy the folders in 'compositions' into your Arma profile's compositions folder:",
+        "   Documents\\Arma 3 - Other Profiles\\<profile>\\compositions   (or Documents\\Arma 3\\compositions)",
+        "   If Documents is in OneDrive: OneDrive\\Documents\\...");
+      out.push(k++ + ". Copy " + L.map((P) => "customization\\loadouts\\" + P.loadout).join(" and ") + " into your mission's customization\\loadouts folder.");
+      out.push(k++ + ". In your mission's customization\\gear.sqf, inside switch (_type) do { ... }, add:");
+      L.forEach((P) => out.push("      " + includeLine(P.loadout)));
+      out.push("   (Or use the gear.sqf in this zip if your mission has no custom gear lines.)");
+      out.push(k++ + ". In Eden: Compositions > JANTAC Mission Framework > " + comps[0].name);
+    }
+    if (sett.include) out.push(k++ + ". Copy customization\\missionSettings.hpp over your mission's customization\\missionSettings.hpp" + (shot ? ", and the images folder into the mission folder." : "."));
+    else out.push(k++ + ". Set maxPlayers in customization\\missionSettings.hpp to " + (maxAuto() || "your playable slot count") + (own ? "." : " (player slots plus the headless client)."));
+    if (brief.include) out.push(k++ + ". Copy customization\\briefing.sqf over your mission's customization\\briefing.sqf.");
+    out.push("");
+    return out.join("\r\n");
   }
   async function buildZip() {
-    const P = pkg();
-    const zip = new JSZip();
-    selectedComps().forEach((c) => {
+    const zip = new JSZip(), L = loadoutsNow();
+    compsNow().forEach((c) => {
       zip.file("compositions/" + c.folder + "/header.sqe", c.header);
       zip.file("compositions/" + c.folder + "/composition.sqe", c.composition);
     });
-    zip.file("customization/gear.sqf", gearFor(P.loadout));
-    zip.file("customization/loadouts/" + P.loadout, P.loadoutText);
+    if (L.length) {
+      zip.file("customization/gear.sqf", gearFor(L.map((P) => P.loadout)));
+      L.forEach((P) => zip.file("customization/loadouts/" + P.loadout, P.loadoutText));
+    }
     if (brief.include) zip.file("customization/briefing.sqf", genBriefing());
     if (sett.include) {
       zip.file("customization/missionSettings.hpp", genSettings());
@@ -808,9 +1167,14 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     zip.file("INSTALL.txt", installText());
     return zip.generateAsync({ type: "blob", compression: "DEFLATE" });
   }
-  const zipName = () => "JANTAC " + state.prefix.replace(/_$/, "") + " HQ+" + state.n[state.prefix] + ".zip";
+  function zipName() {
+    const n = squadsNow();
+    if (state.source === "pkg") return "JANTAC " + state.prefix.replace(/_$/, "") + " HQ+" + n + ".zip";
+    if (state.source === "custom") return "JANTAC CUSTOM " + safeName().replace(/[^\w \-]+/g, "").trim() + ".zip";
+    return "JANTAC mission files.zip";
+  }
 
-  // ---- log ---------------------------------------------------------------------
+  // ---- log -------------------------------------------------------------------------------------------------
   function log(kind, msg) {
     const li = document.createElement("li");
     li.innerHTML = '<span class="' + kind + '">' + ({ ok: "✓", warn: "!", err: "✕" }[kind]) + "</span><span></span>";
@@ -819,7 +1183,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   }
   const clearLog = () => ($("log").innerHTML = "");
 
-  // ---- download ----------------------------------------------------------------
+  // ---- download ----------------------------------------------------------------------------------------------
   let downloads = null;
   const hasViewer = typeof window.claude !== "undefined" && window.claude && typeof window.claude.use === "function";
   if (hasViewer) window.claude.use("downloads").then((d) => { downloads = d; }).catch(() => {});
@@ -841,35 +1205,31 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         log("ok", "Downloaded " + zipName());
       }
     } catch (e) { log("err", "Could not build the zip: " + (e && e.message || e)); }
-    finally { b.disabled = false; }
+    finally { renderManifest(); }
   });
 
-  // ---- copy ----------------------------------------------------------------------
-  $("copy").addEventListener("click", () => {
-    const t = $("incl").textContent;
-    const sel = () => { const r = document.createRange(); r.selectNodeContents($("incl")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
-    try { navigator.clipboard.writeText(t).then(() => { $("copy").textContent = "Copied"; setTimeout(() => ($("copy").textContent = "Copy"), 1500); }, sel); }
-    catch (e) { sel(); }
-  });
-
-  // ---- direct install (Chrome / Edge, top-level page only) ---------------------------
+  // ---- direct install (Chrome / Edge, top-level page only) ------------------------------------------------------
   const canFS = typeof window.showDirectoryPicker === "function" && window.self === window.top;
-  if (canFS) {
-    $("inst-comp").hidden = false; $("inst-miss").hidden = false;
-    $("fs-hint").textContent = "Install writes straight into the folders you pick. Nothing else on your computer is touched.";
-  } else {
-    $("fs-hint").textContent = "Open this page in Chrome or Edge from the JANTAC GitHub page to install straight into your folders.";
-  }
+  $("inst-miss").hidden = !canFS;
 
-  async function writeFile(dir, name, text) {
+  async function writeFile(dir, name, data) {
     const fh = await dir.getFileHandle(name, { create: true });
-    const w = await fh.createWritable(); await w.write(text); await w.close();
+    const w = await fh.createWritable(); await w.write(data); await w.close();
   }
   async function readFile(dir, name) {
     try { const fh = await dir.getFileHandle(name); return await (await fh.getFile()).text(); }
     catch (e) { return null; }
   }
   const aborted = (e) => e && e.name === "AbortError";
+  async function replaceWithBackup(dir, name, text, label) {
+    const old = await readFile(dir, name);
+    if (old !== null && old !== text) {
+      await writeFile(dir, name + ".bak", old);
+      log("warn", "Your old " + name + " is saved as " + name + ".bak.");
+    }
+    await writeFile(dir, name, text);
+    log("ok", "Wrote " + label);
+  }
 
   $("inst-comp").addEventListener("click", async () => {
     clearLog();
@@ -878,7 +1238,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     catch (e) { if (!aborted(e)) log("err", "Could not open the folder: " + e.message); return; }
     if (dir.name.toLowerCase() !== "compositions") log("warn", "The folder you picked is '" + dir.name + "', not 'compositions'. Eden only reads compositions from your profile's compositions folder.");
     try {
-      for (const c of selectedComps()) {
+      for (const c of compsNow()) {
         const d = await dir.getDirectoryHandle(c.folder, { create: true });
         await writeFile(d, "header.sqe", c.header);
         await writeFile(d, "composition.sqe", c.composition);
@@ -890,7 +1250,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
   $("inst-miss").addEventListener("click", async () => {
     clearLog();
-    const P = pkg();
+    const L = loadoutsNow();
     let dir;
     try { dir = await window.showDirectoryPicker({ id: "jantac-mission", mode: "readwrite" }); }
     catch (e) { if (!aborted(e)) log("err", "Could not open the folder: " + e.message); return; }
@@ -898,52 +1258,47 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       const isMission = (await readFile(dir, "mission.sqm")) !== null || (await readFile(dir, "description.ext")) !== null;
       if (!isMission) { log("err", "'" + dir.name + "' has no mission.sqm or description.ext. Pick the mission folder itself (e.g. MyMission.Altis)."); return; }
       const cust = await dir.getDirectoryHandle("customization", { create: true });
-      const lo = await cust.getDirectoryHandle("loadouts", { create: true });
-      const old = await readFile(lo, P.loadout);
-      if (old !== null && old !== P.loadoutText) {
-        await writeFile(lo, P.loadout + ".bak", old);
-        log("warn", "Your existing " + P.loadout + " was different. It is saved as " + P.loadout + ".bak.");
-      }
-      await writeFile(lo, P.loadout, P.loadoutText);
-      log("ok", (old === P.loadoutText ? "Already up to date: " : "Copied ") + "customization\\loadouts\\" + P.loadout);
-      const gear = await readFile(cust, "gear.sqf");
-      if (gear === null) {
-        await writeFile(cust, "gear.sqf", gearFor(P.loadout));
-        log("ok", "Created customization\\gear.sqf");
-      } else {
-        const r = addInclude(gear, P.loadout);
-        if (r.action === "failed") log("err", "Could not find switch (_type) do { in gear.sqf. Add this line by hand: " + includeLine(P.loadout));
-        else if (r.action === "present") log("ok", "gear.sqf already includes " + P.loadout);
-        else { await writeFile(cust, "gear.sqf", r.text); log("ok", "gear.sqf: " + (r.action === "added" ? "added " : "uncommented ") + includeLine(P.loadout)); }
-      }
-      if (brief.include) {
-        const nb = genBriefing(), ob = await readFile(cust, "briefing.sqf");
-        if (ob !== null && ob !== nb) {
-          await writeFile(cust, "briefing.sqf.bak", ob);
-          log("warn", "Your old briefing.sqf is saved as briefing.sqf.bak.");
+      if (L.length) {
+        const lo = await cust.getDirectoryHandle("loadouts", { create: true });
+        for (const P of L) {
+          const old = await readFile(lo, P.loadout);
+          if (old !== null && old !== P.loadoutText) {
+            await writeFile(lo, P.loadout + ".bak", old);
+            log("warn", "Your existing " + P.loadout + " was different. It is saved as " + P.loadout + ".bak.");
+          }
+          await writeFile(lo, P.loadout, P.loadoutText);
+          log("ok", (old === P.loadoutText ? "Already up to date: " : "Copied ") + "customization\\loadouts\\" + P.loadout);
         }
-        await writeFile(cust, "briefing.sqf", nb);
-        log("ok", "Wrote customization\\briefing.sqf");
+        const gear = await readFile(cust, "gear.sqf");
+        if (gear === null) {
+          await writeFile(cust, "gear.sqf", gearFor(L.map((P) => P.loadout)));
+          log("ok", "Created customization\\gear.sqf");
+        } else {
+          let text = gear, changed = false;
+          for (const P of L) {
+            const r = addInclude(text, P.loadout);
+            if (r.action === "failed") log("err", "Could not find switch (_type) do { in gear.sqf. Add this line by hand: " + includeLine(P.loadout));
+            else if (r.action === "present") log("ok", "gear.sqf already includes " + P.loadout);
+            else { text = r.text; changed = true; log("ok", "gear.sqf: " + (r.action === "added" ? "added " : "uncommented ") + includeLine(P.loadout)); }
+          }
+          if (changed) await writeFile(cust, "gear.sqf", text);
+        }
       }
+      if (brief.include) await replaceWithBackup(cust, "briefing.sqf", genBriefing(), "customization\\briefing.sqf");
       if (sett.include) {
-        const ns = genSettings(), os = await readFile(cust, "missionSettings.hpp");
-        if (os !== null && os !== ns) {
-          await writeFile(cust, "missionSettings.hpp.bak", os);
-          log("warn", "Your old missionSettings.hpp is saved as missionSettings.hpp.bak.");
-        }
-        await writeFile(cust, "missionSettings.hpp", ns);
-        log("ok", "Wrote customization\\missionSettings.hpp (maxPlayers " + maxPlayers() + ")");
+        await replaceWithBackup(cust, "missionSettings.hpp", genSettings(), "customization\\missionSettings.hpp (maxPlayers " + maxPlayers() + ")");
         if (shot) {
           const img = await dir.getDirectoryHandle("images", { create: true });
           await writeFile(img, shot.name, shot.blob);
           log("ok", "Copied images\\" + shot.name);
         }
-      } else {
-        log("ok", "Set maxPlayers in customization\\missionSettings.hpp to " + maxAuto() + " (player slots plus the headless client).");
+      } else if (maxAuto()) {
+        log("ok", "Set maxPlayers in customization\\missionSettings.hpp to " + maxAuto() + (state.source === "own" ? "." : " (player slots plus the headless client)."));
       }
     } catch (e) { log("err", "Update failed: " + e.message); }
   });
 
+  renderPalette();
   bindBriefing();
   bindSettings();
   route();

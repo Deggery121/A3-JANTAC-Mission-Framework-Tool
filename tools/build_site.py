@@ -91,7 +91,7 @@ def main():
                 role = re.search(r'"' + re.escape(prefix) + r'(\w+)"\] call FNC_GearScript', init).group(1)
                 color = re.search(r'"(RED|BLUE|GREEN)"\] call FNC_Autocolor', init)
                 units.append({"desc": desc.split("@")[0], "role": role, "color": color.group(1) if color else "",
-                              "type": val(u["body"], "type")})
+                              "type": val(u["body"], "type"), "rank": val(a, "rank") or ""})
             groups.append({"squad": squad, "units": units})
         groups.sort(key=lambda g: g["squad"])
         max_sq = max(g["squad"] for g in groups)
@@ -99,6 +99,7 @@ def main():
         packages[prefix] = {
             "name": cfg["name"],
             "loadout": cfg["loadout"],
+            "requiredAddons": cfg["requiredAddons"],
             "loadoutText": read(os.path.join(MASTER, "customization", "loadouts", cfg["loadout"])),
             "maxSquads": max_sq,
             "groups": groups,
@@ -106,6 +107,8 @@ def main():
         }
     lib = {
         "build": build_label(),
+        "author": CONFIG["author"],
+        "category": CONFIG["category"],
         "packages": packages,
         "system": comp(CONFIG["infrastructure"]["folder"]),
         "gearTemplate": read(os.path.join(MASTER, "customization", "gear.sqf")),
