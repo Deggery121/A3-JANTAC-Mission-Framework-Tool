@@ -19,7 +19,8 @@
         "A3_Characters_F",
         "A3_Characters_F_Tank"
       ],
-      "by": "Kelly"
+      "by": "Kelly",
+      "description": "1980s British \u00b7 DPM, FAL, L7A2, Carl Gustaf"
     },
     "USARMYEAR_": {
       "name": "US army early 2000s",
@@ -28,7 +29,8 @@
         "A3_Characters_F",
         "A3_Characters_F_Exp"
       ],
-      "by": "Deggery"
+      "by": "Deggery",
+      "description": "Early 2000s US Army \u00b7 UCP, M4A1, M249"
     },
     "USMIL_": {
       "name": "1980s US Army",
@@ -37,7 +39,8 @@
         "A3_Characters_F",
         "A3_Characters_F_Exp"
       ],
-      "by": "Deggery"
+      "by": "Deggery",
+      "description": "1980s US Army \u00b7 M81 woodland, M16A2, M249"
     }
   }
 }

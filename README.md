@@ -92,7 +92,8 @@ same side; the checker enforces this.
 
 1. Add the loadout file to `customization/loadouts/` and its `#include` to `gear.sqf`.
 2. Build the platoon in the master mission on its own layer, following the rules above.
-3. Add the prefix to `packages.json`.
+3. Add the prefix to `packages.json` with its `name`, `loadout`, `requiredAddons`, `by` (author)
+   and a short `description` of the gear (shown under the package name on the page).
 4. Push and check the build.
 
 ## Credits

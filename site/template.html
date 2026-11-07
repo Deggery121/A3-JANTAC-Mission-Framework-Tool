@@ -95,7 +95,9 @@ h1 .cs { color: var(--friendly); }
 .pkg[aria-current="true"] .radio::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--friendly); }
 .pkg-name { font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.15; }
 .pkg-meta { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
-.pkg-slots { font-family: var(--font-mono); font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pkg-slots { font-family: var(--font-mono); font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; text-align: right; display: flex; flex-direction: column; gap: 2px; }
+.pkg-slots .file { font-size: 12px; opacity: .85; }
+.pkg-desc { font-family: var(--font-body); font-size: 13.5px; color: var(--muted); }
 
 .pkg-body { border-top: 1px solid var(--line); padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 14px; }
 .squad-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
@@ -553,7 +555,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   (() => {
     const s = load("jantac-sel");
     if (!s) return;
-    if (["pkg", "custom", "own"].includes(s.source)) state.source = s.source;
+    if (["pkg", "custom", "own", "none"].includes(s.source)) state.source = s.source;
     if (LIB.packages[s.prefix]) state.prefix = s.prefix;
     if (s.n) Object.keys(s.n).forEach((p) => { if (LIB.packages[p]) state.n[p] = Math.min(posInt(s.n[p], 1), LIB.packages[p].maxSquads); });
     state.sys = s.sys !== false;
@@ -595,17 +597,20 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   function squadsNow() {
     if (state.source === "pkg") return state.n[state.prefix];
     if (state.source === "custom") return design.groups.length - 1;
+    if (state.source === "none") return 0;
     return Math.min(posInt(state.own.squads, 1), MAX_SQUADS);
   }
   function sideNow() {
     if (state.source === "pkg") return sideOf(state.prefix);
     if (state.source === "custom") return design.side;
+    if (state.source === "none") return SIDES[state.branch] ? state.branch : "West";
     return state.own.side;
   }
   if (!state.branch) state.branch = state.source === "pkg" ? sideOf(state.prefix) : "custom";
   const slotsNow = () => groupsNow().reduce((a, g) => a + g.units.length, 0);
   function maxAuto() {
     if (state.source === "own") return posInt(state.own.slots, 0);
+    if (state.source === "none") return 0;
     return slotsNow() + (state.sys ? 1 : 0);
   }
   function prefixesNow() {
@@ -630,6 +635,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     const n = squadsNow(), sq = "HQ + " + n + " squad" + (n === 1 ? "" : "s");
     if (state.source === "pkg") return pkg().name + " — " + sq;
     if (state.source === "custom") return safeName() + " — " + sq;
+    if (state.source === "none") return "Nothing selected";
     return "Your own units — " + sq;
   }
 
@@ -679,6 +685,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   function sourceLabel() {
     if (state.source === "pkg") return pkg().name + " (" + SIDES[sideOf(state.prefix)].label + ")";
     if (state.source === "custom") return safeName() + " (custom, " + SIDES[design.side].label + ")";
+    if (state.source === "none") return "nothing";
     return "My mission already has units (" + SIDES[state.own.side].label + ")";
   }
   function renderBranches() {
@@ -691,7 +698,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("branches").querySelectorAll(".branch").forEach((b) => b.addEventListener("click", () => {
       state.branch = b.dataset.b; remember(); renderUnits();
     }));
-    const inBranch = state.branch === "custom" ? state.source !== "pkg" : state.source === "pkg" && sideOf(state.prefix) === state.branch;
+    const inBranch = state.source === "none" ? true : state.branch === "custom" ? state.source !== "pkg" : state.source === "pkg" && sideOf(state.prefix) === state.branch;
     $("picked").hidden = inBranch;
     $("picked").innerHTML = "Selected for this mission: <b>" + esc(sourceLabel()) + "</b>.";
   }
@@ -710,7 +717,9 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         body = '<div class="squad-pick"><span class="lbl">Squads under 1\'0</span><div class="seg" role="group" aria-label="Number of squads">' + seg + "</div></div>" +
           orbat(groupsNow(), n);
       }
-      return card("pkg:" + p, on, esc(P.name) + (P.by ? '<span class="by">By ' + esc(P.by) + "</span>" : ""), "<span>" + esc(p) + "</span><span>" + esc(P.loadout) + "</span>", slots + " slots", body);
+      return card("pkg:" + p, on, esc(P.name) + (P.by ? '<span class="by">By ' + esc(P.by) + "</span>" : ""),
+        '<span class="pkg-desc">' + esc(P.description || P.loadout) + "</span>",
+        "<span>" + slots + ' slots</span><span class="file">' + esc(P.loadout) + "</span>", body);
     }).join("");
     if (showSide && !sidePkgs.length) {
       html = '<div class="branch-empty"><b>No ' + SIDES[showSide].label + " packages yet.</b> " +
@@ -731,7 +740,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         orbat(groupsNow(), squadsNow());
     }
     html += card("custom", cOn, esc(safeName()) + '<span class="side-tag ' + design.side + '">' + SIDES[design.side].label + "</span>",
-      "<span>Custom platoon · built in the Custom units tab</span>" + (cPre.length ? "<span>" + esc(cPre.join(" ")) + "</span>" : ""), cSlots + " slots", cBody);
+      '<span class="pkg-desc">Custom platoon · built in the Custom units tab</span>',
+      "<span>" + cSlots + " slots</span>" + cPre.map((p) => '<span class="file">' + esc(LIB.packages[p].loadout) + "</span>").join(""), cBody);
 
     const oOn = state.source === "own";
     const sideOpts = Object.keys(SIDES).map((sd) => '<option value="' + sd + '"' + (state.own.side === sd ? " selected" : "") + ">" + SIDES[sd].label + "</option>").join("");
@@ -743,7 +753,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       '<div class="field"><label for="o-co">CO unit class</label><input id="o-co" placeholder="B_officer_F" value="' + esc(state.own.co) + '"></div>' +
       "</div>";
     html += card("own", oOn, "My mission already has units" + '<span class="side-tag ' + state.own.side + '">' + SIDES[state.own.side].label + "</span>",
-      "<span>briefing and settings only</span>", "", oBody);
+      '<span class="pkg-desc">Briefing and mission settings only</span>', "", oBody);
     finishUnits(html);
   }
 
@@ -751,7 +761,10 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("pkgs").innerHTML = html;
     $("pkgs").querySelectorAll(".pkg-head").forEach((b) => b.addEventListener("click", () => {
       const k = b.closest(".pkg").dataset.k;
-      if (k.startsWith("pkg:")) { state.source = "pkg"; state.prefix = k.slice(4); } else state.source = k;
+      const selected = k.startsWith("pkg:") ? state.source === "pkg" && state.prefix === k.slice(4) : state.source === k;
+      if (selected) state.source = "none";
+      else if (k.startsWith("pkg:")) { state.source = "pkg"; state.prefix = k.slice(4); }
+      else state.source = k;
       remember(); render();
     }));
     $("pkgs").querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
@@ -767,6 +780,14 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   function renderManifest() {
     const own = state.source === "own", n = squadsNow(), L = loadoutsNow();
     $("m-title").textContent = unitsTitle();
+    if (state.source === "none") {
+      $("facts").innerHTML = '<dt>Units</dt><dd>pick a package, or Custom options</dd>';
+      ["sys-row", "incl-box", "inst-comp"].forEach((id) => ($(id).hidden = true));
+      $("brief-inc").checked = brief.include; $("set-inc").checked = sett.include;
+      $("zip").disabled = true; $("inst-miss").disabled = true;
+      $("fs-hint").textContent = "Pick a package above, or under Custom options build a platoon or choose My mission already has units.";
+      return;
+    }
     let facts = "";
     if (!own) facts += "<dt>Player slots</dt><dd>" + slotsNow() + (state.sys ? " + 1 headless client" : "") + "</dd>";
     facts += "<dt>maxPlayers</dt><dd>" + (maxAuto() || "enter your playable slots") + "</dd>";
@@ -980,7 +1001,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     "ecomp", "edisp", "civ", "epid", "exec", "support", "lr", "signal", "modules", "author", "fw", "co"];
   const brief = Object.assign({ v: {}, fcompEdited: false, include: false, includeTouched: false }, load("jantac-brief") || {});
   const saveBrief = () => store("jantac-brief", brief);
-  const autoComp = () => { const n = squadsNow(); return n + "x squad" + (n === 1 ? "" : "s") + " of infantry with a 1x PLT HQ."; };
+  const autoComp = () => { const n = squadsNow(); return n ? n + "x squad" + (n === 1 ? "" : "s") + " of infantry with a 1x PLT HQ." : "1x PLT HQ."; };
   const radioLines = () => {
     const n = squadsNow(), out = [];
     for (let k = 1; k <= n; k++) out.push("1'" + k + " on 343 channel " + k);
@@ -1142,7 +1163,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (!sett.maxEdited) $("s-maxp").value = auto || "";
     $("s-maxp-auto").hidden = !sett.maxEdited;
     let note;
-    if (state.source === "own") note = auto ? auto + " playable slots, from the Units tab." : "Enter your mission's playable slots on the Units tab, or type the number here.";
+    if (state.source === "none") note = "Pick units on the Units tab, or type the number here.";
+    else if (state.source === "own") note = auto ? auto + " playable slots, from the Units tab." : "Enter your mission's playable slots on the Units tab, or type the number here.";
     else note = slotsNow() + " player slots" + (state.sys ? " + 1 headless client" : "") + ", from the Units tab.";
     if (sett.maxEdited && auto && maxPlayers() !== auto) note = "Your units have " + auto + " playable slots including the headless client. maxPlayers must match.";
     $("s-maxp-note").textContent = note;

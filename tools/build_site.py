@@ -100,6 +100,7 @@ def main():
         packages[prefix] = {
             "name": cfg["name"],
             "by": cfg.get("by", ""),
+            "description": cfg.get("description", ""),
             "side": side,
             "loadout": cfg["loadout"],
             "requiredAddons": cfg["requiredAddons"],
