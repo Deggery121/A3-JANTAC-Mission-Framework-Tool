@@ -94,11 +94,13 @@ def main():
                               "type": val(u["body"], "type"), "rank": val(a, "rank") or ""})
             groups.append({"squad": squad, "units": units})
         groups.sort(key=lambda g: g["squad"])
+        side = val(classes(sub(layer, "Entities"))[0]["body"], "side") or "West"
         max_sq = max(g["squad"] for g in groups)
         tag = prefix.rstrip("_")
         packages[prefix] = {
             "name": cfg["name"],
             "by": cfg.get("by", ""),
+            "side": side,
             "loadout": cfg["loadout"],
             "requiredAddons": cfg["requiredAddons"],
             "loadoutText": read(os.path.join(MASTER, "customization", "loadouts", cfg["loadout"])),
@@ -116,11 +118,14 @@ def main():
     }
     data = json.dumps(lib, separators=(",", ":")).replace("</", "<\\/")
     tpl = open(os.path.join(ROOT, "site", "template.html"), encoding="utf-8").read()
-    page = tpl.replace("__LIBRARY_JSON__", data)
+    import base64
+    logo = "data:image/png;base64," + base64.b64encode(open(os.path.join(ROOT, "site", "logo.png"), "rb").read()).decode()
+    page = tpl.replace("__LOGO_DATA_URI__", logo).replace("__LIBRARY_JSON__", data)
     os.makedirs(OUT, exist_ok=True)
     open(os.path.join(OUT, "artifact.html"), "w", encoding="utf-8").write(page)
     full = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
+            '<link rel="icon" type="image/png" href="' + logo + '">\n'
             '<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);'
             'padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}'
             '[hidden]{display:none!important}</style>\n</head>\n<body>\n' + page + "\n</body>\n</html>\n")

@@ -17,6 +17,10 @@
   --team-blue: #2e64c8;
   --team-green: #2f8a3e;
   --team-white: #f4f4f0;
+  --hostile: #b3261e;
+  --hostile-soft: #f6dcd9;
+  --neutral: #2c7a3a;
+  --neutral-soft: #dcefdc;
   --warn: #8a5a00;
   --warn-soft: #f6e8c8;
   --ok: #2f7a3a;
@@ -31,6 +35,7 @@
     --fg: #e3e7df; --muted: #9aa49b; --friendly: #7aa8e2; --friendly-soft: #1f2d40;
     --team-red: #e0564e; --team-blue: #5d8ee8; --team-green: #4fb05f; --team-white: #e9e9e4;
     --warn: #e2b04a; --warn-soft: #3a2f17; --ok: #62b56e; color-scheme: dark;
+    --hostile: #ec6a60; --hostile-soft: #3f2220; --neutral: #5cbf6c; --neutral-soft: #1d3322;
   }
 }
 :root[data-theme="dark"] {
@@ -38,6 +43,7 @@
   --fg: #e3e7df; --muted: #9aa49b; --friendly: #7aa8e2; --friendly-soft: #1f2d40;
   --team-red: #e0564e; --team-blue: #5d8ee8; --team-green: #4fb05f; --team-white: #e9e9e4;
   --warn: #e2b04a; --warn-soft: #3a2f17; --ok: #62b56e; color-scheme: dark;
+  --hostile: #ec6a60; --hostile-soft: #3f2220; --neutral: #5cbf6c; --neutral-soft: #1d3322;
 }
 
 body {
@@ -50,6 +56,9 @@ body {
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 28px 56px;
 }
+.brand { display: flex; align-items: center; gap: 16px; }
+.brand img { width: 104px; height: 104px; flex: none; margin: -8px 0 -8px -10px; }
+@media (max-width: 560px) { .brand { align-items: flex-start; gap: 10px; } .brand img { width: 64px; height: 64px; margin: 0 0 0 -6px; } }
 header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 24px; margin-bottom: 24px; }
 h1 {
   font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 4vw, 40px);
@@ -172,7 +181,8 @@ details.howto ol { margin: 10px 0 4px; padding-left: 20px; display: flex; flex-d
 details.howto code { font: 12.5px var(--font-mono); background: var(--sunken); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
 
 /* view tabs */
-.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 20px; overflow-x: auto; scrollbar-width: none; }
+.tabs a { white-space: nowrap; }
 .tabs a {
   font-family: var(--font-display); font-weight: 500; font-size: 16px; letter-spacing: 0.02em;
   padding: 8px 14px; color: var(--muted); text-decoration: none; border-bottom: 3px solid transparent; margin-bottom: -1px;
@@ -204,6 +214,29 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 .preview-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .preview-head .m-title { font-size: 17px; }
 .preview-actions { display: flex; gap: 8px; }
+
+/* side branches */
+.branches { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.branch {
+  display: inline-flex; align-items: center; gap: 8px; font: 600 14px var(--font-body);
+  padding: 8px 14px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer;
+}
+.branch .sw { width: 14px; height: 10px; border: 2px solid currentColor; }
+.branch.West .sw { color: var(--friendly); background: var(--friendly-soft); }
+.branch.East .sw { color: var(--hostile); background: var(--hostile-soft); transform: rotate(45deg) scale(.8); width: 10px; }
+.branch.Independent .sw { color: var(--neutral); background: var(--neutral-soft); width: 10px; }
+.branch.custom .sw { border-style: dashed; color: var(--muted); }
+.branch .cnt { font: 500 12px var(--font-mono); color: var(--muted); }
+.branch[aria-pressed="true"] { border-color: var(--friendly); box-shadow: 0 0 0 1px var(--friendly); }
+.branch:focus-visible { outline: 2px solid var(--friendly); outline-offset: 2px; }
+.branch-empty { background: var(--surface); border: 1px dashed var(--line); border-radius: var(--radius); padding: 18px 16px; color: var(--muted); font-size: 14px; }
+.branch-empty b { color: var(--fg); }
+.picked { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+.picked a { color: var(--friendly); }
+.side-tag { font: 600 11px var(--font-body); letter-spacing: .08em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; margin-left: 8px; vertical-align: 2px; }
+.side-tag.West { color: var(--friendly); background: var(--friendly-soft); }
+.side-tag.East { color: var(--hostile); background: var(--hostile-soft); }
+.side-tag.Independent { color: var(--neutral); background: var(--neutral-soft); }
 
 /* source cards */
 .own-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
@@ -278,10 +311,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
 <div class="wrap">
   <header class="top">
-    <div>
+    <div class="brand">
+      <img src="__LOGO_DATA_URI__" alt="JANFU Tactical logo">
+      <div>
       <h1>JANTAC Unit Library <span class="cs">1'0</span></h1>
       <p class="lede">Pick a platoon, build your own, or bring the units you already placed. Then write the briefing and mission settings and take it all to your mission.</p>
       <p class="links"><a href="https://www.janfu.work/" target="_blank" rel="noopener">janfu.work</a><a href="https://github.com/dklollol/Olsen-Framework-Arma-3" target="_blank" rel="noopener">Built on the Olsen Framework</a></p>
+      </div>
     </div>
     <div class="build" id="build"></div>
   </header>
@@ -297,6 +333,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   <div class="board">
     <section aria-labelledby="pk-h">
       <p class="eyebrow" id="pk-h">Units for this mission</p>
+      <div class="branches" id="branches" role="group" aria-label="Side"></div>
+      <p class="picked" id="picked" hidden></p>
       <div class="pkgs" id="pkgs"></div>
       <div class="legend" style="margin-top:12px">
         <span><i class="dot RED"></i>Red team</span>
@@ -354,6 +392,9 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         <h2 class="m-title" id="d-h" hidden>Custom designer</h2>
         <div class="toolbar">
           <div class="field"><label for="d-name">Design name</label><input id="d-name" placeholder="Raid platoon"></div>
+          <div class="field" style="flex:0 1 150px"><label for="d-side">Side</label>
+            <select id="d-side"><option value="West">BLUFOR</option><option value="East">OPFOR</option><option value="Independent">INDFOR</option></select>
+          </div>
           <div class="field" style="flex:0 1 220px"><label for="d-start">Start from</label>
             <select id="d-start"></select>
           </div>
@@ -496,12 +537,18 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const posInt = (s, d) => { const n = parseInt(s, 10); return n > 0 ? n : d; };
   const load = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
   const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  const SIDES = {
+    West: { label: "BLUFOR", sqf: "WEST", desc: "blufor" },
+    East: { label: "OPFOR", sqf: "EAST", desc: "opfor" },
+    Independent: { label: "INDFOR", sqf: "RESISTANCE", desc: "indfor" },
+  };
+  const sideOf = (p) => (LIB.packages[p] && SIDES[LIB.packages[p].side] ? LIB.packages[p].side : "West");
   const MAX_SQUADS = 15; // PRC-343 block 1 has 16 channels; HQ takes the one after the last squad
   $("build").textContent = LIB.build;
 
   // ---- selection state -----------------------------------------------------------
   // source: "pkg" (a package), "custom" (the Custom units design) or "own" (units already in the mission)
-  const state = { source: "pkg", prefix: prefixes[0], n: {}, sys: true, own: { squads: "3", slots: "", co: "B_officer_F" } };
+  const state = { source: "pkg", prefix: prefixes[0], n: {}, sys: true, branch: "", own: { squads: "3", slots: "", co: "B_officer_F", side: "West" } };
   prefixes.forEach((p) => (state.n[p] = LIB.packages[p].maxSquads));
   (() => {
     const s = load("jantac-sel");
@@ -511,15 +558,18 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (s.n) Object.keys(s.n).forEach((p) => { if (LIB.packages[p]) state.n[p] = Math.min(posInt(s.n[p], 1), LIB.packages[p].maxSquads); });
     state.sys = s.sys !== false;
     if (s.own) Object.assign(state.own, s.own);
+    if (!SIDES[state.own.side]) state.own.side = "West";
+    if (SIDES[s.branch] || s.branch === "custom") state.branch = s.branch;
   })();
   const remember = () => store("jantac-sel", state);
 
   // ---- custom design state -----------------------------------------------------------
-  const design = { name: "", groups: [{ slots: [] }, { slots: [] }], active: 0 };
+  const design = { name: "", side: "West", groups: [{ slots: [] }, { slots: [] }], active: 0 };
   (() => {
     const d = load("jantac-design");
     if (d && Array.isArray(d.groups) && d.groups.length) {
       design.name = d.name || "";
+      design.side = SIDES[d.side] ? d.side : "West";
       design.groups = d.groups.map((g) => ({ slots: (g.slots || []).filter((u) => LIB.packages[u.prefix]) }));
       design.active = Math.min(d.active || 0, design.groups.length - 1);
     }
@@ -547,6 +597,12 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (state.source === "custom") return design.groups.length - 1;
     return Math.min(posInt(state.own.squads, 1), MAX_SQUADS);
   }
+  function sideNow() {
+    if (state.source === "pkg") return sideOf(state.prefix);
+    if (state.source === "custom") return design.side;
+    return state.own.side;
+  }
+  if (!state.branch) state.branch = state.source === "pkg" ? sideOf(state.prefix) : "custom";
   const slotsNow = () => groupsNow().reduce((a, g) => a + g.units.length, 0);
   function maxAuto() {
     if (state.source === "own") return posInt(state.own.slots, 0);
@@ -577,9 +633,24 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     return "Your own units — " + sq;
   }
 
-  // NATO APP-6 friendly infantry frame; HQ gets the staff.
-  function symbol(isHQ) {
-    return '<svg width="34" height="' + (isHQ ? 30 : 22) + '" viewBox="0 0 34 ' + (isHQ ? 30 : 22) + '" aria-hidden="true">' +
+  // NATO APP-6 infantry frames: friendly rectangle (blue), hostile diamond (red), neutral square (green).
+  // HQ gets the staff on the lower left.
+  function symbol(isHQ, side) {
+    side = side || sideNow();
+    const h = isHQ ? 8 : 0;
+    if (side === "East") {
+      return '<svg width="30" height="' + (30 + h) + '" viewBox="0 0 30 ' + (30 + h) + '" aria-hidden="true">' +
+        '<path d="M15 1 L29 15 L15 29 L1 15 Z" fill="var(--hostile-soft)" stroke="var(--hostile)" stroke-width="2"/>' +
+        '<path d="M8 8 L22 22 M22 8 L8 22" stroke="var(--hostile)" stroke-width="1.6" fill="none"/>' +
+        (isHQ ? '<path d="M1 15 L1 ' + (30 + h - 1) + '" stroke="var(--hostile)" stroke-width="2" fill="none"/>' : "") + "</svg>";
+    }
+    if (side === "Independent") {
+      return '<svg width="26" height="' + (26 + h) + '" viewBox="0 0 26 ' + (26 + h) + '" aria-hidden="true">' +
+        '<rect x="1" y="1" width="24" height="24" fill="var(--neutral-soft)" stroke="var(--neutral)" stroke-width="2"/>' +
+        '<path d="M1 1 L25 25 M25 1 L1 25" stroke="var(--neutral)" stroke-width="1.6" fill="none"/>' +
+        (isHQ ? '<path d="M1 25 L1 ' + (26 + h - 1) + '" stroke="var(--neutral)" stroke-width="2" fill="none"/>' : "") + "</svg>";
+    }
+    return '<svg width="34" height="' + (22 + h) + '" viewBox="0 0 34 ' + (22 + h) + '" aria-hidden="true">' +
       '<rect x="1" y="1" width="32" height="20" fill="var(--friendly-soft)" stroke="var(--friendly)" stroke-width="2"/>' +
       '<path d="M1 1 L33 21 M33 1 L1 21" stroke="var(--friendly)" stroke-width="1.6" fill="none"/>' +
       (isHQ ? '<path d="M1 21 L1 29" stroke="var(--friendly)" stroke-width="2" fill="none"/>' : "") + "</svg>";
@@ -605,8 +676,31 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       '<span class="pkg-slots">' + right + "</span></button>" + (on ? '<div class="pkg-body">' + body + "</div>" : "") + "</article>";
   }
 
+  function sourceLabel() {
+    if (state.source === "pkg") return pkg().name + " (" + SIDES[sideOf(state.prefix)].label + ")";
+    if (state.source === "custom") return safeName() + " (custom, " + SIDES[design.side].label + ")";
+    return "My mission already has units (" + SIDES[state.own.side].label + ")";
+  }
+  function renderBranches() {
+    const cnt = (sd) => prefixes.filter((p) => sideOf(p) === sd).length;
+    const btn = (key, cls, label, count) =>
+      '<button type="button" class="branch ' + cls + '" data-b="' + key + '" aria-pressed="' + (state.branch === key) + '">' +
+      '<span class="sw"></span>' + label + (count === null ? "" : ' <span class="cnt">' + count + "</span>") + "</button>";
+    $("branches").innerHTML = Object.keys(SIDES).map((sd) => btn(sd, sd, SIDES[sd].label, cnt(sd))).join("") +
+      btn("custom", "custom", "Custom options", null);
+    $("branches").querySelectorAll(".branch").forEach((b) => b.addEventListener("click", () => {
+      state.branch = b.dataset.b; remember(); renderUnits();
+    }));
+    const inBranch = state.branch === "custom" ? state.source !== "pkg" : state.source === "pkg" && sideOf(state.prefix) === state.branch;
+    $("picked").hidden = inBranch;
+    $("picked").innerHTML = "Selected for this mission: <b>" + esc(sourceLabel()) + "</b>.";
+  }
+
   function renderUnits() {
-    let html = prefixes.map((p) => {
+    renderBranches();
+    const showSide = state.branch !== "custom" ? state.branch : null;
+    const sidePkgs = showSide ? prefixes.filter((p) => sideOf(p) === showSide) : [];
+    let html = sidePkgs.map((p) => {
       const P = LIB.packages[p], on = state.source === "pkg" && p === state.prefix, n = state.n[p];
       const slots = groupsFor(p, n).reduce((a, g) => a + g.units.length, 0);
       let body = "";
@@ -618,6 +712,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       }
       return card("pkg:" + p, on, esc(P.name) + (P.by ? '<span class="by">By ' + esc(P.by) + "</span>" : ""), "<span>" + esc(p) + "</span><span>" + esc(P.loadout) + "</span>", slots + " slots", body);
     }).join("");
+    if (showSide && !sidePkgs.length) {
+      html = '<div class="branch-empty"><b>No ' + SIDES[showSide].label + " packages yet.</b> " +
+        "Maintainers add them to the master mission on their own layer. Until then, build " + SIDES[showSide].label +
+        ' units in <a href="#custom-units" style="color:var(--friendly)">Custom units</a> once the library has some, or use ' +
+        "<b>My mission already has units</b> under Custom options.</div>";
+    }
+    if (showSide) { finishUnits(html); return; }
 
     const cOn = state.source === "custom";
     const cSlots = design.groups.reduce((a, g) => a + g.slots.length, 0);
@@ -629,18 +730,24 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         '<p class="summary-line"><a href="#custom-units" style="color:var(--friendly)">Edit in Custom units</a></p>' +
         orbat(groupsNow(), squadsNow());
     }
-    html += card("custom", cOn, esc(safeName()),
-      "<span>Custom units tab</span>" + (cPre.length ? "<span>" + esc(cPre.join(" ")) + "</span>" : ""), cSlots + " slots", cBody);
+    html += card("custom", cOn, esc(safeName()) + '<span class="side-tag ' + design.side + '">' + SIDES[design.side].label + "</span>",
+      "<span>Custom platoon · built in the Custom units tab</span>" + (cPre.length ? "<span>" + esc(cPre.join(" ")) + "</span>" : ""), cSlots + " slots", cBody);
 
     const oOn = state.source === "own";
+    const sideOpts = Object.keys(SIDES).map((sd) => '<option value="' + sd + '"' + (state.own.side === sd ? " selected" : "") + ">" + SIDES[sd].label + "</option>").join("");
     const oBody = '<p class="summary-line">Your mission already has its loadout and units placed. You get the briefing and mission settings only.</p>' +
       '<div class="own-grid">' +
+      '<div class="field"><label for="o-side">Side</label><select id="o-side">' + sideOpts + "</select></div>" +
       '<div class="field"><label for="o-squads">Squads under 1\'0</label><input id="o-squads" type="number" min="1" max="' + MAX_SQUADS + '" step="1" value="' + esc(state.own.squads) + '"></div>' +
       '<div class="field"><label for="o-slots">Playable slots (with HC)</label><input id="o-slots" type="number" min="1" step="1" placeholder="33" value="' + esc(state.own.slots) + '"></div>' +
       '<div class="field"><label for="o-co">CO unit class</label><input id="o-co" placeholder="B_officer_F" value="' + esc(state.own.co) + '"></div>' +
       "</div>";
-    html += card("own", oOn, "My mission already has units", "<span>briefing and settings only</span>", "", oBody);
+    html += card("own", oOn, "My mission already has units" + '<span class="side-tag ' + state.own.side + '">' + SIDES[state.own.side].label + "</span>",
+      "<span>briefing and settings only</span>", "", oBody);
+    finishUnits(html);
+  }
 
+  function finishUnits(html) {
     $("pkgs").innerHTML = html;
     $("pkgs").querySelectorAll(".pkg-head").forEach((b) => b.addEventListener("click", () => {
       const k = b.closest(".pkg").dataset.k;
@@ -650,6 +757,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("pkgs").querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
       state.n[state.prefix] = Number(b.dataset.n); remember(); render();
     }));
+    if ($("o-side")) $("o-side").addEventListener("change", (e) => { state.own.side = e.target.value; remember(); render(); });
     [["o-squads", "squads"], ["o-slots", "slots"], ["o-co", "co"]].forEach(([id, key]) => {
       const el = $(id);
       if (el) el.addEventListener("input", () => { state.own[key] = el.value; remember(); renderManifest(); updateBriefing(); updateSettings(); });
@@ -712,7 +820,12 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const slotFrom = (u) => ({ prefix: u.prefix, role: u.role, desc: u.desc, color: forcedColor(u.role, u.color), type: u.type, rank: u.rank || "" });
 
   function renderPalette() {
-    $("palette").innerHTML = prefixes.map((p) => {
+    const sidePkgs = prefixes.filter((p) => sideOf(p) === design.side);
+    if (!sidePkgs.length) {
+      $("palette").innerHTML = '<div class="branch-empty">No ' + SIDES[design.side].label + " units in the library yet.</div>";
+      return;
+    }
+    $("palette").innerHTML = sidePkgs.map((p) => {
       const P = LIB.packages[p];
       const rows = palette.map((u, i) => ({ u, i })).filter((x) => x.u.prefix === p).map(({ u, i }) =>
         '<li><button type="button" data-i="' + i + '" title="Add ' + esc(u.desc) + '"><i class="dot ' + forcedColor(u.role, u.color) + '"></i>' +
@@ -729,12 +842,18 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     const out = [];
     if (!design.groups.length) out.push("Add an HQ group.");
     design.groups.forEach((g, i) => { if (!g.slots.length) out.push("1'" + i + " has no slots. Add units or remove it."); });
+    const other = [...new Set(design.groups.flatMap((g) => g.slots.filter((u) => sideOf(u.prefix) !== design.side).map((u) => u.prefix)))];
+    if (other.length) out.push(other.join(", ") + " units are not " + SIDES[design.side].label + ". Remove them or change the design's side.");
     if (design.groups.length - 1 > MAX_SQUADS) out.push("At most " + MAX_SQUADS + " squads fit on the PRC-343's first block.");
     return out;
   }
 
   function renderDesigner() {
     $("d-name").value === design.name || ($("d-name").value = design.name);
+    $("d-side").value = design.side;
+    const opts = '<option value="">Empty HQ + 1 squad</option>' + prefixes.filter((p) => sideOf(p) === design.side)
+      .map((p) => '<option value="' + p + '">' + esc(LIB.packages[p].name) + "</option>").join("");
+    if ($("d-start").innerHTML !== opts) $("d-start").innerHTML = opts;
     $("pal-target").textContent = "1'" + design.active + (design.active === 0 ? " (HQ)" : "");
     const n = design.groups.length - 1;
     $("dgroups").innerHTML = design.groups.map((g, gi) => {
@@ -754,7 +873,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
           '<button class="ibtn" type="button" data-a="del" aria-label="Remove slot">×</button></span></div>';
       }).join("");
       const hq = gi === 0;
-      return '<div class="dgrp' + (gi === design.active ? " active" : "") + '" data-g="' + gi + '"><div class="grp-head">' + symbol(hq) +
+      return '<div class="dgrp' + (gi === design.active ? " active" : "") + '" data-g="' + gi + '"><div class="grp-head">' + symbol(hq, design.side) +
         '<div><div class="cs-big">1\'' + gi + '</div><div class="grp-kind">' + (hq ? "Platoon HQ" : "Squad " + gi) + " · " + g.slots.length + " slots</div></div>" +
         '<div class="dgrp-actions"><span class="chan">PRC-343 CH ' + channelFor(gi, n) + "</span>" +
         '<button class="tbtn" type="button" data-a="pick" aria-pressed="' + (gi === design.active) + '">' + (gi === design.active ? "Adding here" : "Add units here") + "</button>" +
@@ -797,7 +916,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   });
   $("d-name").addEventListener("input", (e) => { design.name = e.target.value; saveDesign(); renderUnits(); renderManifest(); updateSettings(); });
   $("d-add").addEventListener("click", () => { design.groups.push({ slots: [] }); design.active = design.groups.length - 1; saveDesign(); render(); });
-  $("d-start").innerHTML = '<option value="">Empty HQ + 1 squad</option>' + prefixes.map((p) => '<option value="' + p + '">' + esc(LIB.packages[p].name) + "</option>").join("");
+  $("d-side").addEventListener("change", (e) => { design.side = e.target.value; saveDesign(); renderPalette(); render(); });
   $("d-load").addEventListener("click", () => {
     const p = $("d-start").value;
     if (!p) design.groups = [{ slots: [] }, { slots: [] }];
@@ -805,7 +924,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     design.active = 0;
     saveDesign(); render();
   });
-  $("d-use").addEventListener("click", () => { state.source = "custom"; remember(); location.hash = "#units"; render(); });
+  $("d-use").addEventListener("click", () => { state.source = "custom"; state.branch = "custom"; remember(); location.hash = "#units"; render(); });
 
   // Build an Eden composition for the custom design, in the same shape Eden saves.
   const sqmStr = (s) => '"' + String(s).replace(/"/g, '""') + '"';
@@ -822,7 +941,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     put(2, "class Entities"); put(2, "{"); put(3, "items=" + design.groups.length + ";");
     design.groups.forEach((g, gi) => {
       const ch = channelFor(gi, n), gid = id++;
-      put(3, "class Item" + gi); put(3, "{"); put(4, 'dataType="Group";'); put(4, 'side="West";');
+      put(3, "class Item" + gi); put(3, "{"); put(4, 'dataType="Group";'); put(4, "side=" + sqmStr(design.side) + ";");
       put(4, "class Entities"); put(4, "{"); put(5, "items=" + g.slots.length + ";");
       g.slots.forEach((u, si) => {
         const color = forcedColor(u.role, u.color);
@@ -833,7 +952,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         const x = (si - (g.slots.length - 1) / 2) * 2, z = -gi * 8;
         put(5, "class Item" + si); put(5, "{"); put(6, 'dataType="Object";');
         put(6, "class PositionInfo"); put(6, "{"); put(7, "position[]={" + x + ",0," + z + "};"); put(7, "angles[]={0,3.1415927,0};"); put(6, "};");
-        put(6, 'side="West";'); put(6, "flags=" + (si === 0 ? 7 : 5) + ";");
+        put(6, "side=" + sqmStr(design.side) + ";"); put(6, "flags=" + (si === 0 ? 7 : 5) + ";");
         put(6, "class Attributes"); put(6, "{");
         if (u.rank) put(7, "rank=" + sqmStr(u.rank) + ";");
         put(7, "init=" + sqmStr(init) + ";"); put(7, "description=" + sqmStr(desc) + ";"); put(7, "isPlayable=1;");
@@ -925,7 +1044,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       "waitUntil {!(isNull player)};//This is needed for JIP compatibility since this code is spawned not called", "",
       "// Generated by the JANTAC Unit Library", "",
       "switch (side player) do { //Checks what team the player is on",
-      "case WEST: { //If player is blufor he receives this briefing", "",
+      "case " + SIDES[sideNow()].sqf + ": { //If player is " + SIDES[sideNow()].desc + " he receives this briefing", "",
     ];
     let i = 0;
     tabs.filter((t) => t[1].length).forEach((t) => { out.push('NEWTAB("' + ROMAN[i++] + ". " + t[0] + '")', ...t[1], "ENDTAB;", ""); });

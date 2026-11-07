@@ -107,6 +107,11 @@ for layer in layers:
         err(f"{where} prefix is defined by {prefix_file.get(prefix)}, layer names {loadout}.sqf")
 
     squads = {}
+    sides = {val(g["body"], "side") for g in classes(sub(layer, "Entities"))}
+    if len(sides) > 1:
+        err(f"{where} groups are on different sides {sorted(sides)}; one package is one side")
+    if sides - {"West", "East", "Independent"}:
+        err(f"{where} side must be West, East or Independent, found {sorted(sides)}")
     for g in classes(sub(layer, "Entities")):
         if val(g["body"], "dataType") != "Group":
             err(f"{where} layer contains a non-group entity")

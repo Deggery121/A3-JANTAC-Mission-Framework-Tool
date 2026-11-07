@@ -81,6 +81,13 @@ python tools/build_site.py              # output in build/site/index.html
 - Every unit is playable, has an empty inventory, and carries only the ACRE radio
   setup attribute with PRC-343 on the right channel (squad N → N, HQ → squads + 1).
 
+### Sides
+
+A package's side (BLUFOR, OPFOR or INDFOR) comes from its groups' side in the master mission
+(`West`, `East` or `Independent`). The web page lists each package under its side, and the
+briefing, custom designer and compositions follow it. Every group in a package must be on the
+same side; the checker enforces this.
+
 ### Adding a package
 
 1. Add the loadout file to `customization/loadouts/` and its `#include` to `gear.sqf`.
