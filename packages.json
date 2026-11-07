@@ -1,0 +1,27 @@
+{
+  "author": "JANFU Deggery",
+  "category": "JANTAC Mission Framework",
+  "infrastructure": {
+    "layer": "Headless client + respawn",
+    "name": "JANTAC SYSTEM",
+    "folder": "JANTAC SYSTEM",
+    "requiredAddons": ["A3_Characters_F", "A3_Modules_F", "ace_headless"]
+  },
+  "packages": {
+    "TCR_": {
+      "name": "TCR units",
+      "loadout": "TCRMC.sqf",
+      "requiredAddons": ["A3_Characters_F", "A3_Characters_F_Tank"]
+    },
+    "USARMYEAR_": {
+      "name": "US army early 2000s",
+      "loadout": "USARMYEAR.sqf",
+      "requiredAddons": ["A3_Characters_F", "A3_Characters_F_Exp"]
+    },
+    "USMIL_": {
+      "name": "1980s US Army",
+      "loadout": "USMIL.sqf",
+      "requiredAddons": ["A3_Characters_F", "A3_Characters_F_Exp"]
+    }
+  }
+}
