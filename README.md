@@ -23,6 +23,11 @@ optional CO-only tab). Friendly composition and radio channels fill in from the 
 picked. Tick **Include briefing.sqf** and it goes into the zip and into **Add to a mission…**,
 replacing the mission's briefing (the old one is kept as `briefing.sqf.bak`).
 
+The **Mission settings** tab builds `customization\missionSettings.hpp` the same way: loading
+screen name and messages, an optional loading image (copied into the mission's `images`
+folder), game type and player limits. `maxPlayers` fills in from the package: player slots
+plus the headless client.
+
 Radio channels follow the squad count: squad 1'N is on PRC-343 channel N and the HQ (1'0) is
 always on the channel after the last squad.
 

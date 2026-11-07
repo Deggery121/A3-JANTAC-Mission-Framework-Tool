@@ -151,7 +151,7 @@ h1 .cs { color: var(--friendly); }
 
 .code {
   font: 12.5px/1.5 var(--font-mono); background: var(--sunken); border-radius: var(--radius);
-  padding: 8px 10px; overflow-x: auto; white-space: pre; margin: 0;
+  padding: 8px 10px; overflow-x: auto; white-space: pre; margin: 0; tab-size: 4;
 }
 .code-row { display: flex; gap: 8px; align-items: stretch; }
 .code-row .code { flex: 1; min-width: 0; }
@@ -216,6 +216,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   <nav class="tabs" aria-label="Views">
     <a href="#units" id="tab-units">Units</a>
     <a href="#briefing" id="tab-briefing">Briefing</a>
+    <a href="#mission-settings" id="tab-settings">Mission settings</a>
   </nav>
 
   <div id="view-units">
@@ -239,6 +240,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       <dl class="facts" id="facts"></dl>
       <label class="check"><input type="checkbox" id="sys" checked><span>Include JANTAC SYSTEM<small>Headless client, respawn logic and ACE headless module</small></span></label>
       <label class="check"><input type="checkbox" id="brief-inc"><span>Include briefing.sqf<small id="brief-inc-note">Replaces the mission's customization\briefing.sqf. <a href="#briefing">Write the briefing</a></small></span></label>
+      <label class="check"><input type="checkbox" id="set-inc"><span>Include missionSettings.hpp<small>Replaces the mission's customization\missionSettings.hpp. <a href="#mission-settings">Edit settings</a></small></span></label>
       <div class="actions">
         <button class="btn" id="zip" type="button">Download zip</button>
         <button class="btn secondary" id="inst-comp" type="button" hidden>Install compositions…</button>
@@ -261,7 +263,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       <li>Copy the loadout file to your mission's <code>customization\loadouts</code> folder and add the gear.sqf line inside <code>switch (_type) do { … }</code>. A ready-made <code>gear.sqf</code> is in the zip if your mission has no custom lines.</li>
       <li>In Eden, open Compositions → JANTAC Mission Framework and place your package.</li>
       <li>If you wrote a briefing, copy <code>customization\briefing.sqf</code> over your mission's.</li>
-      <li>Set <code>maxPlayers</code> in <code>customization\missionSettings.hpp</code> to the slot count shown in the manifest.</li>
+      <li>Copy <code>customization\missionSettings.hpp</code> over your mission's, or set <code>maxPlayers</code> in yours to the number shown in the manifest (it counts the headless client).</li>
     </ol>
   </details>
   </div>
@@ -327,6 +329,50 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         </div>
         <p class="hint" id="b-status"></p>
         <pre class="code" id="b-out"></pre>
+      </section>
+    </div>
+  </div>
+
+  <div id="view-settings" hidden>
+    <div class="brief">
+      <form class="form" id="sform" autocomplete="off">
+        <fieldset>
+          <legend>Loading screen</legend>
+          <div class="field"><label for="s-name">Mission name <span class="aux" id="s-name-aux"></span></label><input id="s-name" placeholder="Clipped Rotors"></div>
+          <div class="field"><label for="s-loadmsg">Loading message</label><input id="s-loadmsg" placeholder="Knock those flyboys down a peg."></div>
+          <div class="field"><label for="s-intro">Intro message</label><input id="s-intro" placeholder="Made with JANFU Mission Framework v1.54"></div>
+          <label class="check"><input type="checkbox" id="s-mtime"><span>Show date and time while the mission loads</span></label>
+          <label class="check"><input type="checkbox" id="s-itime"><span>Show date and time while the intro loads</span></label>
+          <div class="field"><label for="s-screen">Loading image <button type="button" class="linkbtn" id="s-screen-auto" hidden>Use the added image</button></label><input id="s-screen" placeholder="images\railwayload.jpg"></div>
+          <div class="field">
+            <label for="s-image">Add an image to the mission <span class="aux">.jpg or .paa</span></label>
+            <input id="s-image" type="file" accept=".jpg,.jpeg,.paa">
+            <p class="hint" id="s-image-note"></p>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Header</legend>
+          <div class="field"><label for="s-gametype">Game type</label>
+            <select id="s-gametype" style="font:14px var(--font-body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:7px 9px">
+              <option value="Coop">Coop (co-op mission)</option>
+              <option value="TDM">TDM (TvT mission)</option>
+            </select>
+          </div>
+          <div class="field"><label for="s-minp">Minimum players</label><input id="s-minp" type="number" min="1" step="1" placeholder="1"></div>
+          <div class="field"><label for="s-maxp">Maximum players <button type="button" class="linkbtn" id="s-maxp-auto" hidden>Use the package count</button></label><input id="s-maxp" type="number" min="1" step="1"><p class="hint" id="s-maxp-note"></p></div>
+        </fieldset>
+      </form>
+
+      <section class="preview" aria-labelledby="sv-h">
+        <div class="preview-head">
+          <h2 class="m-title" id="sv-h">customization\missionSettings.hpp</h2>
+          <div class="preview-actions">
+            <button class="copy" id="s-copy" type="button">Copy</button>
+            <button class="copy" id="s-clear" type="button">Clear</button>
+          </div>
+        </div>
+        <p class="hint" id="s-status"></p>
+        <pre class="code" id="s-out"></pre>
       </section>
     </div>
   </div>
@@ -413,6 +459,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("m-title").textContent = P.name + " — HQ + " + n + " squad" + (n > 1 ? "s" : "");
     $("facts").innerHTML =
       "<dt>Player slots</dt><dd>" + slots + (state.sys ? " + 1 headless client" : "") + "</dd>" +
+      "<dt>maxPlayers</dt><dd>" + maxAuto() + "</dd>" +
       "<dt>Callsigns</dt><dd>1'0 – 1'" + n + "</dd>" +
       "<dt>Radios</dt><dd>squads CH 1–" + n + ", HQ CH " + (n + 1) + "</dd>" +
       "<dt>Loadout</dt><dd>customization\\<wbr>loadouts\\<wbr>" + esc(P.loadout) + "</dd>" +
@@ -420,6 +467,118 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("incl").textContent = includeLine(P.loadout);
     $("sys").checked = state.sys;
     updateBriefing();
+    updateSettings();
+  }
+
+  // ---- mission settings ----------------------------------------------------------
+  const SF = ["name", "loadmsg", "intro", "screen", "gametype", "minp", "maxp"];
+  const sett = { v: {}, mtime: false, itime: false, maxEdited: false, screenEdited: false, include: false, includeTouched: false };
+  try {
+    const s = JSON.parse(localStorage.getItem("jantac-settings") || "null");
+    if (s && s.v) Object.assign(sett, s);
+  } catch (e) { /* storage unavailable */ }
+  const saveSett = () => { try { localStorage.setItem("jantac-settings", JSON.stringify(sett)); } catch (e) {} };
+  let shot = null; // the loading image chosen this visit: {name, blob}
+  const maxAuto = () => slotCount(state.prefix, state.n[state.prefix]) + (state.sys ? 1 : 0);
+  const hppStr = (s) => '"' + String(s).replace(/[\r\n]+/g, " ").replace(/"/g, '""') + '"';
+  const posInt = (s, d) => { const n = parseInt(s, 10); return n > 0 ? n : d; };
+  function screenPath() {
+    if (shot && !sett.screenEdited) return "images\\" + shot.name;
+    return (sett.v.screen || "").trim();
+  }
+  function settName() { return (sett.v.name || "").trim() || (brief.v.title || "").trim() || "Untitled mission"; }
+  function maxPlayers() { return sett.maxEdited ? posInt(sett.v.maxp, maxAuto()) : maxAuto(); }
+
+  function genSettings() {
+    const v = (k) => (sett.v[k] || "").trim();
+    const scr = screenPath();
+    return [
+      "onLoadName \t\t\t\t= " + hppStr(settName()) + ";",
+      "onLoadMission\t\t\t= " + hppStr(v("loadmsg")) + ";\t// Displays a message while the mission is loading.",
+      "onLoadIntro\t\t\t\t= " + hppStr(v("intro") || "Made with JANFU Mission Framework v1.54") + ";\t// Displays a message while the intro is loading.",
+      "onLoadMissionTime\t\t= " + (sett.mtime ? 1 : 0) + ";\t// Define whether you will see the time and date displayed while the mission loads.",
+      "onLoadIntroTime\t\t\t= " + (sett.itime ? 1 : 0) + ";\t// Define whether you will see the time and date displayed while the intro loads.",
+      scr ? "loadScreen = " + hppStr(scr) + "; //Sets the image displayed during the loading screen"
+          : '//loadScreen = "images\\loading.jpg"; //Sets the image displayed during the loading screen',
+      "",
+      "class Header {",
+      "\t",
+      "\tgameType = " + (v("gametype") === "TDM" ? "TDM" : "Coop") + ";  //Coop for a COOP mission, TDM for a TVT",
+      "\tminPlayers = " + posInt(v("minp"), 1) + ";",
+      "\tmaxPlayers = " + maxPlayers() + "; //maxPlayers must always be accurate to the amount of playable units, this includes the headless client game logic",
+      "\t",
+      "};",
+      "",
+    ].join("\r\n");
+  }
+  window.__jantacSettings = { gen: genSettings, sett }; // exposed for testing
+
+  function updateSettings() {
+    if (!sett.maxEdited) $("s-maxp").value = maxAuto();
+    $("s-maxp-auto").hidden = !sett.maxEdited;
+    const diff = sett.maxEdited && maxPlayers() !== maxAuto();
+    $("s-maxp-note").textContent = diff
+      ? "The selected package has " + maxAuto() + " playable slots including the headless client. maxPlayers must match."
+      : slotCount(state.prefix, state.n[state.prefix]) + " player slots" + (state.sys ? " + 1 headless client" : "") + ", from the Units tab.";
+    if (!sett.screenEdited) $("s-screen").value = shot ? "images\\" + shot.name : (sett.v.screen || "");
+    $("s-screen-auto").hidden = !(shot && sett.screenEdited);
+    $("s-name-aux").textContent = !(sett.v.name || "").trim() && (brief.v.title || "").trim() ? "using the briefing title" : "";
+    $("s-image-note").textContent = shot
+      ? "Added " + shot.name + " (" + Math.round(shot.blob.size / 1024) + " KB). It goes into the mission's images folder. Add it again if you reload the page."
+      : "Optional. The image is copied into the mission's images folder.";
+    $("s-out").textContent = genSettings();
+    $("set-inc").checked = sett.include;
+    $("s-status").textContent = sett.include
+      ? "Included in your download and in “Add to a mission…”. It replaces the mission's missionSettings.hpp."
+      : "Not included yet. Tick “Include missionSettings.hpp” on the Units tab to add it.";
+  }
+
+  function bindSettings() {
+    const touched = () => { if (!sett.includeTouched) sett.include = true; saveSett(); updateSettings(); };
+    SF.forEach((k) => {
+      const el = $("s-" + k);
+      if (k === "gametype") el.value = sett.v.gametype === "TDM" ? "TDM" : "Coop";
+      else if ((k !== "maxp" || sett.maxEdited) && (k !== "screen" || sett.screenEdited || !shot)) el.value = sett.v[k] || "";
+      el.addEventListener(k === "gametype" ? "change" : "input", () => {
+        sett.v[k] = el.value;
+        if (k === "maxp") sett.maxEdited = true;
+        if (k === "screen") sett.screenEdited = true;
+        touched();
+      });
+    });
+    $("s-mtime").checked = sett.mtime; $("s-itime").checked = sett.itime;
+    $("s-mtime").addEventListener("change", (e) => { sett.mtime = e.target.checked; touched(); });
+    $("s-itime").addEventListener("change", (e) => { sett.itime = e.target.checked; touched(); });
+    $("s-maxp-auto").addEventListener("click", () => { sett.maxEdited = false; sett.v.maxp = ""; saveSett(); updateSettings(); });
+    $("s-screen-auto").addEventListener("click", () => { sett.screenEdited = false; sett.v.screen = ""; saveSett(); updateSettings(); });
+    $("s-image").addEventListener("change", (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      if (!/\.(jpe?g|paa)$/i.test(f.name)) { $("s-image-note").textContent = "Arma loading screens need a .jpg or .paa file."; e.target.value = ""; return; }
+      shot = { name: f.name.replace(/[^\w.\-]+/g, "_"), blob: f };
+      sett.screenEdited = false; sett.v.screen = "";
+      touched();
+    });
+    $("sform").addEventListener("submit", (e) => e.preventDefault());
+    $("set-inc").addEventListener("change", (e) => { sett.include = e.target.checked; sett.includeTouched = true; saveSett(); updateSettings(); });
+    $("s-copy").addEventListener("click", () => {
+      const sel = () => { const r = document.createRange(); r.selectNodeContents($("s-out")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+      try { navigator.clipboard.writeText(genSettings()).then(() => { $("s-copy").textContent = "Copied"; setTimeout(() => ($("s-copy").textContent = "Copy"), 1500); }, sel); }
+      catch (e) { sel(); }
+    });
+    let armed = 0;
+    $("s-clear").addEventListener("click", () => {
+      if (Date.now() - armed < 3000) {
+        armed = 0; shot = null; $("s-image").value = "";
+        Object.assign(sett, { v: {}, mtime: false, itime: false, maxEdited: false, screenEdited: false, include: false, includeTouched: false });
+        SF.forEach((k) => { if (k !== "gametype") $("s-" + k).value = ""; });
+        $("s-gametype").value = "Coop"; $("s-mtime").checked = false; $("s-itime").checked = false;
+        saveSett(); updateSettings(); $("s-clear").textContent = "Clear";
+      } else {
+        armed = Date.now(); $("s-clear").textContent = "Click again to clear";
+        setTimeout(() => { if (armed && Date.now() - armed >= 3000) { armed = 0; $("s-clear").textContent = "Clear"; } }, 3100);
+      }
+    });
   }
 
   // ---- briefing ----------------------------------------------------------------
@@ -539,6 +698,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         if (k === "fcomp") brief.fcompEdited = true;
         if (!brief.includeTouched && hasContent()) brief.include = true;
         saveBrief(); updateBriefing();
+        if (k === "title") updateSettings();
       });
     });
     $("bform").addEventListener("submit", (e) => e.preventDefault());
@@ -563,10 +723,11 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   }
 
   function route() {
-    const b = location.hash === "#briefing";
-    $("view-units").hidden = b; $("view-briefing").hidden = !b;
-    $("tab-units").setAttribute("aria-current", b ? "false" : "page");
-    $("tab-briefing").setAttribute("aria-current", b ? "page" : "false");
+    const view = { "#briefing": "briefing", "#mission-settings": "settings" }[location.hash] || "units";
+    ["units", "briefing", "settings"].forEach((v) => {
+      $("view-" + v).hidden = v !== view;
+      $("tab-" + v).setAttribute("aria-current", v === view ? "page" : "false");
+    });
   }
   window.addEventListener("hashchange", route);
 
@@ -619,8 +780,12 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       "      " + includeLine(P.loadout),
       "   (Or use the gear.sqf in this zip if your mission has no custom gear lines.)",
       "4. In Eden: Compositions > JANTAC Mission Framework > " + compFor(state.prefix, n).name,
-      "5. Set maxPlayers in customization\\missionSettings.hpp to " + slotCount(state.prefix, n) + " player slots.",
-    ].concat(brief.include ? [
+    ].concat(sett.include ? [
+      "5. Copy customization\\missionSettings.hpp over your mission's customization\\missionSettings.hpp" +
+        (shot ? ", and the images folder into the mission folder." : "."),
+    ] : [
+      "5. Set maxPlayers in customization\\missionSettings.hpp to " + maxAuto() + " (player slots plus the headless client).",
+    ]).concat(brief.include ? [
       "6. Copy customization\\briefing.sqf over your mission's customization\\briefing.sqf.",
     ] : []).concat([
       "",
@@ -636,6 +801,10 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     zip.file("customization/gear.sqf", gearFor(P.loadout));
     zip.file("customization/loadouts/" + P.loadout, P.loadoutText);
     if (brief.include) zip.file("customization/briefing.sqf", genBriefing());
+    if (sett.include) {
+      zip.file("customization/missionSettings.hpp", genSettings());
+      if (shot) zip.file("images/" + shot.name, shot.blob);
+    }
     zip.file("INSTALL.txt", installText());
     return zip.generateAsync({ type: "blob", compression: "DEFLATE" });
   }
@@ -756,11 +925,27 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         await writeFile(cust, "briefing.sqf", nb);
         log("ok", "Wrote customization\\briefing.sqf");
       }
-      log("ok", "Set maxPlayers in customization\\missionSettings.hpp to " + slotCount(state.prefix, state.n[state.prefix]) + ".");
+      if (sett.include) {
+        const ns = genSettings(), os = await readFile(cust, "missionSettings.hpp");
+        if (os !== null && os !== ns) {
+          await writeFile(cust, "missionSettings.hpp.bak", os);
+          log("warn", "Your old missionSettings.hpp is saved as missionSettings.hpp.bak.");
+        }
+        await writeFile(cust, "missionSettings.hpp", ns);
+        log("ok", "Wrote customization\\missionSettings.hpp (maxPlayers " + maxPlayers() + ")");
+        if (shot) {
+          const img = await dir.getDirectoryHandle("images", { create: true });
+          await writeFile(img, shot.name, shot.blob);
+          log("ok", "Copied images\\" + shot.name);
+        }
+      } else {
+        log("ok", "Set maxPlayers in customization\\missionSettings.hpp to " + maxAuto() + " (player slots plus the headless client).");
+      }
     } catch (e) { log("err", "Update failed: " + e.message); }
   });
 
   bindBriefing();
+  bindSettings();
   route();
   render();
 })();
