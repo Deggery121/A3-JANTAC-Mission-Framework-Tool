@@ -17,6 +17,12 @@ https://deggery121.github.io/A3-JANTAC-Mission-Framework-Tool/
 3. In any other browser, press **Download zip** and follow `INSTALL.txt` inside it.
 4. In Eden open **Compositions → JANTAC Mission Framework** and place the package.
 
+The **Briefing** tab builds `customization\briefing.sqf` from a form (situation, mission,
+friendly and enemy forces, execution, support, command and signal, mission notes and an
+optional CO-only tab). Friendly composition and radio channels fill in from the package you
+picked. Tick **Include briefing.sqf** and it goes into the zip and into **Add to a mission…**,
+replacing the mission's briefing (the old one is kept as `briefing.sqf.bak`).
+
 Radio channels follow the squad count: squad 1'N is on PRC-343 channel N and the HQ (1'0) is
 always on the channel after the last squad.
 

@@ -136,6 +136,7 @@ h1 .cs { color: var(--friendly); }
 .check { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; cursor: pointer; }
 .check input { margin-top: 3px; accent-color: var(--friendly); }
 .check small { display: block; color: var(--muted); font-size: 12.5px; }
+.check small a { color: var(--friendly); }
 
 .btn {
   display: inline-flex; justify-content: center; align-items: center; gap: 8px; width: 100%;
@@ -166,6 +167,40 @@ details.howto summary { cursor: pointer; font-weight: 600; }
 details.howto ol { margin: 10px 0 4px; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 75ch; }
 details.howto code { font: 12.5px var(--font-mono); background: var(--sunken); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
 
+/* view tabs */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+.tabs a {
+  font-family: var(--font-display); font-weight: 500; font-size: 16px; letter-spacing: 0.02em;
+  padding: 8px 14px; color: var(--muted); text-decoration: none; border-bottom: 3px solid transparent; margin-bottom: -1px;
+}
+.tabs a[aria-current="page"] { color: var(--fg); border-bottom-color: var(--friendly); }
+.tabs a:focus-visible { outline: 2px solid var(--friendly); outline-offset: 2px; }
+
+/* briefing editor */
+.brief { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 980px) { .brief { grid-template-columns: minmax(0, 1fr); } }
+.form { display: flex; flex-direction: column; gap: 14px; }
+fieldset { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); margin: 0; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; padding: 0 6px; margin-left: -6px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+.field label .aux { font-weight: 400; color: var(--muted); }
+.field input, .field textarea {
+  font: 14px/1.45 var(--font-body); color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 7px 9px; width: 100%; box-sizing: border-box;
+}
+.field textarea { min-height: 64px; resize: vertical; }
+.field input:focus-visible, .field textarea:focus-visible { outline: 2px solid var(--friendly); outline-offset: 0; border-color: var(--friendly); }
+.field ::placeholder { color: var(--muted); opacity: 0.75; }
+.linkbtn { font: 12px var(--font-body); background: none; border: 0; color: var(--friendly); cursor: pointer; padding: 0; text-decoration: underline; }
+.autolist { font: 12.5px/1.6 var(--font-mono); background: var(--sunken); border-radius: var(--radius); padding: 6px 10px; margin: 0; }
+.preview { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+@media (max-width: 980px) { .preview { position: static; } }
+.preview .code { max-height: 70vh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.preview-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.preview-head .m-title { font-size: 17px; }
+.preview-actions { display: flex; gap: 8px; }
+
 @media (prefers-reduced-motion: no-preference) { .pkg { transition: border-color .15s, box-shadow .15s; } .seg button { transition: background-color .15s; } }
 </style>
 
@@ -178,6 +213,12 @@ details.howto code { font: 12.5px var(--font-mono); background: var(--sunken); p
     <div class="build" id="build"></div>
   </header>
 
+  <nav class="tabs" aria-label="Views">
+    <a href="#units" id="tab-units">Units</a>
+    <a href="#briefing" id="tab-briefing">Briefing</a>
+  </nav>
+
+  <div id="view-units">
   <div class="board">
     <section aria-labelledby="pk-h">
       <p class="eyebrow" id="pk-h">Platoon packages</p>
@@ -197,10 +238,11 @@ details.howto code { font: 12.5px var(--font-mono); background: var(--sunken); p
       </div>
       <dl class="facts" id="facts"></dl>
       <label class="check"><input type="checkbox" id="sys" checked><span>Include JANTAC SYSTEM<small>Headless client, respawn logic and ACE headless module</small></span></label>
+      <label class="check"><input type="checkbox" id="brief-inc"><span>Include briefing.sqf<small id="brief-inc-note">Replaces the mission's customization\briefing.sqf. <a href="#briefing">Write the briefing</a></small></span></label>
       <div class="actions">
         <button class="btn" id="zip" type="button">Download zip</button>
         <button class="btn secondary" id="inst-comp" type="button" hidden>Install compositions…</button>
-        <button class="btn secondary" id="inst-miss" type="button" hidden>Add loadout to a mission…</button>
+        <button class="btn secondary" id="inst-miss" type="button" hidden>Add to a mission…</button>
         <p class="hint" id="fs-hint"></p>
       </div>
       <div>
@@ -218,9 +260,76 @@ details.howto code { font: 12.5px var(--font-mono); background: var(--sunken); p
       <li>Copy the folders inside <code>compositions</code> to your Arma profile's compositions folder: <code>Documents\Arma 3 - Other Profiles\&lt;profile&gt;\compositions</code> (or <code>Documents\Arma 3\compositions</code>). If your Documents folder lives in OneDrive, look under <code>OneDrive\Documents</code>.</li>
       <li>Copy the loadout file to your mission's <code>customization\loadouts</code> folder and add the gear.sqf line inside <code>switch (_type) do { … }</code>. A ready-made <code>gear.sqf</code> is in the zip if your mission has no custom lines.</li>
       <li>In Eden, open Compositions → JANTAC Mission Framework and place your package.</li>
+      <li>If you wrote a briefing, copy <code>customization\briefing.sqf</code> over your mission's.</li>
       <li>Set <code>maxPlayers</code> in <code>customization\missionSettings.hpp</code> to the slot count shown in the manifest.</li>
     </ol>
   </details>
+  </div>
+
+  <div id="view-briefing" hidden>
+    <div class="brief">
+      <form class="form" id="bform" autocomplete="off">
+        <fieldset>
+          <legend>Situation</legend>
+          <div class="field"><label for="b-title">Mission title</label><input id="b-title" placeholder="Clipped Rotors"></div>
+          <div class="field"><label for="b-background">Background</label><textarea id="b-background" placeholder="The enemy has been conducting air sorties over this sector of the frontline, hindering our efforts. Therefore, command has decided on a commando raid to destroy the enemy helicopters."></textarea></div>
+          <div class="field"><label for="b-weather">Weather</label><input id="b-weather" placeholder="Evening, a little cloudy, expected to rain later."></div>
+        </fieldset>
+        <fieldset>
+          <legend>Mission</legend>
+          <div class="field"><label for="b-intent">Mission intent</label><textarea id="b-intent" placeholder="Destroy the helicopters at OBJ GEORGE, then conduct a withdrawal to friendly lines at Bruchwedel."></textarea></div>
+          <div class="field"><label for="b-primary">Primary objectives <span class="aux">one per line</span></label><textarea id="b-primary" placeholder="Destroy enemy air assets at OBJ GEORGE."></textarea></div>
+          <div class="field"><label for="b-secondary">Secondary objectives <span class="aux">one per line</span></label><textarea id="b-secondary" placeholder="Try and keep all squads alive to extract."></textarea></div>
+        </fieldset>
+        <fieldset>
+          <legend>Friendly forces</legend>
+          <div class="field"><label for="b-fcomp">Composition <button type="button" class="linkbtn" id="b-fcomp-auto" hidden>Use the package's</button></label><textarea id="b-fcomp"></textarea></div>
+          <div class="field"><label for="b-fdisp">Disposition</label><textarea id="b-fdisp" placeholder="Staged in the northern part of the AO."></textarea></div>
+          <div class="field"><label for="b-fpid">Uniform / PID</label><textarea id="b-fpid" placeholder="DPM uniforms, MK 5 Steel helmets, FALs and L7A2s with LAWs and a Carl Gustaf."></textarea></div>
+        </fieldset>
+        <fieldset>
+          <legend>Enemy forces</legend>
+          <div class="field"><label for="b-ecomp">Composition</label><textarea id="b-ecomp" placeholder="Approx one company (reinforced) of light infantry with M113 APCs spotted in the vicinity."></textarea></div>
+          <div class="field"><label for="b-edisp">Disposition</label><textarea id="b-edisp" placeholder="Heavy enemy resistance in and around Schwemlitz. They do not know you are coming."></textarea></div>
+          <div class="field"><label for="b-civ">Civilian presence</label><input id="b-civ" placeholder="None, collateral damage is not a concern."></div>
+          <div class="field"><label for="b-epid">Uniform / PID</label><textarea id="b-epid" placeholder="M81 Woodland with olive M1 helmets, M113s, M939 trucks. Vehicles will be solid green."></textarea></div>
+        </fieldset>
+        <fieldset>
+          <legend>Execution and support</legend>
+          <div class="field"><label for="b-exec">Execution</label><textarea id="b-exec" placeholder="-CO Discretion.&#10;-You are in the AO at start, keep your eyes open."></textarea></div>
+          <div class="field"><label for="b-support">Service support</label><textarea id="b-support" placeholder="-None."></textarea></div>
+        </fieldset>
+        <fieldset>
+          <legend>Command and signal</legend>
+          <div class="field"><label for="b-lr">Long-range radio</label><input id="b-lr" placeholder="All squads on LR channel 1"></div>
+          <div class="field"><label>Short-range (from the package)</label><pre class="autolist" id="b-radios"></pre></div>
+          <div class="field"><label for="b-signal">Other signals</label><textarea id="b-signal" placeholder="1'1 is wearing blue chemlights, 1'2 green."></textarea></div>
+        </fieldset>
+        <fieldset>
+          <legend>Mission notes <span class="aux" style="font:400 12px var(--font-body);color:var(--muted)">every side sees this tab</span></legend>
+          <div class="field"><label for="b-modules">Modules <span class="aux">one per line</span></label><textarea id="b-modules" placeholder="ACE Advanced Medical&#10;ACE Cargo&#10;ACE Explosives"></textarea></div>
+          <div class="field"><label for="b-author">Mission by</label><input id="b-author" placeholder="Kelly"></div>
+          <div class="field"><label for="b-fw">Framework line</label><input id="b-fw" placeholder="Uses JANFU A3 Framework v1.54"></div>
+        </fieldset>
+        <fieldset>
+          <legend>CO-only tab</legend>
+          <div class="field"><label for="b-co">Only the platoon commander sees this <span class="aux" id="b-co-class"></span></label><textarea id="b-co" placeholder="Pacing, mission meta, what success looks like."></textarea></div>
+        </fieldset>
+      </form>
+
+      <section class="preview" aria-labelledby="pv-h">
+        <div class="preview-head">
+          <h2 class="m-title" id="pv-h">customization\briefing.sqf</h2>
+          <div class="preview-actions">
+            <button class="copy" id="b-copy" type="button">Copy</button>
+            <button class="copy" id="b-clear" type="button">Clear</button>
+          </div>
+        </div>
+        <p class="hint" id="b-status"></p>
+        <pre class="code" id="b-out"></pre>
+      </section>
+    </div>
+  </div>
 </div>
 
 <script type="application/json" id="lib">__LIBRARY_JSON__</script>
@@ -310,7 +419,156 @@ details.howto code { font: 12.5px var(--font-mono); background: var(--sunken); p
       "<dt>Composition</dt><dd>" + esc(compFor(state.prefix, n).name) + "</dd>";
     $("incl").textContent = includeLine(P.loadout);
     $("sys").checked = state.sys;
+    updateBriefing();
   }
+
+  // ---- briefing ----------------------------------------------------------------
+  const BF = ["title", "background", "weather", "intent", "primary", "secondary", "fcomp", "fdisp", "fpid",
+    "ecomp", "edisp", "civ", "epid", "exec", "support", "lr", "signal", "modules", "author", "fw", "co"];
+  const brief = { v: {}, fcompEdited: false, include: false, includeTouched: false };
+  try {
+    const s = JSON.parse(localStorage.getItem("jantac-brief") || "null");
+    if (s && s.v) Object.assign(brief, s);
+  } catch (e) { /* storage unavailable */ }
+  const saveBrief = () => { try { localStorage.setItem("jantac-brief", JSON.stringify(brief)); } catch (e) {} };
+  const autoComp = () => { const n = state.n[state.prefix]; return n + "x squad" + (n > 1 ? "s" : "") + " of infantry with a 1x PLT HQ."; };
+  const radioLines = () => {
+    const n = state.n[state.prefix], out = [];
+    for (let k = 1; k <= n; k++) out.push("1'" + k + " on 343 channel " + k);
+    out.push("1'0 on 343 channel " + (n + 1));
+    return out;
+  };
+  const coClass = () => { const hq = pkg().groups.find((g) => g.squad === 0); return (hq && hq.units[0] && hq.units[0].type) || "B_officer_F"; };
+  const hasContent = () => BF.some((k) => k !== "fcomp" && (brief.v[k] || "").trim());
+
+  // Briefing text sits inside a string the preprocessor cannot see, so typed text is made safe:
+  // XML-escaped for structured text, quotes doubled, // broken up, macro names lowered,
+  // and a line starting with # joined onto the line before it.
+  const MACROS = /\b(NEWTAB|ENDTAB|DISPLAYBRIEFING|ADD_GROUP|SET_GROUP|END_GROUP)\b/g;
+  function sqfLines(text) {
+    const raw = String(text || "").replace(/\r/g, "").split("\n").map((l) => l.replace(/\s+$/, ""));
+    while (raw.length && !raw[raw.length - 1]) raw.pop();
+    while (raw.length && !raw[0]) raw.shift();
+    const out = [];
+    raw.forEach((l) => {
+      let s = l.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, '""')
+        .replace(/\/\//g, "/ /").replace(MACROS, (m) => m.toLowerCase()) + "<br />";
+      if (/^\s*#/.test(s)) {
+        if (out.length) { out[out.length - 1] += s; return; }
+        s = "-" + s.replace(/^\s*/, "");
+      }
+      out.push(s);
+    });
+    return out;
+  }
+  const H = (t, size) => "<font color='#0088FF' size='" + (size || 18) + "' face='PuristaBold'>" + t + "</font><br/>";
+  function block(header, text, size) {
+    const l = sqfLines(text);
+    if (!l.length) return [];
+    return (header ? [H(header, size)] : []).concat(l, ["<br />"]);
+  }
+  const bullets = (t) => String(t || "").split("\n").filter((x) => x.trim()).map((x) => (/^\s*-/.test(x) ? x.trim() : "-" + x.trim())).join("\n");
+  const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+
+  function genBriefing() {
+    const v = (k) => (brief.v[k] || "").trim();
+    const tabs = [];
+    const sit = [];
+    if (v("title")) sit.push(H("Mission Title: " + sqfLines(v("title"))[0].replace(/<br \/>$/, "")), "<br />");
+    sit.push(...block("Background:", v("background")), ...block("Weather:", v("weather")));
+    tabs.push(["Situation:", sit]);
+    const mis = block("Mission Intent:", v("intent"));
+    const pri = block("Primary Objective:", bullets(v("primary")), 14);
+    const sec = block("Secondary Objective:", bullets(v("secondary")), 14);
+    if (pri.length || sec.length) mis.push(H("Objectives:"), ...pri, ...sec);
+    tabs.push(["Mission:", mis]);
+    tabs.push(["Friendly Forces:", [...block("Composition:", brief.fcompEdited ? v("fcomp") : autoComp()),
+      ...block("Disposition:", v("fdisp")), ...block("Uniform/PID:", v("fpid"))]]);
+    tabs.push(["Enemy Forces:", [...block("Composition:", v("ecomp")), ...block("Disposition:", v("edisp")),
+      ...block("Civilian Presence:", v("civ")), ...block("Uniform/PID:", v("epid"))]]);
+    tabs.push(["Execution:", block("", v("exec"))]);
+    tabs.push(["Service Support:", block("", v("support"))]);
+    const radios = [v("lr") || "All squads on LR channel 1"].concat(radioLines()).join("\n");
+    tabs.push(["Command & Signal:", [...block("Radios:", radios), ...block("Other signals:", v("signal"))]]);
+
+    const out = [
+      '#include "core\\briefingCore.sqf" //DO NOT REMOVE', "",
+      "waitUntil {!(isNull player)};//This is needed for JIP compatibility since this code is spawned not called", "",
+      "// Generated by the JANTAC Unit Library", "",
+      "switch (side player) do { //Checks what team the player is on",
+      "case WEST: { //If player is blufor he receives this briefing", "",
+    ];
+    let i = 0;
+    tabs.filter((t) => t[1].length).forEach((t) => { out.push('NEWTAB("' + ROMAN[i++] + ". " + t[0] + '")', ...t[1], "ENDTAB;", ""); });
+    out.push("};", "};", "", "//All players regardless of side get below tabs.");
+    const notes = [];
+    const mods = sqfLines(v("modules"));
+    if (mods.length) notes.push("Modules:<br />", ...mods, "<br />");
+    if (v("author")) notes.push(...sqfLines("Mission by " + v("author")));
+    notes.push(...sqfLines(v("fw") || "Uses JANFU A3 Framework v1.54"));
+    out.push('NEWTAB("' + ROMAN[i++] + '. Mission notes:")', "<br />", ...notes, "<br />", "ENDTAB;", "");
+    if (v("co")) {
+      out.push("//Only the platoon commander's unit class gets this tab.", "_unit = player;", "",
+        "switch (typeOf _unit) do {", 'case "' + coClass() + '": {', 'NEWTAB("CO Briefing Meta:")',
+        "<font color='#f44336' size='18' face='PuristaBold'>This tab is only visible to CO, please don't share the information.</font><br/>",
+        ...sqfLines(v("co")), "ENDTAB;", "};", "};", "");
+    }
+    out.push("DISPLAYBRIEFING();", "");
+    return out.join("\r\n");
+  }
+  window.__jantacBriefing = { gen: genBriefing, lines: sqfLines, brief }; // exposed for testing
+
+  function updateBriefing() {
+    if (!brief.fcompEdited) $("b-fcomp").value = autoComp();
+    $("b-fcomp-auto").hidden = !brief.fcompEdited;
+    $("b-radios").textContent = (brief.v.lr || "All squads on LR channel 1") + "\n" + radioLines().join("\n");
+    $("b-co-class").textContent = "unit class " + coClass();
+    $("b-out").textContent = genBriefing();
+    $("brief-inc").checked = brief.include;
+    $("b-status").textContent = brief.include
+      ? "Included in your download and in “Add to a mission…”. It replaces the mission's briefing.sqf."
+      : "Not included yet. Tick “Include briefing.sqf” on the Units tab to add it.";
+  }
+
+  function bindBriefing() {
+    BF.forEach((k) => {
+      const el = $("b-" + k);
+      if (k !== "fcomp" || brief.fcompEdited) el.value = brief.v[k] || "";
+      el.addEventListener("input", () => {
+        brief.v[k] = el.value;
+        if (k === "fcomp") brief.fcompEdited = true;
+        if (!brief.includeTouched && hasContent()) brief.include = true;
+        saveBrief(); updateBriefing();
+      });
+    });
+    $("bform").addEventListener("submit", (e) => e.preventDefault());
+    $("b-fcomp-auto").addEventListener("click", () => { brief.fcompEdited = false; brief.v.fcomp = ""; saveBrief(); updateBriefing(); });
+    $("brief-inc").addEventListener("change", (e) => { brief.include = e.target.checked; brief.includeTouched = true; saveBrief(); updateBriefing(); });
+    $("b-copy").addEventListener("click", () => {
+      const sel = () => { const r = document.createRange(); r.selectNodeContents($("b-out")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+      try { navigator.clipboard.writeText(genBriefing()).then(() => { $("b-copy").textContent = "Copied"; setTimeout(() => ($("b-copy").textContent = "Copy"), 1500); }, sel); }
+      catch (e) { sel(); }
+    });
+    let armed = 0;
+    $("b-clear").addEventListener("click", () => {
+      if (Date.now() - armed < 3000) {
+        armed = 0; brief.v = {}; brief.fcompEdited = false; brief.include = false; brief.includeTouched = false;
+        BF.forEach((k) => ($("b-" + k).value = ""));
+        saveBrief(); updateBriefing(); $("b-clear").textContent = "Clear";
+      } else {
+        armed = Date.now(); $("b-clear").textContent = "Click again to clear";
+        setTimeout(() => { if (armed && Date.now() - armed >= 3000) { armed = 0; $("b-clear").textContent = "Clear"; } }, 3100);
+      }
+    });
+  }
+
+  function route() {
+    const b = location.hash === "#briefing";
+    $("view-units").hidden = b; $("view-briefing").hidden = !b;
+    $("tab-units").setAttribute("aria-current", b ? "false" : "page");
+    $("tab-briefing").setAttribute("aria-current", b ? "page" : "false");
+  }
+  window.addEventListener("hashchange", route);
 
   $("sys").addEventListener("change", (e) => { state.sys = e.target.checked; remember(); render(); });
 
@@ -362,8 +620,11 @@ details.howto code { font: 12.5px var(--font-mono); background: var(--sunken); p
       "   (Or use the gear.sqf in this zip if your mission has no custom gear lines.)",
       "4. In Eden: Compositions > JANTAC Mission Framework > " + compFor(state.prefix, n).name,
       "5. Set maxPlayers in customization\\missionSettings.hpp to " + slotCount(state.prefix, n) + " player slots.",
+    ].concat(brief.include ? [
+      "6. Copy customization\\briefing.sqf over your mission's customization\\briefing.sqf.",
+    ] : []).concat([
       "",
-    ].join("\r\n");
+    ]).join("\r\n");
   }
   async function buildZip() {
     const P = pkg();
@@ -374,6 +635,7 @@ details.howto code { font: 12.5px var(--font-mono); background: var(--sunken); p
     });
     zip.file("customization/gear.sqf", gearFor(P.loadout));
     zip.file("customization/loadouts/" + P.loadout, P.loadoutText);
+    if (brief.include) zip.file("customization/briefing.sqf", genBriefing());
     zip.file("INSTALL.txt", installText());
     return zip.generateAsync({ type: "blob", compression: "DEFLATE" });
   }
@@ -485,10 +747,21 @@ details.howto code { font: 12.5px var(--font-mono); background: var(--sunken); p
         else if (r.action === "present") log("ok", "gear.sqf already includes " + P.loadout);
         else { await writeFile(cust, "gear.sqf", r.text); log("ok", "gear.sqf: " + (r.action === "added" ? "added " : "uncommented ") + includeLine(P.loadout)); }
       }
+      if (brief.include) {
+        const nb = genBriefing(), ob = await readFile(cust, "briefing.sqf");
+        if (ob !== null && ob !== nb) {
+          await writeFile(cust, "briefing.sqf.bak", ob);
+          log("warn", "Your old briefing.sqf is saved as briefing.sqf.bak.");
+        }
+        await writeFile(cust, "briefing.sqf", nb);
+        log("ok", "Wrote customization\\briefing.sqf");
+      }
       log("ok", "Set maxPlayers in customization\\missionSettings.hpp to " + slotCount(state.prefix, state.n[state.prefix]) + ".");
     } catch (e) { log("err", "Update failed: " + e.message); }
   });
 
+  bindBriefing();
+  route();
   render();
 })();
 </script>

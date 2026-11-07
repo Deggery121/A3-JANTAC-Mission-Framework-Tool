@@ -90,7 +90,8 @@ def main():
                     squad = int(m.group(1))
                 role = re.search(r'"' + re.escape(prefix) + r'(\w+)"\] call FNC_GearScript', init).group(1)
                 color = re.search(r'"(RED|BLUE|GREEN)"\] call FNC_Autocolor', init)
-                units.append({"desc": desc.split("@")[0], "role": role, "color": color.group(1) if color else ""})
+                units.append({"desc": desc.split("@")[0], "role": role, "color": color.group(1) if color else "",
+                              "type": val(u["body"], "type")})
             groups.append({"squad": squad, "units": units})
         groups.sort(key=lambda g: g["squad"])
         max_sq = max(g["squad"] for g in groups)
