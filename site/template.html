@@ -64,7 +64,7 @@ h1 {
   font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 4vw, 40px);
   letter-spacing: 0.01em; line-height: 1.05; margin: 0; text-wrap: balance;
 }
-h1 .cs { color: var(--friendly); }
+.byline { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
 .lede { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
 .build { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
 .by { font-family: var(--font-body); font-weight: 400; font-size: 13px; color: var(--muted); margin-left: 8px; letter-spacing: 0; }
@@ -84,8 +84,22 @@ h1 .cs { color: var(--friendly); }
 .pkgs { display: flex; flex-direction: column; gap: 12px; }
 .pkg { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
 .pkg[aria-current="true"] { border-color: var(--friendly); box-shadow: 0 0 0 1px var(--friendly); }
+.pkg-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; cursor: pointer; }
+.pkg-side { display: flex; align-items: center; gap: 14px; padding: 10px 16px 10px 0; }
+.qdl {
+  font: 500 12.5px var(--font-mono); padding: 5px 9px; border-radius: var(--radius); cursor: pointer; white-space: nowrap;
+  border: 1px solid var(--line); background: var(--surface); color: var(--friendly);
+}
+.qdl:hover { border-color: var(--friendly); }
+.qdl:focus-visible { outline: 2px solid var(--friendly); outline-offset: 2px; }
+.qdl:disabled { opacity: .5; cursor: progress; }
+@media (max-width: 520px) {
+  .pkg-top { grid-template-columns: minmax(0, 1fr); }
+  .pkg-side { padding: 0 16px 12px 48px; justify-content: space-between; }
+  .pkg-slots { text-align: left; }
+}
 .pkg-head {
-  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center;
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center;
   width: 100%; padding: 14px 16px; background: none; border: 0; color: inherit; font: inherit;
   text-align: left; cursor: pointer; border-radius: var(--radius);
 }
@@ -320,7 +334,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     <div class="brand">
       <img src="__LOGO_DATA_URI__" alt="JANFU Tactical logo">
       <div>
-      <h1>JANTAC Unit Library <span class="cs">1'0</span></h1>
+      <h1>JANTAC Unit Library</h1>
+      <p class="byline">By JANFU Deggery</p>
       <p class="lede">Pick a platoon, build your own, or bring the units you already placed. Then write the briefing and mission settings and take it all to your mission.</p>
       <p class="links"><a href="https://www.janfu.work/" target="_blank" rel="noopener">janfu.work</a><a href="https://github.com/dklollol/Olsen-Framework-Arma-3" target="_blank" rel="noopener">Built on the Olsen Framework</a></p>
       </div>
@@ -716,11 +731,16 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   }
 
   // ---- Units tab -------------------------------------------------------------------------
-  function card(key, on, name, meta, right, body) {
-    return '<article class="pkg" aria-current="' + on + '" data-k="' + key + '">' +
+  function card(key, on, name, meta, right, body, dlPrefix) {
+    const dl = dlPrefix
+      ? '<button class="qdl" type="button" data-dl="' + dlPrefix + '" title="Download ' + esc(LIB.packages[dlPrefix].loadout) + ' only" aria-label="Download ' +
+        esc(LIB.packages[dlPrefix].loadout) + ' only">↓ .sqf</button>'
+      : "";
+    return '<article class="pkg" aria-current="' + on + '" data-k="' + key + '"><div class="pkg-top">' +
       '<button class="pkg-head" type="button" aria-expanded="' + on + '"><span class="radio"></span>' +
-      '<span><span class="pkg-name">' + name + '</span><span class="pkg-meta">' + meta + "</span></span>" +
-      '<span class="pkg-slots">' + right + "</span></button>" + (on ? '<div class="pkg-body">' + body + "</div>" : "") + "</article>";
+      '<span><span class="pkg-name">' + name + '</span><span class="pkg-meta">' + meta + "</span></span></button>" +
+      '<div class="pkg-side">' + dl + (right ? '<span class="pkg-slots">' + right + "</span>" : "") + "</div></div>" +
+      (on ? '<div class="pkg-body">' + body + "</div>" : "") + "</article>";
   }
 
   function sourceLabel() {
@@ -760,7 +780,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       }
       return card("pkg:" + p, on, esc(P.name) + (P.by ? '<span class="by">By ' + esc(P.by) + "</span>" : ""),
         '<span class="pkg-desc">' + esc(P.description || P.loadout) + "</span>",
-        "<span>" + slots + ' slots</span><span class="file">' + esc(P.loadout) + "</span>", body);
+        "<span>" + slots + ' slots</span><span class="file">' + esc(P.loadout) + "</span>", body, p);
     }).join("");
     if (showSide && !sidePkgs.length) {
       html = '<div class="branch-empty"><b>No ' + SIDES[showSide].label + " packages yet.</b> " +
@@ -800,7 +820,12 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
   function finishUnits(html) {
     $("pkgs").innerHTML = html;
-    $("pkgs").querySelectorAll(".pkg-head").forEach((b) => b.addEventListener("click", () => {
+    $("pkgs").querySelectorAll(".qdl").forEach((b) => b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      downloadLoadout(b.dataset.dl, b);
+    }));
+    $("pkgs").querySelectorAll(".pkg-top").forEach((b) => b.addEventListener("click", (e) => {
+      if (e.target.closest(".qdl")) return;
       const k = b.closest(".pkg").dataset.k;
       const selected = k.startsWith("pkg:") ? state.source === "pkg" && state.prefix === k.slice(4) : state.source === k;
       if (selected) state.source = "none";
@@ -1379,25 +1404,46 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const hasViewer = typeof window.claude !== "undefined" && window.claude && typeof window.claude.use === "function";
   if (hasViewer) window.claude.use("downloads").then((d) => { downloads = d; }).catch(() => {});
 
+  // Saves a file: through the claude.ai viewer when the page runs there, otherwise as a normal browser download.
+  async function saveFile(name, blob) {
+    if (hasViewer) {
+      if (!downloads) downloads = await window.claude.use("downloads");
+      if (!downloads) { log("err", "Downloads are not available in this view. Open the page from GitHub Pages instead."); return; }
+      try { await downloads.save({ filename: name, data: blob }); log("ok", "Saved " + name); }
+      catch (e) { log(e && e.code === "declined" ? "warn" : "err", e && e.code === "declined" ? "Download cancelled." : "Download failed: " + (e && e.message || e)); }
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    log("ok", "Downloaded " + name);
+  }
+
   $("zip").addEventListener("click", async () => {
     const b = $("zip"); b.disabled = true; clearLog();
-    try {
-      const blob = await buildZip();
-      if (hasViewer) {
-        if (!downloads) downloads = await window.claude.use("downloads");
-        if (!downloads) { log("err", "Downloads are not available in this view. Open the page from GitHub Pages instead."); return; }
-        try { await downloads.save({ filename: zipName(), data: blob }); log("ok", "Saved " + zipName()); }
-        catch (e) { log(e && e.code === "declined" ? "warn" : "err", e && e.code === "declined" ? "Download cancelled." : "Download failed: " + (e && e.message || e)); }
-      } else {
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob); a.download = zipName();
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-        log("ok", "Downloaded " + zipName());
-      }
-    } catch (e) { log("err", "Could not build the zip: " + (e && e.message || e)); }
+    try { await saveFile(zipName(), await buildZip()); }
+    catch (e) { log("err", "Could not build the zip: " + (e && e.message || e)); }
     finally { renderManifest(); }
   });
+
+  // Quick download: just one package's loadout .sqf. The claude.ai viewer only saves certain file
+  // types, so there it comes inside a zip; on GitHub Pages it is the plain .sqf.
+  async function downloadLoadout(prefix, btn) {
+    const P = LIB.packages[prefix];
+    clearLog(); btn.disabled = true;
+    try {
+      if (hasViewer) {
+        const zip = new JSZip();
+        zip.file(P.loadout, P.loadoutText);
+        await saveFile(P.loadout.replace(/\.sqf$/i, "") + " loadout.zip", await zip.generateAsync({ type: "blob", compression: "DEFLATE" }));
+      } else {
+        await saveFile(P.loadout, new Blob([P.loadoutText], { type: "text/plain" }));
+      }
+      log("ok", "Put it in your mission's customization\\loadouts folder and add " + includeLine(P.loadout) + " to gear.sqf.");
+    } catch (e) { log("err", "Could not download " + P.loadout + ": " + (e && e.message || e)); }
+    finally { btn.disabled = false; }
+  }
 
   // ---- direct install (Chrome / Edge, top-level page only) ------------------------------------------------------
   const canFS = typeof window.showDirectoryPicker === "function" && window.self === window.top;
