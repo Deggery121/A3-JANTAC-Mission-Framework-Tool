@@ -155,8 +155,8 @@ for layer in layers:
                     sq = int(lm.group(1)[2:])
             ca = classes(sub(u, "CustomAttributes"))
             props = [val(c["body"], "property") for c in ca]
-            if props != ["acre_sys_radio_edenSetup"]:
-                err(f"{who}: custom attributes must be exactly the ACRE radio setup, found {props}")
+            if not props or props[0] != "acre_sys_radio_edenSetup" or set(props[1:]) - {"ace_isEngineer"}:
+                err(f"{who}: custom attributes must be the ACRE radio setup (plus optionally ace_isEngineer), found {props}")
                 continue
             data = sqm.get(sqm.get(ca[0]["body"], "Value")["body"], "data")["body"]
             cm = re.search(r'"ACRE_PRC343",\[1,(\d+)\]', val(data, "value"))

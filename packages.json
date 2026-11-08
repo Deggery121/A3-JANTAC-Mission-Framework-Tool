@@ -41,6 +41,16 @@
       ],
       "by": "Deggery",
       "description": "1980s US Army \u00b7 M81 woodland, M16A2, M249"
+    },
+    "USMCEAR_": {
+      "name": "Early 2000s USMC (Des)",
+      "loadout": "USMCEAR.sqf",
+      "requiredAddons": [
+        "A3_Characters_F",
+        "A3_Characters_F_Exp"
+      ],
+      "by": "Deggery",
+      "description": "Early 2000s USMC \u00b7 Desert MARPAT, M16A4, M249"
     }
   }
 }
