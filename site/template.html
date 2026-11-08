@@ -179,6 +179,10 @@ h1 .cs { color: var(--friendly); }
 
 details.howto { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; margin-top: 24px; }
 details.howto summary { cursor: pointer; font-weight: 600; }
+details.howto + details.howto { margin-top: 12px; }
+details.howto h3 { font-family: var(--font-display); font-weight: 700; font-size: 16px; margin: 16px 0 4px; }
+details.howto p { margin: 6px 0; max-width: 75ch; }
+details.howto ul { margin: 6px 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; max-width: 75ch; }
 details.howto ol { margin: 10px 0 4px; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 75ch; }
 details.howto code { font: 12.5px var(--font-mono); background: var(--sunken); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
 
@@ -368,6 +372,43 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       <ul class="log" id="log" aria-live="polite"></ul>
     </aside>
   </div>
+
+  <details class="howto">
+    <summary>How this works</summary>
+    <p>This page sets up the player side of a JANTAC (Olsen-based) mission: the playable units with their gear, the briefing and the mission settings. It doesn't make objectives. Everything runs in your browser. Nothing you type is uploaded, and your drafts are kept in this browser until you clear them.</p>
+
+    <h3>1. Pick your units (Units tab)</h3>
+    <ul>
+      <li><b>BLUFOR, OPFOR and INDFOR</b> list the ready-made platoon packages for each side. Pick one and choose how many squads go under 1'0. Every slot already has its gear script, team color, lobby name and ACRE radio channel.</li>
+      <li><b>Custom options</b> has two more choices. <b>Custom platoon</b> is the design you build in the Custom units tab. <b>My mission already has units</b> is for missions that already have their loadout and units placed: you get only the briefing and mission settings.</li>
+      <li>Click a selected card again to unselect it.</li>
+    </ul>
+
+    <h3>2. Build your own platoon (Custom units tab, optional)</h3>
+    <ul>
+      <li>Choose a side, then start from a package or from empty. Pick a group on the right and click units on the left to add them. You can reorder, rename, set red or blue teams, duplicate squads and add squads.</li>
+      <li>The first slot in each group is its leader. Medics are always green, and SL and PL roles stay on the default team.</li>
+      <li>You can mix units from different packages of the same side. Each unit keeps its own gear script, and every loadout the design uses is added.</li>
+      <li>Press <b>Use this design</b> to select it for the mission.</li>
+    </ul>
+
+    <h3>3. Write the briefing (Briefing tab, optional)</h3>
+    <p>Fill in the sections you need and leave the rest empty. Empty sections are left out. Friendly composition and the radio list fill in from your units. The CO-only tab is shown only to the platoon commander's unit. The preview shows the exact <code>briefing.sqf</code> you'll get.</p>
+
+    <h3>4. Set the mission settings (Mission settings tab, optional)</h3>
+    <p>Loading screen name and messages, an optional loading image, game type and player limits. <code>maxPlayers</code> fills in from your units: player slots plus the headless client.</p>
+
+    <h3>5. Take it to your mission (manifest on the Units tab)</h3>
+    <ul>
+      <li>Tick <b>Include briefing.sqf</b> and <b>Include missionSettings.hpp</b> to add them. They tick themselves once you start editing.</li>
+      <li><b>Download zip</b> works in any browser. It holds the compositions, the loadout files, a <code>gear.sqf</code>, your briefing and settings, and an <code>INSTALL.txt</code>.</li>
+      <li><b>Add to a mission…</b> (Chrome or Edge, on the GitHub page) writes into a mission folder you pick. It copies the loadouts, adds their lines to <code>gear.sqf</code> without touching your other lines, and replaces the briefing and settings. Any file it replaces is kept with <code>.bak</code> added to its name.</li>
+      <li><b>Install compositions…</b> (not required) copies the compositions straight into your profile's compositions folder. You can copy them from the zip instead.</li>
+    </ul>
+
+    <h3>6. Place the units in Eden</h3>
+    <p>Open Compositions → JANTAC Mission Framework and place your package or custom platoon. Squad 1'N is on PRC-343 channel N and 1'0 is on the channel after the last squad. Then set the mission up as usual.</p>
+  </details>
 
   <details class="howto">
     <summary>Installing by hand</summary>
