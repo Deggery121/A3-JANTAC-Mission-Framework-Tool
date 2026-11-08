@@ -99,5 +99,5 @@ same side; the checker enforces this.
 ## Credits
 
 - Built on the [Olsen Framework for Arma 3](https://github.com/dklollol/Olsen-Framework-Arma-3). Thanks to Olsen and its contributors.
-- Loadouts: TCR units by Kelly; 1980s US Army and US army early 2000s by Deggery.
+- Loadouts: TCR units by Kelly; 1980s US Army and US Army Early 2000s by Deggery.
 - JANFU: https://www.janfu.work/

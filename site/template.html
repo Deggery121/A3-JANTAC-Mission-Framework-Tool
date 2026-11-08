@@ -318,6 +318,18 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 .ibtn:disabled { opacity: .35; cursor: default; }
 .ibtn:focus-visible { outline: 2px solid var(--friendly); outline-offset: 1px; }
 .empty { font-size: 13px; color: var(--muted); padding: 6px 0 0; margin: 0; }
+.slist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.slist li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 12px; }
+.slist li.editing { border-color: var(--friendly); }
+.slist .nm { font-weight: 600; }
+.slist .meta { font-size: 12.5px; color: var(--muted); }
+.slist .acts { margin-left: auto; display: flex; gap: 6px; }
+.slist .empty-row { color: var(--muted); font-size: 13.5px; }
+.tbtn.danger { color: var(--team-red); }
+.tbtn:disabled { opacity: .5; cursor: default; }
+.dstatus { font-size: 13px; color: var(--muted); align-self: center; }
+.dstatus.changed { color: var(--warn); }
+.card-acts { display: flex; flex-wrap: wrap; gap: 8px; }
 .issues { margin: 0; padding-left: 18px; color: var(--warn); font-size: 13px; }
 @media (max-width: 560px) {
   .srow { grid-template-columns: 22px minmax(0, 1fr) auto; }
@@ -395,16 +407,17 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     <h3>1. Pick your units (Units tab)</h3>
     <ul>
       <li><b>BLUFOR, OPFOR and INDFOR</b> list the ready-made platoon packages for each side. Pick one and choose how many squads go under 1'0. Every slot already has its gear script, team color, lobby name and ACRE radio channel.</li>
-      <li><b>Custom options</b> has two more choices. <b>Custom platoon</b> is the design you build in the Custom units tab. <b>My mission already has units</b> is for missions that already have their loadout and units placed: you get only the briefing and mission settings.</li>
+      <li><b>Custom options</b> has two more choices. Every <b>custom platoon</b> you've saved in the Custom units tab is listed there, with Edit and Delete. <b>My mission already has units</b> is for missions that already have their loadout and units placed: you get only the briefing and mission settings.</li>
       <li>Click a selected card again to unselect it.</li>
     </ul>
 
     <h3>2. Build your own platoon (Custom units tab, optional)</h3>
     <ul>
-      <li>Choose a side, then start from a package or from empty. Pick a group on the right and click units on the left to add them. You can reorder, rename, set red or blue teams, duplicate squads and add squads.</li>
+      <li>Use <b>New design</b> to start empty or from a package, and choose a side. Pick a group on the right and click units on the left to add them. You can reorder, rename, set red or blue teams, duplicate squads and add squads.</li>
+      <li>Press <b>Save</b> to keep the design. Saved designs are listed at the top of the tab and under Custom options on the Units tab, where you can edit or delete them. They're kept in this browser.</li>
       <li>The first slot in each group is its leader. Medics are always green, and SL and PL roles stay on the default team.</li>
       <li>You can mix units from different packages of the same side. Each unit keeps its own gear script, and every loadout the design uses is added.</li>
-      <li>Press <b>Use this design</b> to select it for the mission.</li>
+      <li>Press <b>Save and use this design</b> to save it and select it for the mission.</li>
     </ul>
 
     <h3>3. Write the briefing (Briefing tab, optional)</h3>
@@ -447,23 +460,28 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       </aside>
 
       <section class="dboard" aria-labelledby="d-h">
-        <h2 class="m-title" id="d-h" hidden>Custom designer</h2>
+        <div>
+          <p class="eyebrow" id="d-h" style="margin:0 0 8px">Saved designs</p>
+          <ul class="slist" id="d-saved"></ul>
+        </div>
+        <div class="toolbar">
+          <div class="field" style="flex:0 1 260px"><label for="d-start">New design</label><select id="d-start"></select></div>
+          <button class="tbtn" id="d-new" type="button">Start new design</button>
+        </div>
         <div class="toolbar">
           <div class="field"><label for="d-name">Design name</label><input id="d-name" placeholder="Raid platoon"></div>
           <div class="field" style="flex:0 1 150px"><label for="d-side">Side</label>
             <select id="d-side"><option value="West">BLUFOR</option><option value="East">OPFOR</option><option value="Independent">INDFOR</option></select>
           </div>
-          <div class="field" style="flex:0 1 220px"><label for="d-start">Start from</label>
-            <select id="d-start"></select>
-          </div>
-          <button class="tbtn" id="d-load" type="button">Load</button>
+          <button class="tbtn" id="d-save" type="button">Save</button>
           <button class="tbtn" id="d-add" type="button">Add squad</button>
+          <span class="dstatus" id="d-status"></span>
         </div>
         <div id="dgroups" class="dboard"></div>
         <ul class="issues" id="d-issues"></ul>
         <div class="toolbar">
-          <button class="btn" id="d-use" type="button" style="width:auto">Use this design</button>
-          <p class="hint" id="d-hint">Each group's first slot is its leader. Medics are always green; SL and PL roles keep the default team.</p>
+          <button class="btn" id="d-use" type="button" style="width:auto">Save and use this design</button>
+          <p class="hint" id="d-hint">Each group's first slot is its leader. Medics are always green; SL and PL roles keep the default team. Saved designs stay in this browser.</p>
         </div>
       </section>
     </div>
@@ -606,7 +624,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
   // ---- selection state -----------------------------------------------------------
   // source: "pkg" (a package), "custom" (the Custom units design) or "own" (units already in the mission)
-  const state = { source: "pkg", prefix: prefixes[0], n: {}, sys: true, branch: "", own: { squads: "3", slots: "", co: "B_officer_F", side: "West" } };
+  const state = { source: "pkg", prefix: prefixes[0], n: {}, sys: true, branch: "", customId: null, own: { squads: "3", slots: "", co: "B_officer_F", side: "West" } };
   prefixes.forEach((p) => (state.n[p] = LIB.packages[p].maxSquads));
   (() => {
     const s = load("jantac-sel");
@@ -618,21 +636,37 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (s.own) Object.assign(state.own, s.own);
     if (!SIDES[state.own.side]) state.own.side = "West";
     if (SIDES[s.branch] || s.branch === "custom") state.branch = s.branch;
+    if (typeof s.customId === "string") state.customId = s.customId;
   })();
   const remember = () => store("jantac-sel", state);
 
-  // ---- custom design state -----------------------------------------------------------
-  const design = { name: "", side: "West", groups: [{ slots: [] }, { slots: [] }], active: 0 };
+  // ---- custom designs ------------------------------------------------------------------
+  // `saved` is the list of saved custom platoons (this browser only); `design` is the one being edited
+  // in the Custom units tab. The mission always uses a saved design, chosen on the Units tab.
+  const newId = () => "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const cleanDesign = (d) => ({
+    id: typeof d.id === "string" ? d.id : null,
+    name: d.name || "",
+    side: SIDES[d.side] ? d.side : "West",
+    groups: (Array.isArray(d.groups) && d.groups.length ? d.groups : [{ slots: [] }]).map((g) => ({ slots: (g.slots || []).filter((u) => LIB.packages[u.prefix]) })),
+  });
+  const savedRaw = load("jantac-designs");
+  const saved = (Array.isArray(savedRaw) ? savedRaw : []).filter((d) => d && typeof d.id === "string").map(cleanDesign);
+  const savedOf = (id) => saved.find((d) => d.id === id) || null;
+  const saveSaved = () => store("jantac-designs", saved);
+  const design = { id: null, name: "", side: "West", groups: [{ slots: [] }, { slots: [] }], active: 0 };
   (() => {
+    // Only a working copy saved by this version (it has an "id" field) is picked up; designs left
+    // over from before saved designs existed are ignored.
     const d = load("jantac-design");
-    if (d && Array.isArray(d.groups) && d.groups.length) {
-      design.name = d.name || "";
-      design.side = SIDES[d.side] ? d.side : "West";
-      design.groups = d.groups.map((g) => ({ slots: (g.slots || []).filter((u) => LIB.packages[u.prefix]) }));
+    if (d && "id" in d && Array.isArray(d.groups) && d.groups.length) {
+      Object.assign(design, cleanDesign(d));
       design.active = Math.min(d.active || 0, design.groups.length - 1);
     }
   })();
   const saveDesign = () => store("jantac-design", design);
+  const chosen = () => (state.source === "custom" ? savedOf(state.customId) : null);
+  if (state.source === "custom" && !chosen()) state.source = "none";
 
   // ---- package helpers ---------------------------------------------------------------
   const pkg = () => LIB.packages[state.prefix];
@@ -647,18 +681,18 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (state.source === "pkg") {
       return groupsFor(state.prefix, state.n[state.prefix]).map((g) => ({ squad: g.squad, units: g.units.map((u) => Object.assign({ prefix: state.prefix }, u)) }));
     }
-    if (state.source === "custom") return design.groups.map((g, i) => ({ squad: i, units: g.slots }));
+    if (state.source === "custom") return chosen() ? chosen().groups.map((g, i) => ({ squad: i, units: g.slots })) : [];
     return [];
   }
   function squadsNow() {
     if (state.source === "pkg") return state.n[state.prefix];
-    if (state.source === "custom") return design.groups.length - 1;
+    if (state.source === "custom") return chosen() ? chosen().groups.length - 1 : 0;
     if (state.source === "none") return 0;
     return Math.min(posInt(state.own.squads, 1), MAX_SQUADS);
   }
   function sideNow() {
     if (state.source === "pkg") return sideOf(state.prefix);
-    if (state.source === "custom") return design.side;
+    if (state.source === "custom") return chosen() ? chosen().side : "West";
     if (state.source === "none") return SIDES[state.branch] ? state.branch : "West";
     return state.own.side;
   }
@@ -671,7 +705,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   }
   function prefixesNow() {
     if (state.source === "pkg") return [state.prefix];
-    if (state.source === "custom") return [...new Set(design.groups.flatMap((g) => g.slots.map((u) => u.prefix)))];
+    if (state.source === "custom") return chosen() ? prefixesOf(chosen()) : [];
     return [];
   }
   const loadoutsNow = () => prefixesNow().map((p) => LIB.packages[p]);
@@ -683,14 +717,14 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   function compsNow() {
     const list = [];
     if (state.source === "pkg") list.push(compFor(state.prefix, state.n[state.prefix]));
-    if (state.source === "custom" && !customIssues().length) list.push(customComp());
+    if (state.source === "custom" && chosen() && !issuesFor(chosen()).length) list.push(customComp(chosen()));
     if (state.sys && state.source !== "own" && list.length) list.push(LIB.system);
     return list;
   }
   function unitsTitle() {
     const n = squadsNow(), sq = "HQ + " + n + " squad" + (n === 1 ? "" : "s");
     if (state.source === "pkg") return pkg().name + " — " + sq;
-    if (state.source === "custom") return safeName() + " — " + sq;
+    if (state.source === "custom") return nameOf(chosen()) + " — " + sq;
     if (state.source === "none") return "Nothing selected";
     return "Your own units — " + sq;
   }
@@ -745,7 +779,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
   function sourceLabel() {
     if (state.source === "pkg") return pkg().name + " (" + SIDES[sideOf(state.prefix)].label + ")";
-    if (state.source === "custom") return safeName() + " (custom, " + SIDES[design.side].label + ")";
+    if (state.source === "custom") return nameOf(chosen()) + " (custom, " + SIDES[sideNow()].label + ")";
     if (state.source === "none") return "nothing";
     return "My mission already has units (" + SIDES[state.own.side].label + ")";
   }
@@ -790,19 +824,24 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     }
     if (showSide) { finishUnits(html); return; }
 
-    const cOn = state.source === "custom";
-    const cSlots = design.groups.reduce((a, g) => a + g.slots.length, 0);
-    const cPre = [...new Set(design.groups.flatMap((g) => g.slots.map((u) => u.prefix)))];
-    let cBody = "";
-    if (cOn) {
-      const iss = customIssues();
-      cBody = (iss.length ? '<ul class="issues">' + iss.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "") +
-        '<p class="summary-line"><a href="#custom-units" style="color:var(--friendly)">Edit in Custom units</a></p>' +
-        orbat(groupsNow(), squadsNow());
+    if (!saved.length) {
+      html += '<div class="branch-empty"><b>No saved custom platoons yet.</b> Build one in ' +
+        '<a href="#custom-units" style="color:var(--friendly)">Custom units</a> and press Save.</div>';
     }
-    html += card("custom", cOn, esc(safeName()) + '<span class="side-tag ' + design.side + '">' + SIDES[design.side].label + "</span>",
-      '<span class="pkg-desc">Custom platoon · built in the Custom units tab</span>',
-      "<span>" + cSlots + " slots</span>" + cPre.map((p) => '<span class="file">' + esc(LIB.packages[p].loadout) + "</span>").join(""), cBody);
+    saved.forEach((d) => {
+      const on = state.source === "custom" && state.customId === d.id;
+      const slots = d.groups.reduce((a, g) => a + g.slots.length, 0);
+      let body = "";
+      if (on) {
+        const iss = issuesFor(d);
+        body = (iss.length ? '<ul class="issues">' + iss.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "") +
+          '<div class="card-acts"><button class="tbtn" type="button" data-edit="' + d.id + '">Edit in Custom units</button>' +
+          delButton(d.id) + "</div>" + orbat(groupsNow(), squadsNow());
+      }
+      html += card("custom:" + d.id, on, esc(nameOf(d)) + '<span class="side-tag ' + d.side + '">' + SIDES[d.side].label + "</span>",
+        '<span class="pkg-desc">Custom platoon · HQ + ' + (d.groups.length - 1) + " squad" + (d.groups.length === 2 ? "" : "s") + "</span>",
+        "<span>" + slots + " slots</span>" + prefixesOf(d).map((p) => '<span class="file">' + esc(LIB.packages[p].loadout) + "</span>").join(""), body);
+    });
 
     const oOn = state.source === "own";
     const sideOpts = Object.keys(SIDES).map((sd) => '<option value="' + sd + '"' + (state.own.side === sd ? " selected" : "") + ">" + SIDES[sd].label + "</option>").join("");
@@ -827,12 +866,19 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("pkgs").querySelectorAll(".pkg-top").forEach((b) => b.addEventListener("click", (e) => {
       if (e.target.closest(".qdl")) return;
       const k = b.closest(".pkg").dataset.k;
-      const selected = k.startsWith("pkg:") ? state.source === "pkg" && state.prefix === k.slice(4) : state.source === k;
+      const selected = k.startsWith("pkg:") ? state.source === "pkg" && state.prefix === k.slice(4)
+        : k.startsWith("custom:") ? state.source === "custom" && state.customId === k.slice(7)
+        : state.source === k;
       if (selected) state.source = "none";
       else if (k.startsWith("pkg:")) { state.source = "pkg"; state.prefix = k.slice(4); }
+      else if (k.startsWith("custom:")) { state.source = "custom"; state.customId = k.slice(7); }
       else state.source = k;
       remember(); render();
     }));
+    $("pkgs").querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
+      editSaved(b.dataset.edit); location.hash = "#custom-units";
+    }));
+    $("pkgs").querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => askDelete(b.dataset.del)));
     $("pkgs").querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
       state.n[state.prefix] = Number(b.dataset.n); remember(); render();
     }));
@@ -874,7 +920,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("set-inc").checked = sett.include;
     $("inst-comp").hidden = !canFS || own;
     const nothing = own && !brief.include && !sett.include;
-    const broken = state.source === "custom" && customIssues().length;
+    const broken = state.source === "custom" && (!chosen() || issuesFor(chosen()).length);
     $("zip").disabled = nothing || broken;
     $("inst-miss").disabled = nothing || broken;
     $("inst-comp").disabled = broken;
@@ -893,7 +939,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   }
   $("sys").addEventListener("change", (e) => { state.sys = e.target.checked; remember(); render(); });
 
-  // ---- Custom units: palette + designer ------------------------------------------------------
+  // ---- Custom units: palette, saved designs, designer -----------------------------------------
   const palette = [];
   prefixes.forEach((p) => {
     const seen = new Set();
@@ -905,7 +951,11 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     }));
   });
   const slotFrom = (u) => ({ prefix: u.prefix, role: u.role, desc: u.desc, color: forcedColor(u.role, u.color), type: u.type, rank: u.rank || "" });
+  const nameOf = (d) => ((d && d.name || "").trim() || "Custom platoon").replace(/[@"]/g, "");
+  const prefixesOf = (d) => [...new Set(d.groups.flatMap((g) => g.slots.map((u) => u.prefix)))];
+  const snapshot = (d) => JSON.stringify({ name: d.name, side: d.side, groups: d.groups });
 
+  // Unit lists start collapsed; they are only rebuilt when the design's side changes.
   function renderPalette() {
     const sidePkgs = prefixes.filter((p) => sideOf(p) === design.side);
     if (!sidePkgs.length) {
@@ -917,7 +967,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       const rows = palette.map((u, i) => ({ u, i })).filter((x) => x.u.prefix === p).map(({ u, i }) =>
         '<li><button type="button" data-i="' + i + '" title="Add ' + esc(u.desc) + '"><i class="dot ' + forcedColor(u.role, u.color) + '"></i>' +
         "<span>" + esc(u.desc) + '</span><span class="r">' + esc(u.role) + "</span></button></li>").join("");
-      return '<details class="pal" open><summary>' + esc(P.name) + (P.by ? '<span class="by">By ' + esc(P.by) + "</span>" : "") + "</summary><ul>" + rows + "</ul></details>";
+      return '<details class="pal"><summary>' + esc(P.name) + (P.by ? '<span class="by">By ' + esc(P.by) + "</span>" : "") + "</summary><ul>" + rows + "</ul></details>";
     }).join("");
     $("palette").querySelectorAll("button[data-i]").forEach((b) => b.addEventListener("click", () => {
       design.groups[design.active].slots.push(slotFrom(palette[Number(b.dataset.i)]));
@@ -925,23 +975,89 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     }));
   }
 
-  function customIssues() {
+  function issuesFor(d) {
     const out = [];
-    if (!design.groups.length) out.push("Add an HQ group.");
-    design.groups.forEach((g, i) => { if (!g.slots.length) out.push("1'" + i + " has no slots. Add units or remove it."); });
-    const other = [...new Set(design.groups.flatMap((g) => g.slots.filter((u) => sideOf(u.prefix) !== design.side).map((u) => u.prefix)))];
-    if (other.length) out.push(other.join(", ") + " units are not " + SIDES[design.side].label + ". Remove them or change the design's side.");
-    if (design.groups.length - 1 > MAX_SQUADS) out.push("At most " + MAX_SQUADS + " squads fit on the PRC-343's first block.");
+    if (!d.groups.length) out.push("Add an HQ group.");
+    d.groups.forEach((g, i) => { if (!g.slots.length) out.push("1'" + i + " has no slots. Add units or remove it."); });
+    const other = [...new Set(d.groups.flatMap((g) => g.slots.filter((u) => sideOf(u.prefix) !== d.side).map((u) => u.prefix)))];
+    if (other.length) out.push(other.join(", ") + " units are not " + SIDES[d.side].label + ". Remove them or change the design's side.");
+    if (d.groups.length - 1 > MAX_SQUADS) out.push("At most " + MAX_SQUADS + " squads fit on the PRC-343's first block.");
     return out;
   }
+  const customIssues = () => issuesFor(design);
+  const hasSlots = (d) => d.groups.some((g) => g.slots.length);
+  function designStatus() {
+    const s = design.id ? savedOf(design.id) : null;
+    if (!s) return hasSlots(design) || design.name.trim() ? "new" : "empty";
+    return snapshot(s) === snapshot(design) ? "saved" : "changed";
+  }
 
+  function saveCurrent() {
+    if (!design.id || !savedOf(design.id)) design.id = newId();
+    const copy = cleanDesign(JSON.parse(JSON.stringify(design)));
+    copy.id = design.id;
+    const i = saved.findIndex((d) => d.id === copy.id);
+    if (i >= 0) saved[i] = copy; else saved.push(copy);
+    saveSaved(); saveDesign();
+  }
+  function editSaved(id) {
+    const d = savedOf(id);
+    if (!d) return;
+    Object.assign(design, JSON.parse(JSON.stringify(d)), { active: 0 });
+    saveDesign(); renderPalette(); render();
+  }
+
+  // Delete asks for a second click within 3 seconds, wherever the button is.
+  let delArmed = { id: null, at: 0 };
+  const delButton = (id) => '<button class="tbtn danger" type="button" data-del="' + id + '">' +
+    (delArmed.id === id && Date.now() - delArmed.at < 3000 ? "Click again to delete" : "Delete") + "</button>";
+  function askDelete(id) {
+    if (delArmed.id === id && Date.now() - delArmed.at < 3000) {
+      delArmed = { id: null, at: 0 };
+      const i = saved.findIndex((d) => d.id === id);
+      if (i >= 0) saved.splice(i, 1);
+      saveSaved();
+      if (state.customId === id) { state.customId = null; if (state.source === "custom") state.source = "none"; remember(); }
+      if (design.id === id) { design.id = null; saveDesign(); }
+      render();
+      return;
+    }
+    delArmed = { id, at: Date.now() };
+    render();
+    setTimeout(() => { if (delArmed.id === id && Date.now() - delArmed.at >= 3000) { delArmed = { id: null, at: 0 }; render(); } }, 3100);
+  }
+
+  function renderSaved() {
+    $("d-saved").innerHTML = saved.length ? saved.map((d) => {
+      const slots = d.groups.reduce((a, g) => a + g.slots.length, 0);
+      const editing = d.id === design.id;
+      return '<li class="' + (editing ? "editing" : "") + '"><span class="nm">' + esc(nameOf(d)) + "</span>" +
+        '<span class="side-tag ' + d.side + '" style="margin-left:0">' + SIDES[d.side].label + "</span>" +
+        '<span class="meta">HQ + ' + (d.groups.length - 1) + " · " + slots + " slots" + (editing ? " · editing" : "") + "</span>" +
+        '<span class="acts">' + (editing ? "" : '<button class="tbtn" type="button" data-edit="' + d.id + '">Edit</button>') +
+        delButton(d.id) + "</span></li>";
+    }).join("") : '<li><span class="empty-row">Nothing saved yet. Build a platoon below and press Save.</span></li>';
+  }
+  $("d-saved").addEventListener("click", (e) => {
+    const ed = e.target.closest("[data-edit]"), del = e.target.closest("[data-del]");
+    if (ed) editSaved(ed.dataset.edit);
+    if (del) askDelete(del.dataset.del);
+  });
+
+  let newArmed = 0;
   function renderDesigner() {
     $("d-name").value === design.name || ($("d-name").value = design.name);
     $("d-side").value = design.side;
-    const opts = '<option value="">Empty HQ + 1 squad</option>' + prefixes.filter((p) => sideOf(p) === design.side)
-      .map((p) => '<option value="' + p + '">' + esc(LIB.packages[p].name) + "</option>").join("");
+    const opts = '<option value="">Empty (HQ + 1 squad)</option>' + prefixes.filter((p) => sideOf(p) === design.side)
+      .map((p) => '<option value="' + p + '">From ' + esc(LIB.packages[p].name) + "</option>").join("");
     if ($("d-start").innerHTML !== opts) $("d-start").innerHTML = opts;
     $("pal-target").textContent = "1'" + design.active + (design.active === 0 ? " (HQ)" : "");
+    renderSaved();
+    const st = designStatus();
+    $("d-status").textContent = { saved: "Saved", changed: "Unsaved changes", new: "Not saved yet", empty: "" }[st];
+    $("d-status").className = "dstatus" + (st === "changed" || st === "new" ? " changed" : "");
+    $("d-save").disabled = st === "saved" || st === "empty";
+    $("d-new").textContent = newArmed && Date.now() - newArmed < 3000 ? "Click again: unsaved changes will be lost" : "Start new design";
     const n = design.groups.length - 1;
     $("dgroups").innerHTML = design.groups.map((g, gi) => {
       const rows = g.slots.map((u, si) => {
@@ -999,36 +1115,58 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (e.target.dataset.a !== "desc") return;
     const r = e.target.closest(".srow");
     design.groups[Number(r.dataset.g)].slots[Number(r.dataset.s)].desc = e.target.value.replace(/@/g, "");
-    saveDesign(); renderUnits(); renderManifest();
+    saveDesign(); renderSaved();
+    const st = designStatus();
+    $("d-status").textContent = { saved: "Saved", changed: "Unsaved changes", new: "Not saved yet", empty: "" }[st];
+    $("d-status").className = "dstatus" + (st === "changed" || st === "new" ? " changed" : "");
+    $("d-save").disabled = st === "saved" || st === "empty";
   });
-  $("d-name").addEventListener("input", (e) => { design.name = e.target.value; saveDesign(); renderUnits(); renderManifest(); updateSettings(); });
+  $("d-name").addEventListener("input", (e) => {
+    design.name = e.target.value; saveDesign();
+    const st = designStatus();
+    $("d-status").textContent = { saved: "Saved", changed: "Unsaved changes", new: "Not saved yet", empty: "" }[st];
+    $("d-status").className = "dstatus" + (st === "changed" || st === "new" ? " changed" : "");
+    $("d-save").disabled = st === "saved" || st === "empty";
+  });
   $("d-add").addEventListener("click", () => { design.groups.push({ slots: [] }); design.active = design.groups.length - 1; saveDesign(); render(); });
   $("d-side").addEventListener("change", (e) => { design.side = e.target.value; saveDesign(); renderPalette(); render(); });
-  $("d-load").addEventListener("click", () => {
+  $("d-save").addEventListener("click", () => { saveCurrent(); render(); });
+  $("d-new").addEventListener("click", () => {
+    const st = designStatus();
+    if ((st === "changed" || st === "new") && !(newArmed && Date.now() - newArmed < 3000)) {
+      newArmed = Date.now(); renderDesigner();
+      setTimeout(() => { if (newArmed && Date.now() - newArmed >= 3000) { newArmed = 0; renderDesigner(); } }, 3100);
+      return;
+    }
+    newArmed = 0;
     const p = $("d-start").value;
-    if (!p) design.groups = [{ slots: [] }, { slots: [] }];
-    else design.groups = LIB.packages[p].groups.map((g) => ({ slots: g.units.map((u) => slotFrom(Object.assign({ prefix: p }, u))) }));
-    design.active = 0;
+    Object.assign(design, {
+      id: null, name: "", active: 0,
+      groups: p ? LIB.packages[p].groups.map((g) => ({ slots: g.units.map((u) => slotFrom(Object.assign({ prefix: p }, u))) })) : [{ slots: [] }, { slots: [] }],
+    });
     saveDesign(); render();
   });
-  $("d-use").addEventListener("click", () => { state.source = "custom"; state.branch = "custom"; remember(); location.hash = "#units"; render(); });
+  $("d-use").addEventListener("click", () => {
+    saveCurrent();
+    state.source = "custom"; state.customId = design.id; state.branch = "custom";
+    remember(); location.hash = "#units"; render();
+  });
 
-  // Build an Eden composition for the custom design, in the same shape Eden saves.
+  // Build an Eden composition for a saved custom design, in the same shape Eden saves.
   const sqmStr = (s) => '"' + String(s).replace(/"/g, '""') + '"';
   const ACRE_EXPR = '"_this setVariable [""acre_sys_radio_setup"", _value, true]"';
   const acreValue = (ch) => sqmStr('[["ACRE_PRC343",[1,' + ch + ']],["ACRE_PRC152",1],["ACRE_PRC117F",1]]');
-  const safeName = () => (design.name.trim() || "Custom platoon").replace(/[@"]/g, "");
-  function customComp() {
-    const n = design.groups.length - 1, out = [];
+  function customComp(d) {
+    const n = d.groups.length - 1, out = [], nm = nameOf(d);
     let id = 0;
-    const put = (d, s) => out.push("\t".repeat(d) + s);
+    const put = (k, s) => out.push("\t".repeat(k) + s);
     const label = "HQ + " + n + " squad" + (n === 1 ? "" : "s");
     put(0, "version=54;"); put(0, "center[]={0,0,0};"); put(0, "class items"); put(0, "{"); put(1, "items=1;");
-    put(1, "class Item0"); put(1, "{"); put(2, 'dataType="Layer";'); put(2, "name=" + sqmStr("CUSTOM | " + safeName() + " | " + label) + ";");
-    put(2, "class Entities"); put(2, "{"); put(3, "items=" + design.groups.length + ";");
-    design.groups.forEach((g, gi) => {
+    put(1, "class Item0"); put(1, "{"); put(2, 'dataType="Layer";'); put(2, "name=" + sqmStr("CUSTOM | " + nm + " | " + label) + ";");
+    put(2, "class Entities"); put(2, "{"); put(3, "items=" + d.groups.length + ";");
+    d.groups.forEach((g, gi) => {
       const ch = channelFor(gi, n), gid = id++;
-      put(3, "class Item" + gi); put(3, "{"); put(4, 'dataType="Group";'); put(4, "side=" + sqmStr(design.side) + ";");
+      put(3, "class Item" + gi); put(3, "{"); put(4, 'dataType="Group";'); put(4, "side=" + sqmStr(d.side) + ";");
       put(4, "class Entities"); put(4, "{"); put(5, "items=" + g.slots.length + ";");
       g.slots.forEach((u, si) => {
         const color = forcedColor(u.role, u.color);
@@ -1039,7 +1177,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         const x = (si - (g.slots.length - 1) / 2) * 2, z = -gi * 8;
         put(5, "class Item" + si); put(5, "{"); put(6, 'dataType="Object";');
         put(6, "class PositionInfo"); put(6, "{"); put(7, "position[]={" + x + ",0," + z + "};"); put(7, "angles[]={0,3.1415927,0};"); put(6, "};");
-        put(6, "side=" + sqmStr(design.side) + ";"); put(6, "flags=" + (si === 0 ? 7 : 5) + ";");
+        put(6, "side=" + sqmStr(d.side) + ";"); put(6, "flags=" + (si === 0 ? 7 : 5) + ";");
         put(6, "class Attributes"); put(6, "{");
         if (u.rank) put(7, "rank=" + sqmStr(u.rank) + ";");
         put(7, "init=" + sqmStr(init) + ";"); put(7, "description=" + sqmStr(desc) + ";"); put(7, "isPlayable=1;");
@@ -1054,13 +1192,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       put(4, "};"); put(4, "class Attributes"); put(4, "{"); put(4, "};"); put(4, "id=" + gid + ";"); put(3, "};");
     });
     put(2, "};"); put(2, "id=" + (id++) + ";"); put(1, "};"); put(0, "};");
-    const addons = [...new Set(prefixesNow().flatMap((p) => LIB.packages[p].requiredAddons))];
-    const header = ["version=54;", "name=" + sqmStr("Custom - " + safeName() + " - " + label) + ";", "author=" + sqmStr(LIB.author) + ";",
+    const addons = [...new Set(prefixesOf(d).flatMap((p) => LIB.packages[p].requiredAddons))];
+    const header = ["version=54;", "name=" + sqmStr("Custom - " + nm + " - " + label) + ";", "author=" + sqmStr(LIB.author) + ";",
       "category=" + sqmStr(LIB.category) + ";", "requiredAddons[]=", "{"].concat(addons.map((a, i) => '\t"' + a + '"' + (i < addons.length - 1 ? "," : "")), ["};"]);
-    const folder = ("JANTAC CUSTOM " + safeName().replace(/[^\w \-]+/g, "").trim()).slice(0, 60).trim();
-    return { folder, name: "Custom - " + safeName() + " - " + label, header: header.join("\r\n") + "\r\n", composition: out.join("\r\n") + "\r\n" };
+    const folder = ("JANTAC CUSTOM " + nm.replace(/[^\w \-]+/g, "").trim()).slice(0, 60).trim();
+    return { folder, name: "Custom - " + nm + " - " + label, header: header.join("\r\n") + "\r\n", composition: out.join("\r\n") + "\r\n" };
   }
-  window.__jantacCustom = { comp: customComp, design, issues: customIssues }; // exposed for testing
+  window.__jantacCustom = { comp: () => customComp(design), saved, design, issues: customIssues }; // exposed for testing
 
   // ---- briefing ----------------------------------------------------------------------------
   const BF = ["title", "background", "weather", "intent", "primary", "secondary", "fcomp", "fdisp", "fpid",
@@ -1386,7 +1524,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   function zipName() {
     const n = squadsNow();
     if (state.source === "pkg") return "JANTAC " + state.prefix.replace(/_$/, "") + " HQ+" + n + ".zip";
-    if (state.source === "custom") return "JANTAC CUSTOM " + safeName().replace(/[^\w \-]+/g, "").trim() + ".zip";
+    if (state.source === "custom") return "JANTAC CUSTOM " + nameOf(chosen()).replace(/[^\w \-]+/g, "").trim() + ".zip";
     return "JANTAC mission files.zip";
   }
 

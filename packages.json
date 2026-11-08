@@ -23,7 +23,7 @@
       "description": "1980s British \u00b7 DPM, FAL, L7A2, Carl Gustaf"
     },
     "USARMYEAR_": {
-      "name": "US army early 2000s",
+      "name": "US Army Early 2000s",
       "loadout": "USARMYEAR.sqf",
       "requiredAddons": [
         "A3_Characters_F",
