@@ -116,6 +116,7 @@ def main():
         "packages": packages,
         "system": comp(CONFIG["infrastructure"]["folder"]),
         "gearTemplate": read(os.path.join(MASTER, "customization", "gear.sqf")),
+        "maps": json.load(open(os.path.join(ROOT, "maps.json"))),
     }
     data = json.dumps(lib, separators=(",", ":")).replace("</", "<\\/")
     tpl = open(os.path.join(ROOT, "site", "template.html"), encoding="utf-8").read()

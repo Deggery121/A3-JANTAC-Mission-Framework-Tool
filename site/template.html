@@ -318,6 +318,9 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 .ibtn:disabled { opacity: .35; cursor: default; }
 .ibtn:focus-visible { outline: 2px solid var(--friendly); outline-offset: 1px; }
 .empty { font-size: 13px; color: var(--muted); padding: 6px 0 0; margin: 0; }
+.fname { font: 600 clamp(15px, 2.2vw, 20px)/1.4 var(--font-mono); background: var(--sunken); border-radius: var(--radius); padding: 12px 14px; overflow-wrap: anywhere; margin: 0; }
+.fname .w { color: var(--friendly); }
+.fname.bad { color: var(--muted); font-weight: 400; font-size: 14px; }
 .slist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .slist li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 12px; }
 .slist li.editing { border-color: var(--friendly); }
@@ -360,6 +363,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     <a href="#custom-units" id="tab-custom">Custom units</a>
     <a href="#briefing" id="tab-briefing">Briefing</a>
     <a href="#mission-settings" id="tab-settings">Mission settings</a>
+    <a href="#mission-folder" id="tab-folder">Mission folder</a>
   </nav>
 
   <div id="view-units">
@@ -386,9 +390,11 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       <label class="check" id="sys-row"><input type="checkbox" id="sys" checked><span>Include JANTAC SYSTEM<small>Headless client, respawn logic and ACE headless module</small></span></label>
       <label class="check"><input type="checkbox" id="brief-inc"><span>Include briefing.sqf<small>Replaces the mission's customization\briefing.sqf. <a href="#briefing">Write the briefing</a></small></span></label>
       <label class="check"><input type="checkbox" id="set-inc"><span>Include missionSettings.hpp<small>Replaces the mission's customization\missionSettings.hpp. <a href="#mission-settings">Edit settings</a></small></span></label>
+      <label class="check"><input type="checkbox" id="mf-inc"><span>Put it in a mission folder<small id="mf-note"></small></span></label>
       <div class="actions">
         <button class="btn" id="zip" type="button">Download zip</button>
         <button class="btn secondary" id="inst-comp" type="button" hidden>Install compositions… (Not Required)</button>
+        <button class="btn secondary" id="inst-new" type="button" hidden>Create mission folder…</button>
         <button class="btn secondary" id="inst-miss" type="button" hidden>Add to a mission…</button>
         <p class="hint" id="fs-hint"></p>
       </div>
@@ -426,7 +432,10 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     <h3>4. Set the mission settings (Mission settings tab, optional)</h3>
     <p>Loading screen name and messages, an optional loading image, game type and player limits. <code>maxPlayers</code> fills in from your units: player slots plus the headless client.</p>
 
-    <h3>5. Take it to your mission (manifest on the Units tab)</h3>
+    <h3>5. Name the mission folder (Mission folder tab, optional)</h3>
+    <p>Type a mission name and pick the map. Arma needs the folder to end in the map's world name, for example <code>MyMission.VTF_Korsac_Winter</code> for Korsac (Winter); the page builds that for you. Tick <b>Put it in a mission folder</b> and the download puts everything inside that folder, and <b>Create mission folder…</b> (Chrome or Edge) makes it in your profile's missions folder.</p>
+
+    <h3>6. Take it to your mission (manifest on the Units tab)</h3>
     <ul>
       <li>Tick <b>Include briefing.sqf</b> and <b>Include missionSettings.hpp</b> to add them. They tick themselves once you start editing.</li>
       <li><b>Download zip</b> works in any browser. It holds the compositions, the loadout files, a <code>gear.sqf</code>, your briefing and settings, and an <code>INSTALL.txt</code>.</li>
@@ -434,7 +443,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       <li><b>Install compositions…</b> (not required) copies the compositions straight into your profile's compositions folder. You can copy them from the zip instead.</li>
     </ul>
 
-    <h3>6. Place the units in Eden</h3>
+    <h3>7. Place the units in Eden</h3>
     <p>Open Compositions → JANTAC Mission Framework and place your package or custom platoon. Squad 1'N is on PRC-343 channel N and 1'0 is on the channel after the last squad. Then set the mission up as usual.</p>
   </details>
 
@@ -548,6 +557,32 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         </div>
         <p class="hint" id="b-status"></p>
         <pre class="code" id="b-out"></pre>
+      </section>
+    </div>
+  </div>
+
+  <div id="view-folder" hidden>
+    <div class="brief">
+      <form class="form" id="fform" autocomplete="off">
+        <fieldset>
+          <legend>Mission folder</legend>
+          <div class="field"><label for="f-name">Mission name</label><input id="f-name" placeholder="CO30_Low_Rider"></div>
+          <div class="field"><label for="f-map">Map</label><select id="f-map"></select></div>
+          <div class="field" id="f-other-row" hidden><label for="f-other">Map's world name <span class="aux">the part after the dot</span></label><input id="f-other" placeholder="VTF_Korsac_Winter"></div>
+        </fieldset>
+        <p class="hint">Arma ties a mission to its map by the part after the dot: a mission on Korsac (Winter) lives in a folder called <code>MissionName.VTF_Korsac_Winter</code>. If the world name doesn't match the map, Arma won't show the mission on that map.</p>
+        <p class="hint">Mission names use letters, numbers, <code>_</code> and <code>-</code>. Spaces become <code>_</code>, and anything else is removed.</p>
+      </form>
+
+      <section class="preview" aria-labelledby="fv-h">
+        <div class="preview-head">
+          <h2 class="m-title" id="fv-h">Folder name</h2>
+          <div class="preview-actions"><button class="copy" id="f-copy" type="button">Copy</button></div>
+        </div>
+        <p class="fname" id="f-out"></p>
+        <ul class="issues" id="f-issues"></ul>
+        <p class="hint" id="f-status"></p>
+        <p class="hint">It goes in your Arma profile's missions folder: <code>Documents\Arma 3 - Other Profiles\&lt;profile&gt;\missions</code> (or <code>Documents\Arma 3\missions</code>; under <code>OneDrive\Documents</code> if your Documents folder is in OneDrive).</p>
       </section>
     </div>
   </div>
@@ -896,7 +931,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       $("facts").innerHTML = '<dt>Units</dt><dd>pick a package, or Custom options</dd>';
       ["sys-row", "incl-box", "inst-comp"].forEach((id) => ($(id).hidden = true));
       $("brief-inc").checked = brief.include; $("set-inc").checked = sett.include;
-      $("zip").disabled = true; $("inst-miss").disabled = true;
+      $("zip").disabled = true; $("inst-miss").disabled = true; $("inst-new").hidden = true;
       $("fs-hint").textContent = "Pick a package above, or under Custom options build a platoon or choose My mission already has units.";
       return;
     }
@@ -922,9 +957,14 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     const nothing = own && !brief.include && !sett.include;
     const broken = state.source === "custom" && (!chosen() || issuesFor(chosen()).length);
     $("zip").disabled = nothing || broken;
+    const folderBad = mf.include && !folderValid();
+    $("zip").disabled = nothing || broken || folderBad;
     $("inst-miss").disabled = nothing || broken;
+    $("inst-new").hidden = !canFS || !useFolder();
+    $("inst-new").disabled = broken;
     $("inst-comp").disabled = broken;
     $("fs-hint").textContent = broken ? "Fix the custom design before downloading." :
+      folderBad ? "Finish the mission folder name in the Mission folder tab, or untick “Put it in a mission folder”." :
       nothing ? "Tick the briefing or mission settings to have something to take to your mission." :
       canFS ? "Install writes straight into the folders you pick. Nothing else on your computer is touched." :
       "Open this page in Chrome or Edge from the JANTAC GitHub page to install straight into your folders.";
@@ -936,6 +976,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     renderDesigner();
     updateBriefing();
     updateSettings();
+    updateFolder();
   }
   $("sys").addEventListener("change", (e) => { state.sys = e.target.checked; remember(); render(); });
 
@@ -1422,6 +1463,57 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     });
   }
 
+  // ---- mission folder ------------------------------------------------------------------------------
+  // Arma matches a mission to its map by the folder's suffix: MissionName.WorldName.
+  const mf = Object.assign({ name: "", world: "", other: "", include: false, includeTouched: false }, load("jantac-folder") || {});
+  const saveMf = () => store("jantac-folder", mf);
+  const MAPS = (LIB.maps || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+  const cleanMissionName = (s) => String(s || "").trim().replace(/\s+/g, "_").replace(/[^A-Za-z0-9_\-]/g, "");
+  const worldNow = () => (mf.world === "__other" ? (mf.other || "").trim() : mf.world || "");
+  const mapLabel = (w) => { const m = MAPS.find((x) => x.world === w); return m ? m.name : w; };
+  function folderIssues() {
+    const out = [], nm = cleanMissionName(mf.name), w = worldNow();
+    if (!nm) out.push(mf.name.trim() ? "The name has no usable characters. Use letters, numbers, _ or -." : "Give the mission a name.");
+    if (nm.length > 60) out.push("Keep the name to 60 characters or fewer.");
+    if (!w) out.push(mf.world === "__other" ? "Type the map's world name." : "Pick the map.");
+    else if (!/^[A-Za-z0-9_\-]+$/.test(w)) out.push("A world name only has letters, numbers, _ and -. Check the spelling.");
+    return out;
+  }
+  const folderValid = () => !folderIssues().length;
+  const folderName = () => (folderValid() ? cleanMissionName(mf.name) + "." + worldNow() : "");
+  const useFolder = () => mf.include && folderValid();
+
+  function updateFolder() {
+    const iss = folderIssues(), nm = cleanMissionName(mf.name);
+    $("f-out").className = "fname" + (iss.length ? " bad" : "");
+    $("f-out").innerHTML = iss.length ? "Name the mission and pick a map to see the folder name."
+      : esc(nm) + '<span class="w">.' + esc(worldNow()) + "</span>";
+    $("f-issues").innerHTML = iss.map((x) => "<li>" + esc(x) + "</li>").join("");
+    const changed = mf.name.trim() && nm && nm !== mf.name.trim();
+    $("f-status").textContent = (changed ? "Your name becomes " + nm + ". " : "") +
+      (mf.include ? "Included: the download and “Create mission folder…” use this folder." : "Not included yet. Tick “Put it in a mission folder” on the Units tab to use it.");
+    $("f-other-row").hidden = mf.world !== "__other";
+    $("mf-inc").checked = mf.include;
+    $("mf-note").innerHTML = !iss.length
+      ? "Files go in <b>" + esc(folderName()) + "</b> (" + esc(mapLabel(worldNow())) + '). <a href="#mission-folder">Change</a>'
+      : 'Name the mission and pick a map in <a href="#mission-folder">Mission folder</a>.';
+  }
+
+  function bindFolder() {
+    $("f-map").innerHTML = '<option value="">Choose a map…</option>' +
+      MAPS.map((m) => '<option value="' + esc(m.world) + '">' + esc(m.name) + " — " + esc(m.world) + "</option>").join("") +
+      '<option value="__other">Other map…</option>';
+    $("f-name").value = mf.name; $("f-map").value = mf.world; $("f-other").value = mf.other;
+    if ($("f-map").value !== mf.world) { mf.world = ""; $("f-map").value = ""; }
+    const touched = () => { if (!mf.includeTouched && folderValid()) mf.include = true; saveMf(); updateFolder(); renderManifest(); };
+    $("f-name").addEventListener("input", (e) => { mf.name = e.target.value; touched(); });
+    $("f-map").addEventListener("change", (e) => { mf.world = e.target.value; touched(); });
+    $("f-other").addEventListener("input", (e) => { mf.other = e.target.value; touched(); });
+    $("fform").addEventListener("submit", (e) => e.preventDefault());
+    $("mf-inc").addEventListener("change", (e) => { mf.include = e.target.checked; mf.includeTouched = true; saveMf(); updateFolder(); renderManifest(); });
+    bindCopy("f-copy", "f-out", () => folderName() || "");
+  }
+
   // ---- shared buttons ----------------------------------------------------------------------------
   function bindCopy(btnId, preId, textFn) {
     $(btnId).addEventListener("click", () => {
@@ -1444,8 +1536,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
   // ---- views ---------------------------------------------------------------------------------------
   function route() {
-    const view = { "#briefing": "briefing", "#mission-settings": "settings", "#custom-units": "custom" }[location.hash] || "units";
-    ["units", "custom", "briefing", "settings"].forEach((v) => {
+    const view = { "#briefing": "briefing", "#mission-settings": "settings", "#custom-units": "custom", "#mission-folder": "folder" }[location.hash] || "units";
+    ["units", "custom", "briefing", "settings", "folder"].forEach((v) => {
       $("view-" + v).hidden = v !== view;
       $("tab-" + v).setAttribute("aria-current", v === view ? "page" : "false");
     });
@@ -1487,6 +1579,22 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     const L = loadoutsNow(), comps = compsNow(), own = state.source === "own";
     const out = ["JANTAC Unit Library - " + unitsTitle(), LIB.build, ""];
     let k = 1;
+    if (useFolder()) {
+      const F = folderName();
+      out.push(k++ + ". Mission folder: " + F + "  (" + mapLabel(worldNow()) + ")",
+        "   Copy your JANTAC framework files into Documents\\Arma 3 - Other Profiles\\<profile>\\missions\\" + F,
+        "   (or Documents\\Arma 3\\missions\\" + F + "), then copy the " + F + " folder from this zip over it, replacing files.",
+        "   Everything for gear" + (brief.include ? ", the briefing" : "") + (sett.include ? ", the mission settings" : "") + " is already inside.");
+      if (!own && comps.length) {
+        out.push(k++ + ". Copy the folders in 'compositions' into your Arma profile's compositions folder:",
+          "   Documents\\Arma 3 - Other Profiles\\<profile>\\compositions   (or Documents\\Arma 3\\compositions)");
+      }
+      out.push(k++ + ". In Eden, open " + mapLabel(worldNow()) + (!own && comps.length ? ", place Compositions > JANTAC Mission Framework > " + comps[0].name : "") +
+        ", and save the scenario as " + cleanMissionName(mf.name) + " so it saves into the same folder.");
+      if (!sett.include) out.push(k++ + ". Set maxPlayers in customization\\missionSettings.hpp to " + (maxAuto() || "your playable slot count") + ".");
+      out.push("");
+      return out.join("\r\n");
+    }
     if (!own) {
       out.push(k++ + ". Copy the folders in 'compositions' into your Arma profile's compositions folder:",
         "   Documents\\Arma 3 - Other Profiles\\<profile>\\compositions   (or Documents\\Arma 3\\compositions)",
@@ -1504,25 +1612,27 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     return out.join("\r\n");
   }
   async function buildZip() {
-    const zip = new JSZip(), L = loadoutsNow();
+    const zip = new JSZip(), L = loadoutsNow(), base = useFolder() ? folderName() + "/" : "";
     compsNow().forEach((c) => {
       zip.file("compositions/" + c.folder + "/header.sqe", c.header);
       zip.file("compositions/" + c.folder + "/composition.sqe", c.composition);
     });
     if (L.length) {
-      zip.file("customization/gear.sqf", gearFor(L.map((P) => P.loadout)));
-      L.forEach((P) => zip.file("customization/loadouts/" + P.loadout, P.loadoutText));
+      zip.file(base + "customization/gear.sqf", gearFor(L.map((P) => P.loadout)));
+      L.forEach((P) => zip.file(base + "customization/loadouts/" + P.loadout, P.loadoutText));
     }
-    if (brief.include) zip.file("customization/briefing.sqf", genBriefing());
+    if (brief.include) zip.file(base + "customization/briefing.sqf", genBriefing());
     if (sett.include) {
-      zip.file("customization/missionSettings.hpp", genSettings());
-      if (shot) zip.file("images/" + shot.name, shot.blob);
+      zip.file(base + "customization/missionSettings.hpp", genSettings());
+      if (shot) zip.file(base + "images/" + shot.name, shot.blob);
     }
+    if (base && !L.length && !brief.include && !sett.include) zip.folder(folderName());
     zip.file("INSTALL.txt", installText());
     return zip.generateAsync({ type: "blob", compression: "DEFLATE" });
   }
   function zipName() {
     const n = squadsNow();
+    if (useFolder()) return folderName() + ".zip";
     if (state.source === "pkg") return "JANTAC " + state.prefix.replace(/_$/, "") + " HQ+" + n + ".zip";
     if (state.source === "custom") return "JANTAC CUSTOM " + nameOf(chosen()).replace(/[^\w \-]+/g, "").trim() + ".zip";
     return "JANTAC mission files.zip";
@@ -1625,13 +1735,37 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
   $("inst-miss").addEventListener("click", async () => {
     clearLog();
-    const L = loadoutsNow();
     let dir;
     try { dir = await window.showDirectoryPicker({ id: "jantac-mission", mode: "readwrite" }); }
     catch (e) { if (!aborted(e)) log("err", "Could not open the folder: " + e.message); return; }
     try {
       const isMission = (await readFile(dir, "mission.sqm")) !== null || (await readFile(dir, "description.ext")) !== null;
       if (!isMission) { log("err", "'" + dir.name + "' has no mission.sqm or description.ext. Pick the mission folder itself (e.g. MyMission.Altis)."); return; }
+      await writeMissionFiles(dir);
+    } catch (e) { log("err", "Update failed: " + e.message); }
+  });
+
+  $("inst-new").addEventListener("click", async () => {
+    clearLog();
+    const F = folderName();
+    let parent;
+    try { parent = await window.showDirectoryPicker({ id: "jantac-missions", mode: "readwrite" }); }
+    catch (e) { if (!aborted(e)) log("err", "Could not open the folder: " + e.message); return; }
+    if (!/^(mp)?missions$/i.test(parent.name)) log("warn", "The folder you picked is '" + parent.name + "', not 'missions'. Eden looks for missions in your profile's missions folder.");
+    try {
+      let existed = true;
+      try { await parent.getDirectoryHandle(F); } catch (e) { existed = false; }
+      const dir = await parent.getDirectoryHandle(F, { create: true });
+      log(existed ? "warn" : "ok", (existed ? "Using the existing folder " : "Created ") + parent.name + "\\" + F);
+      await writeMissionFiles(dir);
+      log("ok", "Next: copy your JANTAC framework files into it (keep these files), then in Eden open " + mapLabel(worldNow()) +
+        " and save the scenario as " + cleanMissionName(mf.name) + ".");
+    } catch (e) { log("err", "Could not create the mission folder: " + e.message); }
+  });
+
+  async function writeMissionFiles(dir) {
+    const L = loadoutsNow();
+    {
       const cust = await dir.getDirectoryHandle("customization", { create: true });
       if (L.length) {
         const lo = await cust.getDirectoryHandle("loadouts", { create: true });
@@ -1670,12 +1804,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       } else if (maxAuto()) {
         log("ok", "Set maxPlayers in customization\\missionSettings.hpp to " + maxAuto() + (state.source === "own" ? "." : " (player slots plus the headless client)."));
       }
-    } catch (e) { log("err", "Update failed: " + e.message); }
-  });
+    }
+  }
 
   renderPalette();
   bindBriefing();
   bindSettings();
+  bindFolder();
   route();
   render();
 })();

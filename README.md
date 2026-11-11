@@ -50,6 +50,7 @@ master/UnitLibrary.VR/
   customization/gear.sqf           includes every loadout
   customization/loadouts/*.sqf     gear scripts, role names as written by their authors
 packages.json                      display name, loadout file and required addons per prefix
+maps.json                          maps offered in the Mission folder tab: world name + in-game name
 tools/check_master.py              rules every push must pass
 tools/build_compositions.py        builds HQ + 1..N squad compositions per package
 tools/build_site.py                bakes the library into the web page (site/template.html)
@@ -80,6 +81,12 @@ python tools/build_site.py              # output in build/site/index.html
 - Each group has one leader tagged `@1'N`; HQ is 1'0; squads are 1'1..1'N with no gaps.
 - Every unit is playable, has an empty inventory, and carries only the ACRE radio
   setup attribute with PRC-343 on the right channel (squad N → N, HQ → squads + 1).
+
+### Maps
+
+The Mission folder tab names a mission `MissionName.WorldName`. Its map list is `maps.json`:
+add `{"world": "VTF_Korsac", "name": "Korsac"}` entries for new maps. The world name is the part
+after the dot in that map's mission folders. Maps not on the list can still be typed in.
 
 ### Sides
 

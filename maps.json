@@ -1,0 +1,126 @@
+[
+  {
+    "world": "fow_map_henderson",
+    "name": "[FOW] - Henderson Airfield"
+  },
+  {
+    "world": "swu_kokoda_map",
+    "name": "[FOW] - Kokoda Trail"
+  },
+  {
+    "world": "fow_map_tarawa",
+    "name": "[FOW] - Tarawa Betio"
+  },
+  {
+    "world": "Altis",
+    "name": "Altis"
+  },
+  {
+    "world": "andy1_andianfacilityb",
+    "name": "Andian Facility B2"
+  },
+  {
+    "world": "tem_anizay",
+    "name": "Anizay"
+  },
+  {
+    "world": "bro_range",
+    "name": "Appalachian Range"
+  },
+  {
+    "world": "Beketov",
+    "name": "Beketov"
+  },
+  {
+    "world": "Bootcamp_ACR",
+    "name": "Bukovina"
+  },
+  {
+    "world": "Woodland_ACR",
+    "name": "Bystrica"
+  },
+  {
+    "world": "Caribou",
+    "name": "Caribou Frontier"
+  },
+  {
+    "world": "mbg_celle2",
+    "name": "Celle 2"
+  },
+  {
+    "world": "chernarus",
+    "name": "Chernarus (Autumn)"
+  },
+  {
+    "world": "chernarus_summer",
+    "name": "Chernarus (Summer)"
+  },
+  {
+    "world": "Chernarus_Winter",
+    "name": "Chernarus (Winter)"
+  },
+  {
+    "world": "UMB_Colombia",
+    "name": "Colombia"
+  },
+  {
+    "world": "Desert_E",
+    "name": "Desert"
+  },
+  {
+    "world": "fallujah",
+    "name": "Fallujah 2.0"
+  },
+  {
+    "world": "Farabad",
+    "name": "Farabad"
+  },
+  {
+    "world": "go_map_fjord",
+    "name": "Fjord"
+  },
+  {
+    "world": "VR",
+    "name": "Frozen VR"
+  },
+  {
+    "world": "kvc_terrain",
+    "name": "Great Sea"
+  },
+  {
+    "world": "65frMap",
+    "name": "Gueb's Mountain"
+  },
+  {
+    "world": "abramia",
+    "name": "Isla Abramia v3.9"
+  },
+  {
+    "world": "isladuala3",
+    "name": "Isla Duala v3.9"
+  },
+  {
+    "world": "IslaPera",
+    "name": "Isla Pera"
+  },
+  {
+    "world": "isle_fortuna",
+    "name": "Isle Fortuna"
+  },
+  {
+    "world": "EAW_JungleSkirmish",
+    "name": "Jungle Skirmish"
+  },
+  {
+    "world": "Khoramshahr",
+    "name": "Khoramshahr"
+  },
+  {
+    "world": "VTF_Korsac",
+    "name": "Korsac"
+  },
+  {
+    "world": "VTF_Korsac_Winter",
+    "name": "Korsac (Winter)"
+  }
+]
