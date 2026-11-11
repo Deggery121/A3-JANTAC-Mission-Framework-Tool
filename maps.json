@@ -124,6 +124,10 @@
     "name": "Korsac (Winter)"
   },
   {
+    "world": "tem_kujari",
+    "name": "Kujari"
+  },
+  {
     "world": "kulima",
     "name": "Kulima v2.2"
   },
