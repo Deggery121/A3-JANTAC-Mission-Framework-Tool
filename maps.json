@@ -122,5 +122,301 @@
   {
     "world": "VTF_Korsac_Winter",
     "name": "Korsac (Winter)"
+  },
+  {
+    "world": "kulima",
+    "name": "Kulima v2.2"
+  },
+  {
+    "world": "kunduz_valley",
+    "name": "Kunduz River"
+  },
+  {
+    "world": "VTF_Lybor",
+    "name": "Lybor"
+  },
+  {
+    "world": "VTF_Lybor_Winter",
+    "name": "Lybor (Winter)"
+  },
+  {
+    "world": "Malden",
+    "name": "Malden 2035"
+  },
+  {
+    "world": "gsep_mosch",
+    "name": "Moschnyi"
+  },
+  {
+    "world": "EAW_MountainPasses",
+    "name": "Mountain Passes"
+  },
+  {
+    "world": "swu_public_rhode_map",
+    "name": "Mutambara"
+  },
+  {
+    "world": "EAW_Yuhuatai",
+    "name": "Nanking - Yuhuatai Hills"
+  },
+  {
+    "world": "EAW_Nomonhan",
+    "name": "Nomonhan 1939"
+  },
+  {
+    "world": "swu_public_novogorsk_map",
+    "name": "Novogorsk"
+  },
+  {
+    "world": "fox_pamai",
+    "name": "Pamai"
+  },
+  {
+    "world": "porto",
+    "name": "Porto"
+  },
+  {
+    "world": "fata",
+    "name": "PR FATA"
+  },
+  {
+    "world": "VTF_Prilivsko",
+    "name": "Prilivsko"
+  },
+  {
+    "world": "VTF_Prilivsko_Flood",
+    "name": "Prilivsko (Flooded)"
+  },
+  {
+    "world": "wbg_limestone",
+    "name": "Project America - Limestone FL USA"
+  },
+  {
+    "world": "ProvingGrounds_PMC",
+    "name": "Proving Grounds"
+  },
+  {
+    "world": "pulau",
+    "name": "Pulau"
+  },
+  {
+    "world": "intro",
+    "name": "Rahmadi"
+  },
+  {
+    "world": "WL_Rosche",
+    "name": "Rosche, Germany (2.0)"
+  },
+  {
+    "world": "sara",
+    "name": "Sahrani"
+  },
+  {
+    "world": "EAW_Sakeshima",
+    "name": "Sakeshima Island"
+  },
+  {
+    "world": "oski_corran",
+    "name": "Scottish Highlands"
+  },
+  {
+    "world": "EAW_Map",
+    "name": "Shanghai - Nanjing 1937"
+  },
+  {
+    "world": "Shapur_BAF",
+    "name": "Shapur"
+  },
+  {
+    "world": "saralite",
+    "name": "Southern Sahrani"
+  },
+  {
+    "world": "Stratis",
+    "name": "Stratis"
+  },
+  {
+    "world": "stubbhult",
+    "name": "Stubbhult"
+  },
+  {
+    "world": "sugarlake",
+    "name": "Sugar Lake"
+  },
+  {
+    "world": "tem_summa",
+    "name": "Summa"
+  },
+  {
+    "world": "tem_summawcup",
+    "name": "Summa winter"
+  },
+  {
+    "world": "EAW_Taierzhuang",
+    "name": "Taierzhuang 1938"
+  },
+  {
+    "world": "takistan",
+    "name": "Takistan"
+  },
+  {
+    "world": "Mountains_ACR",
+    "name": "Takistan Mountains"
+  },
+  {
+    "world": "Tanoa",
+    "name": "Tanoa"
+  },
+  {
+    "world": "sara_dbe1",
+    "name": "United Sahrani"
+  },
+  {
+    "world": "utes",
+    "name": "Utes"
+  },
+  {
+    "world": "vt7",
+    "name": "Virolahti"
+  },
+  {
+    "world": "vol_was",
+    "name": "Volcanic Wasteland"
+  },
+  {
+    "world": "Vostok",
+    "name": "Vostok"
+  },
+  {
+    "world": "Vostok_w",
+    "name": "Vostok Winter"
+  },
+  {
+    "world": "BaranowWinter",
+    "name": "WW2: [Winter] Baranow, Poland 1944"
+  },
+  {
+    "world": "PLR_Bulge",
+    "name": "WW2: [Winter] Battle of the Bulge (I44)"
+  },
+  {
+    "world": "CollevilleWinter",
+    "name": "WW2: [Winter] Colleville, France 1944"
+  },
+  {
+    "world": "IvachevWinter",
+    "name": "WW2: [Winter] Ivachev, Ukraine 1944"
+  },
+  {
+    "world": "I44_Merderet_Winter",
+    "name": "WW2: [Winter] Merderet River (I44)"
+  },
+  {
+    "world": "MCN_Neaville_Winter",
+    "name": "WW2: [Winter] Neaville (I44)"
+  },
+  {
+    "world": "PanovoWinter",
+    "name": "WW2: [Winter] Panovo, Ukraine 1944"
+  },
+  {
+    "world": "StaszowWinter",
+    "name": "WW2: [Winter] Staszow, Poland 1944"
+  },
+  {
+    "world": "I44_merderet_koth",
+    "name": "WW2: 1944 Operation crossing point"
+  },
+  {
+    "world": "SWU_Aachen_Outskirts",
+    "name": "WW2: Aachen Outskirts, Germany"
+  },
+  {
+    "world": "Baranow",
+    "name": "WW2: Baranow, Poland 1944"
+  },
+  {
+    "world": "SWU_Dunkirk_Bray_Dunes_1940",
+    "name": "WW2: Bray-Dunes, France 1940"
+  },
+  {
+    "world": "Colleville",
+    "name": "WW2: Colleville, France 1944"
+  },
+  {
+    "world": "SWU_Egypt_El_Alamein",
+    "name": "WW2: El Alamein, Egypt"
+  },
+  {
+    "world": "Ivachev",
+    "name": "WW2: Ivachev, Ukraine 1944"
+  },
+  {
+    "world": "I44_Merderet",
+    "name": "WW2: Merderet River (I44)"
+  },
+  {
+    "world": "I44_Merderet_V2",
+    "name": "WW2: Merderet River V2 (I44)"
+  },
+  {
+    "world": "I44_Merderet_V3",
+    "name": "WW2: Merderet River, France"
+  },
+  {
+    "world": "SWU_Ardennes_1940",
+    "name": "WW2: Montherme, Ardennes 1940"
+  },
+  {
+    "world": "SWU_Ardennes_1944_Winter",
+    "name": "WW2: Montherme, Ardennes 1944"
+  },
+  {
+    "world": "MCN_Neaville",
+    "name": "WW2: Neaville (I44)"
+  },
+  {
+    "world": "I44_Omaha_V2",
+    "name": "WW2: Omaha (I44)"
+  },
+  {
+    "world": "Panovo",
+    "name": "WW2: Panovo, Ukraine 1944"
+  },
+  {
+    "world": "SWU_Greece_Pella_Region",
+    "name": "WW2: Pella Region, Greece"
+  },
+  {
+    "world": "Hyde_Sark",
+    "name": "WW2: Sark, Channel Islands"
+  },
+  {
+    "world": "Staszow",
+    "name": "WW2: Staszow, Poland 1944"
+  },
+  {
+    "world": "SWU_Germany_Streets_of_Berlin",
+    "name": "WW2: Streets of Berlin, Germany"
+  },
+  {
+    "world": "iron_excelsior_Tobruk",
+    "name": "WW2: Tobruk, Libya"
+  },
+  {
+    "world": "SWU_Russia_Volkhov_Forest",
+    "name": "WW2: Volkhov Forest, Russia"
+  },
+  {
+    "world": "EAW_Village_1",
+    "name": "Yangtze Landing Zone"
+  },
+  {
+    "world": "zargabad",
+    "name": "Zargabad"
+  },
+  {
+    "world": "shc_pervoe_maya_terrain",
+    "name": "Совхоз им. 1-го Мая (Sovkhoz im. 1-go Maya)"
   }
 ]

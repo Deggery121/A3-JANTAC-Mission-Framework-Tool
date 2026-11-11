@@ -320,6 +320,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 .empty { font-size: 13px; color: var(--muted); padding: 6px 0 0; margin: 0; }
 .fname { font: 600 clamp(15px, 2.2vw, 20px)/1.4 var(--font-mono); background: var(--sunken); border-radius: var(--radius); padding: 12px 14px; overflow-wrap: anywhere; margin: 0; }
 .fname .w { color: var(--friendly); }
+.fname .p { color: var(--muted); }
 .fname.bad { color: var(--muted); font-weight: 400; font-size: 14px; }
 .slist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .slist li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 12px; }
@@ -433,7 +434,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     <p>Loading screen name and messages, an optional loading image, game type and player limits. <code>maxPlayers</code> fills in from your units: player slots plus the headless client.</p>
 
     <h3>5. Name the mission folder (Mission folder tab, optional)</h3>
-    <p>Type a mission name and pick the map. Arma needs the folder to end in the map's world name, for example <code>MyMission.VTF_Korsac_Winter</code> for Korsac (Winter); the page builds that for you. Tick <b>Put it in a mission folder</b> and the download puts everything inside that folder, and <b>Create mission folder…</b> (Chrome or Edge) makes it in your profile's missions folder.</p>
+    <p>Pick COOP or TVT and the player slots for the prefix (the slots fill in from your units), type a mission name and pick the map. Arma needs the folder to end in the map's world name, for example <code>MyMission.VTF_Korsac_Winter</code> for Korsac (Winter); the page builds that for you. Tick <b>Put it in a mission folder</b> and the download puts everything inside that folder, and <b>Create mission folder…</b> (Chrome or Edge) makes it in your profile's missions folder. While it's ticked, <b>Add to a mission…</b> is turned off.</p>
 
     <h3>6. Take it to your mission (manifest on the Units tab)</h3>
     <ul>
@@ -566,12 +567,18 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       <form class="form" id="fform" autocomplete="off">
         <fieldset>
           <legend>Mission folder</legend>
-          <div class="field"><label for="f-name">Mission name</label><input id="f-name" placeholder="CO30_Low_Rider"></div>
+          <div class="own-grid">
+            <div class="field"><label for="f-type">Prefix</label>
+              <select id="f-type"><option value="CO">COOP (CO)</option><option value="TVT">TVT</option><option value="">No prefix</option></select>
+            </div>
+            <div class="field" id="f-slots-row"><label for="f-slots">Player slots <button type="button" class="linkbtn" id="f-slots-auto" hidden>Use the units' count</button></label><input id="f-slots" type="number" min="1" max="999" step="1"></div>
+          </div>
+          <div class="field"><label for="f-name">Mission name</label><input id="f-name" placeholder="Low_Rider"></div>
           <div class="field"><label for="f-map">Map</label><select id="f-map"></select></div>
           <div class="field" id="f-other-row" hidden><label for="f-other">Map's world name <span class="aux">the part after the dot</span></label><input id="f-other" placeholder="VTF_Korsac_Winter"></div>
         </fieldset>
         <p class="hint">Arma ties a mission to its map by the part after the dot: a mission on Korsac (Winter) lives in a folder called <code>MissionName.VTF_Korsac_Winter</code>. If the world name doesn't match the map, Arma won't show the mission on that map.</p>
-        <p class="hint">Mission names use letters, numbers, <code>_</code> and <code>-</code>. Spaces become <code>_</code>, and anything else is removed.</p>
+        <p class="hint">The prefix shows the game type and player slots, like <code>CO30_</code> or <code>TVT40_</code>. Mission names use letters, numbers, <code>_</code> and <code>-</code>. Spaces become <code>_</code>, and anything else is removed.</p>
       </form>
 
       <section class="preview" aria-labelledby="fv-h">
@@ -920,7 +927,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if ($("o-side")) $("o-side").addEventListener("change", (e) => { state.own.side = e.target.value; remember(); render(); });
     [["o-squads", "squads"], ["o-slots", "slots"], ["o-co", "co"]].forEach(([id, key]) => {
       const el = $(id);
-      if (el) el.addEventListener("input", () => { state.own[key] = el.value; remember(); renderManifest(); updateBriefing(); updateSettings(); });
+      if (el) el.addEventListener("input", () => { state.own[key] = el.value; remember(); renderManifest(); updateBriefing(); updateSettings(); updateFolder(); renderManifest(); });
     });
   }
 
@@ -959,13 +966,15 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("zip").disabled = nothing || broken;
     const folderBad = mf.include && !folderValid();
     $("zip").disabled = nothing || broken || folderBad;
-    $("inst-miss").disabled = nothing || broken;
+    $("inst-miss").disabled = nothing || broken || useFolder();
+    $("inst-miss").title = useFolder() ? "Off while “Put it in a mission folder” is ticked. Use “Create mission folder…”." : "";
     $("inst-new").hidden = !canFS || !useFolder();
     $("inst-new").disabled = broken;
     $("inst-comp").disabled = broken;
     $("fs-hint").textContent = broken ? "Fix the custom design before downloading." :
       folderBad ? "Finish the mission folder name in the Mission folder tab, or untick “Put it in a mission folder”." :
       nothing ? "Tick the briefing or mission settings to have something to take to your mission." :
+      canFS && useFolder() ? "“Add to a mission…” is off while “Put it in a mission folder” is ticked: “Create mission folder…” makes the folder and writes the files. Nothing else on your computer is touched." :
       canFS ? "Install writes straight into the folders you pick. Nothing else on your computer is touched." :
       "Open this page in Chrome or Edge from the JANTAC GitHub page to install straight into your folders.";
   }
@@ -1379,6 +1388,9 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const settName = () => (sett.v.name || "").trim() || (brief.v.title || "").trim() || "Untitled mission";
   const maxPlayers = () => (sett.maxEdited ? posInt(sett.v.maxp, maxAuto() || 1) : maxAuto() || 1);
 
+  // Game type: what the Mission settings tab says, otherwise what the mission folder prefix implies.
+  const gameTypeNow = () => (sett.v.gametype ? (sett.v.gametype === "TDM" ? "TDM" : "Coop") : (mf.type === "TVT" ? "TDM" : "Coop"));
+
   function genSettings() {
     const v = (k) => (sett.v[k] || "").trim();
     const scr = screenPath();
@@ -1393,7 +1405,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       "",
       "class Header {",
       "\t",
-      "\tgameType = " + (v("gametype") === "TDM" ? "TDM" : "Coop") + ";  //Coop for a COOP mission, TDM for a TVT",
+      "\tgameType = " + gameTypeNow() + ";  //Coop for a COOP mission, TDM for a TVT",
       "\tminPlayers = " + posInt(v("minp"), 1) + ";",
       "\tmaxPlayers = " + maxPlayers() + "; //maxPlayers must always be accurate to the amount of playable units, this includes the headless client game logic",
       "\t",
@@ -1419,6 +1431,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("s-image-note").textContent = shot
       ? "Added " + shot.name + " (" + Math.round(shot.blob.size / 1024) + " KB). It goes into the mission's images folder. Add it again if you reload the page."
       : "Optional. The image is copied into the mission's images folder.";
+    if (!sett.v.gametype) $("s-gametype").value = gameTypeNow();
     $("s-out").textContent = genSettings();
     $("s-status").textContent = sett.include
       ? "Included in your download and in “Add to a mission…”. It replaces the mission's missionSettings.hpp."
@@ -1429,7 +1442,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     const touched = () => { if (!sett.includeTouched) sett.include = true; saveSett(); updateSettings(); renderManifest(); };
     SF.forEach((k) => {
       const el = $("s-" + k);
-      if (k === "gametype") el.value = sett.v.gametype === "TDM" ? "TDM" : "Coop";
+      if (k === "gametype") el.value = gameTypeNow();
       else if ((k !== "maxp" || sett.maxEdited) && k !== "screen") el.value = sett.v[k] || "";
       el.addEventListener(k === "gametype" ? "change" : "input", () => {
         sett.v[k] = el.value;
@@ -1458,39 +1471,53 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       shot = null; $("s-image").value = "";
       Object.assign(sett, { v: {}, mtime: false, itime: false, maxEdited: false, screenEdited: false, include: false, includeTouched: false });
       SF.forEach((k) => { if (k !== "gametype") $("s-" + k).value = ""; });
-      $("s-gametype").value = "Coop"; $("s-mtime").checked = false; $("s-itime").checked = false;
+      $("s-gametype").value = gameTypeNow(); $("s-mtime").checked = false; $("s-itime").checked = false;
       saveSett(); updateSettings(); renderManifest();
     });
   }
 
   // ---- mission folder ------------------------------------------------------------------------------
   // Arma matches a mission to its map by the folder's suffix: MissionName.WorldName.
-  const mf = Object.assign({ name: "", world: "", other: "", include: false, includeTouched: false }, load("jantac-folder") || {});
+  const mf = Object.assign({ type: "CO", slots: "", slotsEdited: false, name: "", world: "", other: "", include: false, includeTouched: false }, load("jantac-folder") || {});
+  if (!["CO", "TVT", ""].includes(mf.type)) mf.type = "CO";
   const saveMf = () => store("jantac-folder", mf);
   const MAPS = (LIB.maps || []).slice().sort((a, b) => a.name.localeCompare(b.name));
   const cleanMissionName = (s) => String(s || "").trim().replace(/\s+/g, "_").replace(/[^A-Za-z0-9_\-]/g, "");
   const worldNow = () => (mf.world === "__other" ? (mf.other || "").trim() : mf.world || "");
   const mapLabel = (w) => { const m = MAPS.find((x) => x.world === w); return m ? m.name : w; };
+  // Player slots for the prefix: the units' player slots (headless client not counted) unless typed.
+  const autoSlots = () => (state.source === "own" ? posInt(state.own.slots, 0) : slotsNow());
+  const slotsForPrefix = () => (mf.slotsEdited ? posInt(mf.slots, 0) : autoSlots());
+  const prefixNow = () => (mf.type ? (slotsForPrefix() ? mf.type + slotsForPrefix() + "_" : null) : "");
+  // The name without any CO30_/TVT40_ the mission maker typed, when the page adds the prefix itself.
+  const baseName = () => { const nm = cleanMissionName(mf.name); return mf.type ? nm.replace(/^(CO|COOP|TVT)\d*_+/i, "") : nm; };
+  const scenarioName = () => (prefixNow() || "") + baseName();
   function folderIssues() {
-    const out = [], nm = cleanMissionName(mf.name), w = worldNow();
+    const out = [], nm = baseName(), w = worldNow();
+    if (mf.type && prefixNow() === null) out.push("Enter the number of player slots for the " + mf.type + " prefix.");
+    if (posInt(mf.slots, 0) > 999 && mf.slotsEdited) out.push("Player slots must be 999 or fewer.");
     if (!nm) out.push(mf.name.trim() ? "The name has no usable characters. Use letters, numbers, _ or -." : "Give the mission a name.");
-    if (nm.length > 60) out.push("Keep the name to 60 characters or fewer.");
+    if (scenarioName().length > 60) out.push("Keep the name to 60 characters or fewer.");
     if (!w) out.push(mf.world === "__other" ? "Type the map's world name." : "Pick the map.");
     else if (!/^[A-Za-z0-9_\-]+$/.test(w)) out.push("A world name only has letters, numbers, _ and -. Check the spelling.");
     return out;
   }
   const folderValid = () => !folderIssues().length;
-  const folderName = () => (folderValid() ? cleanMissionName(mf.name) + "." + worldNow() : "");
+  const folderName = () => (folderValid() ? scenarioName() + "." + worldNow() : "");
   const useFolder = () => mf.include && folderValid();
 
   function updateFolder() {
-    const iss = folderIssues(), nm = cleanMissionName(mf.name);
+    const iss = folderIssues(), nm = baseName();
     $("f-out").className = "fname" + (iss.length ? " bad" : "");
-    $("f-out").innerHTML = iss.length ? "Name the mission and pick a map to see the folder name."
-      : esc(nm) + '<span class="w">.' + esc(worldNow()) + "</span>";
+    $("f-out").innerHTML = iss.length ? "The folder name appears here once the items below are sorted."
+      : '<span class="p">' + esc(prefixNow()) + "</span>" + esc(nm) + '<span class="w">.' + esc(worldNow()) + "</span>";
+    $("f-type").value = mf.type;
+    $("f-slots-row").hidden = !mf.type;
+    if (!mf.slotsEdited) $("f-slots").value = autoSlots() || "";
+    $("f-slots-auto").hidden = !mf.slotsEdited;
     $("f-issues").innerHTML = iss.map((x) => "<li>" + esc(x) + "</li>").join("");
     const changed = mf.name.trim() && nm && nm !== mf.name.trim();
-    $("f-status").textContent = (changed ? "Your name becomes " + nm + ". " : "") +
+    $("f-status").textContent = (changed ? "Your name becomes " + nm + (mf.type ? " after the prefix" : "") + ". " : "") +
       (mf.include ? "Included: the download and “Create mission folder…” use this folder." : "Not included yet. Tick “Put it in a mission folder” on the Units tab to use it.");
     $("f-other-row").hidden = mf.world !== "__other";
     $("mf-inc").checked = mf.include;
@@ -1505,7 +1532,11 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       '<option value="__other">Other map…</option>';
     $("f-name").value = mf.name; $("f-map").value = mf.world; $("f-other").value = mf.other;
     if ($("f-map").value !== mf.world) { mf.world = ""; $("f-map").value = ""; }
-    const touched = () => { if (!mf.includeTouched && folderValid()) mf.include = true; saveMf(); updateFolder(); renderManifest(); };
+    const touched = () => { if (!mf.includeTouched && folderValid()) mf.include = true; saveMf(); updateFolder(); renderManifest(); updateSettings(); };
+    $("f-type").value = mf.type;
+    $("f-type").addEventListener("change", (e) => { mf.type = e.target.value; touched(); });
+    $("f-slots").addEventListener("input", (e) => { mf.slots = e.target.value; mf.slotsEdited = true; touched(); });
+    $("f-slots-auto").addEventListener("click", () => { mf.slotsEdited = false; mf.slots = ""; touched(); });
     $("f-name").addEventListener("input", (e) => { mf.name = e.target.value; touched(); });
     $("f-map").addEventListener("change", (e) => { mf.world = e.target.value; touched(); });
     $("f-other").addEventListener("input", (e) => { mf.other = e.target.value; touched(); });
@@ -1590,7 +1621,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
           "   Documents\\Arma 3 - Other Profiles\\<profile>\\compositions   (or Documents\\Arma 3\\compositions)");
       }
       out.push(k++ + ". In Eden, open " + mapLabel(worldNow()) + (!own && comps.length ? ", place Compositions > JANTAC Mission Framework > " + comps[0].name : "") +
-        ", and save the scenario as " + cleanMissionName(mf.name) + " so it saves into the same folder.");
+        ", and save the scenario as " + scenarioName() + " so it saves into the same folder.");
       if (!sett.include) out.push(k++ + ". Set maxPlayers in customization\\missionSettings.hpp to " + (maxAuto() || "your playable slot count") + ".");
       out.push("");
       return out.join("\r\n");
@@ -1759,7 +1790,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       log(existed ? "warn" : "ok", (existed ? "Using the existing folder " : "Created ") + parent.name + "\\" + F);
       await writeMissionFiles(dir);
       log("ok", "Next: copy your JANTAC framework files into it (keep these files), then in Eden open " + mapLabel(worldNow()) +
-        " and save the scenario as " + cleanMissionName(mf.name) + ".");
+        " and save the scenario as " + scenarioName() + ".");
     } catch (e) { log("err", "Could not create the mission folder: " + e.message); }
   });
 
