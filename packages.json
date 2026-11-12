@@ -51,6 +51,15 @@
       ],
       "by": "Deggery",
       "description": "Early 2000s USMC \u00b7 Desert MARPAT, M16A4, M249"
+    },
+    "BRW_": {
+      "name": "1980s British (Winter)",
+      "loadout": "BRITWINTER.sqf",
+      "requiredAddons": [
+        "A3_Characters_F"
+      ],
+      "by": "Aiello",
+      "description": "1980s British winter \u00b7 DPM, FAL, FN MAG, M72 LAW"
     }
   }
 }

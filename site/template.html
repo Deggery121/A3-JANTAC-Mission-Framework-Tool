@@ -189,6 +189,8 @@ h1 {
 .log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
 .log li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 6px; overflow-wrap: anywhere; }
 .log .ok { color: var(--ok); } .log .warn { color: var(--warn); } .log .err { color: var(--team-red); }
+.fwpick { margin: -4px 0 0 28px; display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); }
+.fwpick select { font: inherit; font-size: 13.5px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line, #c9cfc6); background: var(--bg, #fff); color: var(--fg); max-width: 100%; }
 .fwlist { list-style: none; margin: -4px 0 0 28px; padding: 0; font-size: 12.5px; display: grid; gap: 3px; }
 .fwlist li { display: flex; gap: 6px; }
 .fwlist .ok { color: var(--friendly); font-weight: 700; }
@@ -395,6 +397,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       <dl class="facts" id="facts"></dl>
       <label class="check" id="sys-row"><input type="checkbox" id="sys" checked><span>Include JANTAC SYSTEM<small>Headless client, respawn logic and ACE headless module</small></span></label>
       <label class="check" id="fw-row"><input type="checkbox" id="fw-inc"><span>Get the framework<small id="fw-note"></small></span></label>
+      <div class="fwpick" id="fw-pick" hidden><label for="fw-var">Framework</label><select id="fw-var"></select></div>
       <ul class="fwlist" id="fw-list" hidden></ul>
       <label class="check"><input type="checkbox" id="brief-inc"><span>Include briefing.sqf<small>Replaces the mission's customization\briefing.sqf. <a href="#briefing">Write the briefing</a></small></span></label>
       <label class="check"><input type="checkbox" id="set-inc"><span>Include missionSettings.hpp<small>Replaces the mission's customization\missionSettings.hpp. <a href="#mission-settings">Edit settings</a></small></span></label>
@@ -445,7 +448,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
     <h3>6. Take it to your mission (manifest on the Units tab)</h3>
     <ul>
-      <li><b>Get the framework</b> adds the whole JANTAC framework, so you get a complete mission folder without copying the framework yourself. The framework needs four files the page makes for you: <code>gear.sqf</code> and a loadout (from your units), <code>briefing.sqf</code> (Briefing tab) and <code>missionSettings.hpp</code> (Mission settings tab). While it's ticked, the briefing and mission settings are always included, and the download stays off until the Units, Briefing and Mission settings tabs are filled in; the list under the checkbox shows what's left.</li>
+      <li><b>Get the framework</b> adds the whole JANTAC framework (pick the version with modules or without when there's more than one), so you get a complete mission folder without copying the framework yourself. The framework needs four files the page makes for you: <code>gear.sqf</code> and a loadout (from your units), <code>briefing.sqf</code> (Briefing tab) and <code>missionSettings.hpp</code> (Mission settings tab). While it's ticked, the briefing and mission settings are always included, and the download stays off until the Units, Briefing and Mission settings tabs are filled in; the list under the checkbox shows what's left.</li>
       <li>Tick <b>Include briefing.sqf</b> and <b>Include missionSettings.hpp</b> to add them. They tick themselves once you start editing.</li>
       <li><b>Download zip</b> works in any browser. It holds the compositions, the loadout files, a <code>gear.sqf</code>, your briefing and settings, and an <code>INSTALL.txt</code>.</li>
       <li><b>Add to a mission…</b> (Chrome or Edge, on the GitHub page) writes into a mission folder you pick. It copies the loadouts, adds their lines to <code>gear.sqf</code> without touching your other lines, and replaces the briefing and settings. Any file it replaces is kept with <code>.bak</code> added to its name.</li>
@@ -1500,11 +1503,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   // ---- Get the framework ------------------------------------------------------------------------
   // The stripped framework ships without the four files this page makes: gear.sqf, a loadout,
   // briefing.sqf and missionSettings.hpp. Ticking it makes all four required.
-  const FW = LIB.framework;
-  const fw = Object.assign({ include: false }, load("jantac-fw") || {});
+  const FWS = LIB.frameworks || [];
+  const fw = Object.assign({ include: false, id: "" }, load("jantac-fw") || {});
+  if (!FWS.some((f) => f.id === fw.id)) fw.id = FWS.length ? FWS[0].id : "";
   const saveFw = () => store("jantac-fw", fw);
-  const fwOn = () => !!FW && fw.include;
-  const fwLabel = () => (FW ? FW.name.replace(/_/g, " ") : "");
+  const curFw = () => FWS.find((f) => f.id === fw.id) || null;
+  const fwOn = () => !!curFw() && fw.include;
+  const fwLabel = () => (curFw() ? curFw().label : "");
   function fwChecks() {
     const src = state.source, broken = src === "custom" && (!chosen() || issuesFor(chosen()).length);
     return [
@@ -1519,10 +1524,14 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   }
   const fwReady = () => fwChecks().every((c) => c.ok);
   function renderFw() {
+    const FW = curFw();
     $("fw-row").hidden = !FW;
+    $("fw-pick").hidden = !FW || FWS.length < 2 || !fw.include;
     if (!FW) return;
     $("fw-inc").checked = fw.include;
-    $("fw-note").textContent = "Adds the complete " + fwLabel() + " (" + FW.files + " files). Needs units with a loadout, the briefing and the mission settings.";
+    $("fw-var").value = fw.id;
+    $("fw-note").textContent = (FW.description ? FW.description + " " : "Adds the complete " + fwLabel() + ". ") +
+      FW.files + " files. Needs units with a loadout, the briefing and the mission settings.";
     $("brief-inc").disabled = $("set-inc").disabled = fwOn();
     const list = $("fw-list");
     list.hidden = !fwOn();
@@ -1534,8 +1543,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("s-fwnote").hidden = !st;
     $("s-fwnote").textContent = "Required: Get the framework is ticked, so the mission needs these settings. Give the mission a name.";
   }
-  let fwZip = null;
-  const fwFiles = () => (fwZip = fwZip || JSZip.loadAsync(FW.zip, { base64: true }));
+  const fwZips = {};
+  const fwFiles = () => { const F = curFw(); return (fwZips[F.id] = fwZips[F.id] || JSZip.loadAsync(F.zip, { base64: true })); };
   const MAPS = (LIB.maps || []).slice().sort((a, b) => a.name.localeCompare(b.name));
   const cleanMissionName = (s) => String(s || "").trim().replace(/\s+/g, "_").replace(/[^A-Za-z0-9_\-]/g, "");
   const worldNow = () => (mf.world === "__other" ? (mf.other || "").trim() : mf.world || "");
@@ -1596,6 +1605,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("f-map").addEventListener("change", (e) => { mf.world = e.target.value; touched(); });
     $("f-other").addEventListener("input", (e) => { mf.other = e.target.value; touched(); });
     $("fform").addEventListener("submit", (e) => e.preventDefault());
+    $("fw-var").innerHTML = FWS.map((f) => '<option value="' + esc(f.id) + '">' + esc(f.label) + "</option>").join("");
+    $("fw-var").addEventListener("change", (e) => { fw.id = e.target.value; saveFw(); renderManifest(); });
     $("fw-inc").addEventListener("change", (e) => {
       fw.include = e.target.checked; saveFw();
       if (fw.include) {

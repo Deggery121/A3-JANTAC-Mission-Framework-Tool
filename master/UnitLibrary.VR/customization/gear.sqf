@@ -20,4 +20,5 @@ switch (_type) do {
 	#include "loadouts\USARMYEAR.sqf"
 	#include "loadouts\USMIL.sqf"
 	#include "loadouts\USMCEAR.sqf"
+	#include "loadouts\BRITWINTER.sqf"
 };

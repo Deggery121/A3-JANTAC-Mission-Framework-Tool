@@ -59,23 +59,37 @@ def comp(folder):
 FRAMEWORK = os.path.join(ROOT, "framework")
 
 
-def framework():
-    """The stripped JANTAC framework, zipped and base64-encoded for the page."""
+def frameworks():
+    """Each folder in framework/ is one framework the page offers, zipped and base64-encoded.
+
+    An optional framework.json in the folder sets {"label", "description", "order"}; it is not
+    copied into missions.
+    """
     import base64, io, zipfile
-    dirs = sorted(d for d in os.listdir(FRAMEWORK) if os.path.isdir(os.path.join(FRAMEWORK, d)))
-    if not dirs:
-        return None
-    src = os.path.join(FRAMEWORK, dirs[-1])
-    buf, count = io.BytesIO(), 0
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
-        for base, _, files in sorted(os.walk(src)):
-            for f in sorted(files):
-                full = os.path.join(base, f)
-                z.write(full, os.path.relpath(full, src).replace(os.sep, "/"))
-                count += 1
-    m = re.search(r"v(\d+(?:\.\d+)*)", dirs[-1])
-    return {"name": dirs[-1], "version": m.group(1) if m else "", "files": count,
-            "zip": base64.b64encode(buf.getvalue()).decode()}
+    out = []
+    for d in sorted(os.listdir(FRAMEWORK)):
+        src = os.path.join(FRAMEWORK, d)
+        if not os.path.isdir(src):
+            continue
+        meta_path = os.path.join(src, "framework.json")
+        meta = json.load(open(meta_path, encoding="utf-8")) if os.path.exists(meta_path) else {}
+        buf, count = io.BytesIO(), 0
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+            for base, dirs, files in os.walk(src):
+                dirs.sort()
+                for f in sorted(files):
+                    full = os.path.join(base, f)
+                    if full == meta_path:
+                        continue
+                    z.write(full, os.path.relpath(full, src).replace(os.sep, "/"))
+                    count += 1
+        m = re.search(r"v(\d+(?:\.\d+)*)", d)
+        out.append({"id": d, "name": d, "label": meta.get("label", d.replace("_", " ")),
+                    "description": meta.get("description", ""), "order": meta.get("order", 50),
+                    "version": m.group(1) if m else "", "files": count,
+                    "zip": base64.b64encode(buf.getvalue()).decode()})
+    out.sort(key=lambda f: (f["order"], f["id"]))
+    return out
 
 
 def build_label():
@@ -139,7 +153,7 @@ def main():
         "system": comp(CONFIG["infrastructure"]["folder"]),
         "gearTemplate": read(os.path.join(MASTER, "customization", "gear.sqf")),
         "maps": json.load(open(os.path.join(ROOT, "maps.json"))),
-        "framework": framework(),
+        "frameworks": frameworks(),
     }
     data = json.dumps(lib, separators=(",", ":")).replace("</", "<\\/")
     tpl = open(os.path.join(ROOT, "site", "template.html"), encoding="utf-8").read()
