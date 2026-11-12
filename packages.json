@@ -90,6 +90,16 @@
       ],
       "by": "Deggery",
       "description": "Modern US Army Rangers \u00b7 OCP, M4A1 SOPMOD, Mk 48, M72 LAW, NVGs"
+    },
+    "RUSD_": {
+      "name": "Russian EMR (Des)",
+      "loadout": "RUSD.sqf",
+      "requiredAddons": [
+        "A3_Characters_F",
+        "A3_Characters_F_Exp"
+      ],
+      "by": "Deggery",
+      "description": "Modern Russian \u00b7 Desert EMR Ratnik, AK-12, RPK-74M, Pecheneg, RPG-26, pilots"
     }
   }
 }

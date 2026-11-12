@@ -24,4 +24,5 @@ switch (_type) do {
 	#include "loadouts\SOAR.sqf"
 	#include "loadouts\IDF.sqf"
 	#include "loadouts\USRNG.sqf"
+	#include "loadouts\RUSD.sqf"
 };
