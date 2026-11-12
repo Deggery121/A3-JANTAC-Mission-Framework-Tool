@@ -80,7 +80,7 @@ case (package + "SL"): {
 	
 	
 	["CUP_30Rnd_556x45_Stanag_Tracer_Red", 8] call FNC_AddItem; //Magazines
-	["CUP_arifle_Colt727", 2] call FNC_AddItem; //Magazines
+	["CUP_arifle_Colt727"] call FNC_AddItem; //Magazines
 		
 	["CUP_optic_CompM2_low"] call FNC_AddItem; //Red dot sight
 	
