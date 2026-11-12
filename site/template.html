@@ -221,6 +221,11 @@ details.howto code { font: 12.5px var(--font-mono); background: var(--sunken); p
 .brief { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 @media (max-width: 980px) { .brief { grid-template-columns: minmax(0, 1fr); } }
 .form { display: flex; flex-direction: column; gap: 14px; }
+.b-team2 { display: contents; }
+.seg.wide button { font-family: var(--font-body); font-weight: 600; padding: 8px 18px; }
+.btype-row { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; }
+.btype-row .field { min-width: 0; }
+.team-tag { font: 600 12px var(--font-body); color: var(--muted); margin-left: 6px; }
 fieldset { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); margin: 0; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; padding: 0 6px; margin-left: -6px; }
 .field { display: flex; flex-direction: column; gap: 4px; }
@@ -438,6 +443,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     </ul>
 
     <h3>3. Write the briefing (Briefing tab, optional)</h3>
+    <p>First choose <b>COOP</b> or <b>TVT</b>. COOP is one briefing for your side. TVT gives each team its own briefing: pick team 2's side, then switch between <b>Team 1</b> and <b>Team 2</b> to write each one. The mission title, mission notes and CO-only tab are shared. Picking one also sets the COOP/TVT prefix in the Mission folder tab, and the other way round.</p>
     <p>Fill in the sections you need and leave the rest empty. Empty sections are left out. Friendly composition and the radio list fill in from your units. The CO-only tab is shown only to the platoon commander's unit. The preview shows the exact <code>briefing.sqf</code> you'll get.</p>
 
     <h3>4. Set the mission settings (Mission settings tab, optional)</h3>
@@ -514,48 +520,58 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     <div class="brief">
       <form class="form" id="bform" autocomplete="off">
         <fieldset>
-          <legend>Situation</legend>
-          <div class="field"><label for="b-title">Mission title</label><input id="b-title" placeholder="Clipped Rotors"></div>
+          <legend>COOP or TVT?</legend>
+          <p class="hint" id="b-mode-q" style="margin:0">Is this a COOP or a TVT mission? COOP gives your side one briefing. TVT gives each team its own briefing, and every side gets the mission notes.</p>
+          <div class="seg wide" id="b-mode" role="group" aria-label="Mission type"><button type="button" data-m="CO" aria-pressed="false">COOP</button><button type="button" data-m="TVT" aria-pressed="false">TVT</button></div>
+          <div class="btype-row" id="b-tvt-row" hidden>
+            <div class="field"><label for="b-sideb">Team 2 side</label><select id="b-sideb"></select></div>
+            <div class="field"><label>Editing</label><div class="seg wide" id="b-team" role="group" aria-label="Team to edit"><button type="button" data-t="1" aria-pressed="true"></button><button type="button" data-t="2" aria-pressed="false"></button></div></div>
+          </div>
+          <div class="field" id="b-title-row"><label for="b-title">Mission title <span class="aux">both teams see it</span></label><input id="b-title" placeholder="Clipped Rotors"></div>
+        </fieldset>
+        <fieldset data-team="1">
+          <legend>Situation<span class="team-tag"></span></legend>
           <div class="field"><label for="b-background">Background</label><textarea id="b-background" placeholder="The enemy has been conducting air sorties over this sector of the frontline, hindering our efforts. Therefore, command has decided on a commando raid to destroy the enemy helicopters."></textarea></div>
           <div class="field"><label for="b-weather">Weather</label><input id="b-weather" placeholder="Evening, a little cloudy, expected to rain later."></div>
         </fieldset>
-        <fieldset>
-          <legend>Mission</legend>
+        <fieldset data-team="1">
+          <legend>Mission<span class="team-tag"></span></legend>
           <div class="field"><label for="b-intent">Mission intent</label><textarea id="b-intent" placeholder="Destroy the helicopters at OBJ GEORGE, then conduct a withdrawal to friendly lines at Bruchwedel."></textarea></div>
           <div class="field"><label for="b-primary">Primary objectives <span class="aux">one per line</span></label><textarea id="b-primary" placeholder="Destroy enemy air assets at OBJ GEORGE."></textarea></div>
           <div class="field"><label for="b-secondary">Secondary objectives <span class="aux">one per line</span></label><textarea id="b-secondary" placeholder="Try and keep all squads alive to extract."></textarea></div>
         </fieldset>
-        <fieldset>
-          <legend>Friendly forces</legend>
+        <fieldset data-team="1">
+          <legend>Friendly forces<span class="team-tag"></span></legend>
           <div class="field"><label for="b-fcomp">Composition <button type="button" class="linkbtn" id="b-fcomp-auto" hidden>Use the units'</button></label><textarea id="b-fcomp"></textarea></div>
           <div class="field"><label for="b-fdisp">Disposition</label><textarea id="b-fdisp" placeholder="Staged in the northern part of the AO."></textarea></div>
           <div class="field"><label for="b-fpid">Uniform / PID</label><textarea id="b-fpid" placeholder="DPM uniforms, MK 5 Steel helmets, FALs and L7A2s with LAWs and a Carl Gustaf."></textarea></div>
         </fieldset>
-        <fieldset>
-          <legend>Enemy forces</legend>
+        <fieldset data-team="1">
+          <legend>Enemy forces<span class="team-tag"></span></legend>
           <div class="field"><label for="b-ecomp">Composition</label><textarea id="b-ecomp" placeholder="Approx one company (reinforced) of light infantry with M113 APCs spotted in the vicinity."></textarea></div>
           <div class="field"><label for="b-edisp">Disposition</label><textarea id="b-edisp" placeholder="Heavy enemy resistance in and around Schwemlitz. They do not know you are coming."></textarea></div>
           <div class="field"><label for="b-civ">Civilian presence</label><input id="b-civ" placeholder="None, collateral damage is not a concern."></div>
           <div class="field"><label for="b-epid">Uniform / PID</label><textarea id="b-epid" placeholder="M81 Woodland with olive M1 helmets, M113s, M939 trucks. Vehicles will be solid green."></textarea></div>
         </fieldset>
-        <fieldset>
-          <legend>Execution and support</legend>
+        <fieldset data-team="1">
+          <legend>Execution and support<span class="team-tag"></span></legend>
           <div class="field"><label for="b-exec">Execution</label><textarea id="b-exec" placeholder="-CO Discretion.&#10;-You are in the AO at start, keep your eyes open."></textarea></div>
           <div class="field"><label for="b-support">Service support</label><textarea id="b-support" placeholder="-None."></textarea></div>
         </fieldset>
-        <fieldset>
-          <legend>Command and signal</legend>
+        <fieldset data-team="1">
+          <legend>Command and signal<span class="team-tag"></span></legend>
           <div class="field"><label for="b-lr">Long-range radio</label><input id="b-lr" placeholder="All squads on LR channel 1"></div>
           <div class="field"><label>Short-range (from your units)</label><pre class="autolist" id="b-radios"></pre></div>
           <div class="field"><label for="b-signal">Other signals</label><textarea id="b-signal" placeholder="1'1 is wearing blue chemlights, 1'2 green."></textarea></div>
         </fieldset>
-        <fieldset>
+        <div class="b-team2" id="b-team2"></div>
+        <fieldset data-shared>
           <legend>Mission notes <span style="font:400 12px var(--font-body);color:var(--muted)">every side sees this tab</span></legend>
           <div class="field"><label for="b-modules">Modules <span class="aux">one per line</span></label><textarea id="b-modules" placeholder="ACE Advanced Medical&#10;ACE Cargo&#10;ACE Explosives"></textarea></div>
           <div class="field"><label for="b-author">Mission by</label><input id="b-author" placeholder="Kelly"></div>
           <div class="field"><label for="b-fw">Framework line</label><input id="b-fw" placeholder="Uses JANFU A3 Framework v1.54"></div>
         </fieldset>
-        <fieldset>
+        <fieldset data-shared>
           <legend>CO-only tab</legend>
           <div class="field"><label for="b-co">Only the platoon commander sees this <span class="aux" id="b-co-class"></span></label><textarea id="b-co" placeholder="Pacing, mission meta, what success looks like."></textarea></div>
         </fieldset>
@@ -1271,7 +1287,28 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   // ---- briefing ----------------------------------------------------------------------------
   const BF = ["title", "background", "weather", "intent", "primary", "secondary", "fcomp", "fdisp", "fpid",
     "ecomp", "edisp", "civ", "epid", "exec", "support", "lr", "signal", "modules", "author", "fw", "co"];
-  const brief = Object.assign({ v: {}, fcompEdited: false, include: false, includeTouched: false }, load("jantac-brief") || {});
+  // TVT: team 2 has its own copy of the side fields, stored with a t_ prefix.
+  const T2 = [
+    ["Situation", [["background", "Background", 1, "Your unit is pushing into the sector to take the treeline from the enemy."], ["weather", "Weather", 0, "Day, moderate visibility."]]],
+    ["Mission", [["intent", "Mission intent", 1, "Push the enemy out of the AO."], ["primary", "Primary objectives", 1, "Burn the cotton bales at the station.", "one per line"], ["secondary", "Secondary objectives", 1, "", "one per line"]]],
+    ["Friendly forces", [["fcomp", "Composition", 1, "2x squads of infantry with a PLT HQ."], ["fdisp", "Disposition", 1, "Staged to the North-East."], ["fpid", "Uniform / PID", 1, "Grey or brown, rag-tag gear."]]],
+    ["Enemy forces", [["ecomp", "Composition", 1, "1x squad of infantry with drones and tripwires."], ["edisp", "Disposition", 1, "Dug in at the centre of the AO, to your South-West."], ["civ", "Civilian presence", 0, "None."], ["epid", "Uniform / PID", 1, ""]]],
+    ["Execution and support", [["exec", "Execution", 1, "-At CO's discretion."], ["support", "Service support", 1, "-2x armored trucks."]]],
+    ["Command and signal", [["radios", "Radios", 1, "Radio scrambler is on.\nBabel is off."], ["signal", "Other signals", 1, "1'1 is wearing blue chemlights."]]],
+  ];
+  const T2K = T2.flatMap((f) => f[1].map((x) => "t_" + x[0]));
+  const brief = Object.assign({ v: {}, fcompEdited: false, include: false, includeTouched: false, mode: "", sideB: "", team: 1 }, load("jantac-brief") || {});
+  const T1K = BF.filter((k) => !["fcomp", "modules", "author", "fw", "co"].includes(k));
+  const filled = (keys) => keys.some((k) => (brief.v[k] || "").trim());
+  if (!brief.mode && filled(BF.filter((k) => k !== "fcomp"))) brief.mode = "CO";
+  const tvt = () => brief.mode === "TVT";
+  const OPP = { West: "East", East: "West", Independent: "West" };
+  const sideB = () => (brief.sideB && brief.sideB !== sideNow() ? brief.sideB : OPP[sideNow()]);
+  // What the framework needs: a mode, and something written for each team.
+  const briefReady = () => !!brief.mode && filled(T1K) && (!tvt() || filled(T2K));
+  const briefMissing = () => !brief.mode ? "choose COOP or TVT in the Briefing tab, then write the briefing." :
+    !filled(T1K) ? (tvt() ? "write team 1's briefing in the Briefing tab." : "write the briefing in the Briefing tab.") :
+    "write team 2's briefing in the Briefing tab.";
   const saveBrief = () => store("jantac-brief", brief);
   const autoComp = () => { const n = squadsNow(); return n ? n + "x squad" + (n === 1 ? "" : "s") + " of infantry with a 1x PLT HQ." : "1x PLT HQ."; };
   const radioLines = () => {
@@ -1280,7 +1317,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     out.push("1'0 on 343 channel " + (n + 1));
     return out;
   };
-  const hasContent = () => BF.some((k) => k !== "fcomp" && (brief.v[k] || "").trim());
+  const hasContent = () => filled(BF.filter((k) => k !== "fcomp").concat(tvt() ? T2K : []));
 
   // Briefing text sits inside a string the preprocessor cannot see, so typed text is made safe:
   // XML-escaped for structured text, quotes doubled, // broken up, macro names lowered,
@@ -1311,11 +1348,14 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const bullets = (t) => String(t || "").split("\n").filter((x) => x.trim()).map((x) => (/^\s*-/.test(x) ? x.trim() : "-" + x.trim())).join("\n");
   const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 
-  function genBriefing() {
-    const v = (k) => (brief.v[k] || "").trim();
+  // One side's tabs. team 1 uses the main fields (with the units' composition and radios),
+  // team 2 the t_ fields.
+  function sideTabs(team) {
+    const p = team === 2 ? "t_" : "";
+    const v = (k) => (brief.v[p + k] || "").trim(), title = (brief.v.title || "").trim();
     const tabs = [];
     const sit = [];
-    if (v("title")) sit.push(H("Mission Title: " + sqfLines(v("title"))[0].replace(/<br \/>$/, "")), "<br />");
+    if (title) sit.push(H("Mission Title: " + sqfLines(title)[0].replace(/<br \/>$/, "")), "<br />");
     sit.push(...block("Background:", v("background")), ...block("Weather:", v("weather")));
     tabs.push(["Situation:", sit]);
     const mis = block("Mission Intent:", v("intent"));
@@ -1323,31 +1363,43 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     const sec = block("Secondary Objective:", bullets(v("secondary")), 14);
     if (pri.length || sec.length) mis.push(H("Objectives:"), ...pri, ...sec);
     tabs.push(["Mission:", mis]);
-    tabs.push(["Friendly Forces:", [...block("Composition:", brief.fcompEdited ? v("fcomp") : autoComp()),
+    const fcomp = team === 2 ? v("fcomp") : brief.fcompEdited ? v("fcomp") : autoComp();
+    tabs.push(["Friendly Forces:", [...block("Composition:", fcomp),
       ...block("Disposition:", v("fdisp")), ...block("Uniform/PID:", v("fpid"))]]);
     tabs.push(["Enemy Forces:", [...block("Composition:", v("ecomp")), ...block("Disposition:", v("edisp")),
       ...block("Civilian Presence:", v("civ")), ...block("Uniform/PID:", v("epid"))]]);
     tabs.push(["Execution:", block("", v("exec"))]);
     tabs.push(["Service Support:", block("", v("support"))]);
-    const radios = [v("lr") || "All squads on LR channel 1"].concat(radioLines()).join("\n");
+    const radios = team === 2 ? v("radios") : [v("lr") || "All squads on LR channel 1"].concat(radioLines()).join("\n");
     tabs.push(["Command & Signal:", [...block("Radios:", radios), ...block("Other signals:", v("signal"))]]);
+    return tabs.filter((t) => t[1].length);
+  }
 
+  function genBriefing() {
+    const v = (k) => (brief.v[k] || "").trim();
     const out = [
       '#include "core\\briefingCore.sqf" //DO NOT REMOVE', "",
       "waitUntil {!(isNull player)};//This is needed for JIP compatibility since this code is spawned not called", "",
-      "// Generated by the JANTAC Unit Library", "",
+      "// Generated by the JANTAC Unit Library" + (tvt() ? " (TVT)" : ""), "",
       "switch (side player) do { //Checks what team the player is on",
-      "case " + SIDES[sideNow()].sqf + ": { //If player is " + SIDES[sideNow()].desc + " he receives this briefing", "",
     ];
-    let i = 0;
-    tabs.filter((t) => t[1].length).forEach((t) => { out.push('NEWTAB("' + ROMAN[i++] + ". " + t[0] + '")', ...t[1], "ENDTAB;", ""); });
-    out.push("};", "};", "", "//All players regardless of side get below tabs.");
+    const sides = tvt() ? [[sideNow(), 1], [sideB(), 2]] : [[sideNow(), 1]];
+    let most = 0;
+    sides.forEach(([side, team], n) => {
+      if (n) out.push("");
+      out.push("case " + SIDES[side].sqf + ": { //If player is " + SIDES[side].desc + " he receives this briefing", "");
+      let i = 0;
+      sideTabs(team).forEach((t) => { out.push('NEWTAB("' + ROMAN[i++] + ". " + t[0] + '")', ...t[1], "ENDTAB;", ""); });
+      most = Math.max(most, i);
+      out.push("};");
+    });
+    out.push("};", "", "//All players regardless of side get below tabs.");
     const notes = [];
     const mods = sqfLines(v("modules"));
     if (mods.length) notes.push("Modules:<br />", ...mods, "<br />");
     if (v("author")) notes.push(...sqfLines("Mission by " + v("author")));
     notes.push(...sqfLines(v("fw") || "Uses JANFU A3 Framework v1.54"));
-    out.push('NEWTAB("' + ROMAN[i++] + '. Mission notes:")', "<br />", ...notes, "<br />", "ENDTAB;", "");
+    out.push('NEWTAB("' + ROMAN[most] + '. Mission notes:")', "<br />", ...notes, "<br />", "ENDTAB;", "");
     if (v("co")) {
       out.push("//Only the platoon commander's unit class gets this tab.", "_unit = player;", "",
         "switch (typeOf _unit) do {", "case " + sqmStr(coClassNow()) + ": {", 'NEWTAB("CO Briefing Meta:")',
@@ -1359,18 +1411,57 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   }
   window.__jantacBriefing = { gen: genBriefing, lines: sqfLines, brief }; // exposed for testing
 
+  function layoutBriefing() {
+    const m = brief.mode, t = tvt() ? brief.team : 1;
+    $("b-mode").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.m === m)));
+    $("b-mode-q").hidden = !!m;
+    $("b-tvt-row").hidden = !tvt();
+    $("b-title-row").hidden = !m;
+    $("b-sideb").innerHTML = Object.keys(SIDES).filter((k) => k !== sideNow())
+      .map((k) => '<option value="' + k + '">' + SIDES[k].label + "</option>").join("");
+    $("b-sideb").value = sideB();
+    const lbl = { 1: "Team 1 · " + SIDES[sideNow()].label, 2: "Team 2 · " + SIDES[sideB()].label };
+    $("b-team").querySelectorAll("button").forEach((b) => { b.textContent = lbl[b.dataset.t]; b.setAttribute("aria-pressed", String(Number(b.dataset.t) === t)); });
+    $("bform").querySelectorAll("fieldset[data-team]").forEach((f) => {
+      f.hidden = !m || Number(f.dataset.team) !== t;
+      const tag = f.querySelector(".team-tag"); if (tag) tag.textContent = tvt() ? lbl[f.dataset.team] : "";
+    });
+    $("bform").querySelectorAll("fieldset[data-shared]").forEach((f) => (f.hidden = !m));
+  }
+
   function updateBriefing() {
+    layoutBriefing();
     if (!brief.fcompEdited) $("b-fcomp").value = autoComp();
     $("b-fcomp-auto").hidden = !brief.fcompEdited;
     $("b-radios").textContent = (brief.v.lr || "All squads on LR channel 1") + "\n" + radioLines().join("\n");
     $("b-co-class").textContent = "unit class " + coClassNow();
-    $("b-out").textContent = genBriefing();
-    $("b-status").textContent = brief.include
+    $("b-out").textContent = brief.mode ? genBriefing() : "// Choose COOP or TVT on the left to start the briefing.";
+    $("b-status").textContent = !brief.mode ? "Choose COOP or TVT first: each has its own template." : brief.include
       ? "Included in your download and in “Add to a mission…”. It replaces the mission's briefing.sqf."
       : "Not included yet. Tick “Include briefing.sqf” on the Units tab to add it.";
   }
 
   function bindBriefing() {
+    $("b-team2").innerHTML = T2.map(([legend, fields]) => '<fieldset data-team="2" hidden><legend>' + legend + '<span class="team-tag"></span></legend>' +
+      fields.map(([k, label, area, ph, aux]) => '<div class="field"><label for="b-t_' + k + '">' + label + (aux ? ' <span class="aux">' + aux + "</span>" : "") + "</label>" +
+        (area ? '<textarea id="b-t_' + k + '" placeholder="' + esc(ph) + '"></textarea>' : '<input id="b-t_' + k + '" placeholder="' + esc(ph) + '">') + "</div>").join("") +
+      "</fieldset>").join("");
+    T2K.forEach((k) => {
+      const el = $("b-" + k);
+      el.value = brief.v[k] || "";
+      el.addEventListener("input", () => {
+        brief.v[k] = el.value;
+        if (!brief.includeTouched && hasContent()) brief.include = true;
+        saveBrief(); updateBriefing(); renderManifest();
+      });
+    });
+    $("b-mode").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+      brief.mode = b.dataset.m; brief.team = 1;
+      if (mf.type !== "") { mf.type = brief.mode; saveMf(); updateFolder(); }
+      saveBrief(); updateBriefing(); updateSettings(); renderManifest();
+    }));
+    $("b-team").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { brief.team = Number(b.dataset.t); saveBrief(); layoutBriefing(); }));
+    $("b-sideb").addEventListener("change", (e) => { brief.sideB = e.target.value; saveBrief(); updateBriefing(); });
     BF.forEach((k) => {
       const el = $("b-" + k);
       if (k !== "fcomp" || brief.fcompEdited) el.value = brief.v[k] || "";
@@ -1387,8 +1478,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("brief-inc").addEventListener("change", (e) => { brief.include = e.target.checked; brief.includeTouched = true; saveBrief(); updateBriefing(); renderManifest(); });
     bindCopy("b-copy", "b-out", genBriefing);
     bindClear("b-clear", () => {
-      Object.assign(brief, { v: {}, fcompEdited: false, include: false, includeTouched: false });
-      BF.forEach((k) => ($("b-" + k).value = ""));
+      Object.assign(brief, { v: {}, fcompEdited: false, include: false, includeTouched: false, mode: "", sideB: "", team: 1 });
+      BF.concat(T2K).forEach((k) => ($("b-" + k).value = ""));
       saveBrief(); updateBriefing(); renderManifest();
     });
   }
@@ -1517,7 +1608,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         text: src === "own" ? "Units and loadout: the framework needs a loadout from this page. Pick a package or a custom platoon." :
               broken ? "Units and loadout: fix the custom design." :
               src === "none" ? "Units and loadout: pick a package or a custom platoon." : "Units, gear.sqf and loadout" },
-      { ok: hasContent(), href: "#briefing", text: hasContent() ? "briefing.sqf" : "briefing.sqf: write the briefing in the Briefing tab." },
+      { ok: briefReady(), href: "#briefing", text: briefReady() ? "briefing.sqf (" + (tvt() ? "TVT" : "COOP") + ")" : "briefing.sqf: " + briefMissing() },
       { ok: !!(sett.v.name || "").trim(), href: "#mission-settings",
         text: (sett.v.name || "").trim() ? "missionSettings.hpp" : "missionSettings.hpp: give the mission a name in the Mission settings tab." },
     ];
@@ -1537,9 +1628,10 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     list.hidden = !fwOn();
     list.innerHTML = fwOn() ? fwChecks().map((c) => '<li><span class="' + (c.ok ? "ok" : "no") + '">' + (c.ok ? "✓" : "✕") + "</span>" +
       (c.ok ? "<span>" + esc(c.text) + "</span>" : '<a href="' + c.href + '">' + esc(c.text) + "</a>") + "</li>").join("") : "";
-    const b = fwOn() && !hasContent(), st = fwOn() && !(sett.v.name || "").trim();
+    const b = fwOn() && !briefReady(), st = fwOn() && !(sett.v.name || "").trim();
     $("b-fwnote").hidden = !b;
-    $("b-fwnote").textContent = "Required: Get the framework is ticked, so the mission needs this briefing. Fill in at least one section.";
+    $("b-fwnote").textContent = "Required: Get the framework is ticked, so the mission needs this briefing. " +
+      (!brief.mode ? "Choose COOP or TVT, then fill in at least one section." : tvt() ? "Fill in at least one section for each team." : "Fill in at least one section.");
     $("s-fwnote").hidden = !st;
     $("s-fwnote").textContent = "Required: Get the framework is ticked, so the mission needs these settings. Give the mission a name.";
   }
@@ -1598,7 +1690,11 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if ($("f-map").value !== mf.world) { mf.world = ""; $("f-map").value = ""; }
     const touched = () => { if (!mf.includeTouched && folderValid()) mf.include = true; saveMf(); updateFolder(); renderManifest(); updateSettings(); };
     $("f-type").value = mf.type;
-    $("f-type").addEventListener("change", (e) => { mf.type = e.target.value; touched(); });
+    $("f-type").addEventListener("change", (e) => {
+      mf.type = e.target.value;
+      if (mf.type && brief.mode && brief.mode !== mf.type) { brief.mode = mf.type; brief.team = 1; saveBrief(); updateBriefing(); }
+      touched();
+    });
     $("f-slots").addEventListener("input", (e) => { mf.slots = e.target.value; mf.slotsEdited = true; touched(); });
     $("f-slots-auto").addEventListener("click", () => { mf.slotsEdited = false; mf.slots = ""; touched(); });
     $("f-name").addEventListener("input", (e) => { mf.name = e.target.value; touched(); });

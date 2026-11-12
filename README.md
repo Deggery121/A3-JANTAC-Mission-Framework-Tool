@@ -17,7 +17,9 @@ https://deggery121.github.io/A3-JANTAC-Mission-Framework-Tool/
 3. In any other browser, press **Download zip** and follow `INSTALL.txt` inside it.
 4. In Eden open **Compositions → JANTAC Mission Framework** and place the package.
 
-The **Briefing** tab builds `customization\briefing.sqf` from a form (situation, mission,
+The **Briefing** tab first asks whether the mission is **COOP** or **TVT**. COOP gives your side
+one briefing; TVT gives each team its own (`case WEST/EAST/RESISTANCE` blocks, team 2's side is
+picked on the tab), with the title, mission notes and CO tab shared. It builds `customization\briefing.sqf` from a form (situation, mission,
 friendly and enemy forces, execution, support, command and signal, mission notes and an
 optional CO-only tab). Friendly composition and radio channels fill in from the package you
 picked. Tick **Include briefing.sqf** and it goes into the zip and into **Add to a mission…**,
