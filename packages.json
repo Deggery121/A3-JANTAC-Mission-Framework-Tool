@@ -70,6 +70,26 @@
       ],
       "by": "Deggery",
       "description": "1993 Mogadishu \u00b7 DCU, Colt 727, M249, M72 LAW, pilots"
+    },
+    "IDF_": {
+      "name": "Israel Defense Forces (IDF)",
+      "loadout": "IDF.sqf",
+      "requiredAddons": [
+        "A3_Characters_F",
+        "A3_Characters_F_Exp"
+      ],
+      "by": "Deggery",
+      "description": "Modern IDF \u00b7 M4A1, M110 sharpshooters, Zafir MMG, M72 LAW"
+    },
+    "USRNG_": {
+      "name": "US Army Rangers (Modern)",
+      "loadout": "USRNG.sqf",
+      "requiredAddons": [
+        "A3_Characters_F",
+        "A3_Characters_F_Exp"
+      ],
+      "by": "Deggery",
+      "description": "Modern US Army Rangers \u00b7 OCP, M4A1 SOPMOD, Mk 48, M72 LAW, NVGs"
     }
   }
 }
