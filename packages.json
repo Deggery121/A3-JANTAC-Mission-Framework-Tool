@@ -60,6 +60,16 @@
       ],
       "by": "Aiello",
       "description": "1980s British winter \u00b7 DPM, FAL, FN MAG, M72 LAW"
+    },
+    "SOAR_": {
+      "name": "16th SOAR (Black Hawk Down)",
+      "loadout": "SOAR.sqf",
+      "requiredAddons": [
+        "A3_Characters_F",
+        "A3_Characters_F_Exp"
+      ],
+      "by": "Deggery",
+      "description": "1993 Mogadishu \u00b7 DCU, Colt 727, M249, M72 LAW, pilots"
     }
   }
 }
