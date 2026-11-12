@@ -33,6 +33,13 @@ packages if you like. Start from a package or from empty, add slots from the lis
 rename, set red/blue teams and duplicate squads. The page builds the Eden composition and adds
 every loadout the design uses to `gear.sqf`.
 
+**Get the framework**: tick it on the Units tab to get a complete mission, the stripped JANTAC
+framework (`framework/`) plus the four files it needs from this page: `gear.sqf` and the loadout
+(from your units), `briefing.sqf` (Briefing tab) and `missionSettings.hpp` (Mission settings tab).
+While it's ticked the briefing and settings are always included, and the download stays off until
+units are picked, the briefing has content and the mission has a name. **Create mission folder…**
+writes the framework into the new folder; existing files are never overwritten.
+
 **My mission already has units**: pick this on the Units tab to use only the briefing and
 mission settings. Enter your squad count, playable slots and CO unit class so the radios,
 `maxPlayers` and CO tab come out right.
@@ -50,6 +57,8 @@ master/UnitLibrary.VR/
   customization/gear.sqf           includes every loadout
   customization/loadouts/*.sqf     gear scripts, role names as written by their authors
 packages.json                      display name, loadout file and required addons per prefix
+framework/JANTAC_FrameWork_vX/     stripped framework for "Get the framework" (no gear.sqf, loadouts,
+                                   briefing.sqf or missionSettings.hpp; the page makes those)
 maps.json                          maps offered in the Mission folder tab: world name + in-game name
 tools/check_master.py              rules every push must pass
 tools/build_compositions.py        builds HQ + 1..N squad compositions per package
@@ -102,6 +111,12 @@ same side; the checker enforces this.
 3. Add the prefix to `packages.json` with its `name`, `loadout`, `requiredAddons`, `by` (author)
    and a short `description` of the gear (shown under the package name on the page).
 4. Push and check the build.
+
+### Updating the framework
+
+Replace the folder in `framework/` with the new version (named `JANTAC_FrameWork_v1.55` and so on;
+the page uses the highest one). Leave out `customization\gear.sqf`, `customization\loadouts`,
+`customization\briefing.sqf` and `customization\missionSettings.hpp`, and don't include a `mission.sqm`.
 
 ## Credits
 

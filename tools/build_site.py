@@ -56,6 +56,28 @@ def comp(folder):
     }
 
 
+FRAMEWORK = os.path.join(ROOT, "framework")
+
+
+def framework():
+    """The stripped JANTAC framework, zipped and base64-encoded for the page."""
+    import base64, io, zipfile
+    dirs = sorted(d for d in os.listdir(FRAMEWORK) if os.path.isdir(os.path.join(FRAMEWORK, d)))
+    if not dirs:
+        return None
+    src = os.path.join(FRAMEWORK, dirs[-1])
+    buf, count = io.BytesIO(), 0
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+        for base, _, files in sorted(os.walk(src)):
+            for f in sorted(files):
+                full = os.path.join(base, f)
+                z.write(full, os.path.relpath(full, src).replace(os.sep, "/"))
+                count += 1
+    m = re.search(r"v(\d+(?:\.\d+)*)", dirs[-1])
+    return {"name": dirs[-1], "version": m.group(1) if m else "", "files": count,
+            "zip": base64.b64encode(buf.getvalue()).decode()}
+
+
 def build_label():
     ref = os.environ.get("GITHUB_REF_NAME", "")
     sha = os.environ.get("GITHUB_SHA", "")[:7]
@@ -117,6 +139,7 @@ def main():
         "system": comp(CONFIG["infrastructure"]["folder"]),
         "gearTemplate": read(os.path.join(MASTER, "customization", "gear.sqf")),
         "maps": json.load(open(os.path.join(ROOT, "maps.json"))),
+        "framework": framework(),
     }
     data = json.dumps(lib, separators=(",", ":")).replace("</", "<\\/")
     tpl = open(os.path.join(ROOT, "site", "template.html"), encoding="utf-8").read()

@@ -1,0 +1,238 @@
+#define description
+
+#include "core\description.hpp" //DO NOT REMOVE
+#include "customization\missionSettings.hpp" 
+#include "modules\modules.sqf" //DO NOT REMOVE
+
+#undef description
+#define description_functions
+
+class CfgFunctions {
+
+	#include "core\description.hpp" //DO NOT REMOVE
+	#include "modules\modules.sqf" //DO NOT REMOVE
+
+};
+	
+#undef description_functions
+#define description_titles
+	
+class rscTitles {
+
+	#include "core\description.hpp" //DO NOT REMOVE
+	#include "modules\modules.sqf" //DO NOT REMOVE
+
+};
+
+#undef description_titles
+#define description_notifications
+	
+class CfgNotifications {
+
+	#include "core\description.hpp" //DO NOT REMOVE
+	#include "modules\modules.sqf" //DO NOT REMOVE
+
+};
+
+#undef description_notifications
+
+#define description_sounds
+	
+class CfgSounds {
+
+	#include "core\description.hpp" //DO NOT REMOVE
+	#include "modules\modules.sqf" //DO NOT REMOVE
+	
+	class fluier_1
+	{
+		name = "fluier_1"; // Name for mission editor
+		sound[] = {\sound\fluier_1.ogg, db+5, 1.0};
+		titles[] = {0, ""};
+	};
+	class fluier_2
+	{
+		name = "fluier_2"; // Name for mission editor
+		sound[] = {\sound\fluier_2.ogg, db+5, 1.0};
+		titles[] = {0, ""};
+	};	
+	class fluier_3
+	{
+		name = "fluier_3"; // Name for mission editor
+		sound[] = {\sound\fluier_3.ogg, db+5, 1.0};
+		titles[] = {0, ""};
+	};	
+	class fluier_4
+	{
+		name = "fluier_4"; // Name for mission editor
+		sound[] = {\sound\fluier_4.ogg, db+5, 1.0};
+		titles[] = {0, ""};
+	};
+	class fluier_5
+	{
+		name = "fluier_5"; // Name for mission editor
+		sound[] = {\sound\fluier_5.ogg, db+5, 1.0};
+		titles[] = {0, ""};
+	};
+	class fluier_6
+	{
+		name = "fluier_6"; // Name for mission editor
+		sound[] = {\sound\fluier_6.ogg, db+5, 1.0};
+		titles[] = {0, ""};
+	};
+	class fluier_7
+	{
+		name = "fluier_7"; // Name for mission editor
+		sound[] = {\sound\fluier_7.ogg, db+5, 1.0};
+		titles[] = {0, ""};
+	};
+	class fluier_8
+	{
+		name = "fluier_8"; // Name for mission editor
+		sound[] = {\sound\fluier_8.ogg, db+5, 1.0};
+		titles[] = {0, ""};
+	};
+	class fluier_9
+	{
+		name = "fluier_9"; // Name for mission editor
+		sound[] = {\sound\fluier_9.ogg, db+5, 1.0};
+		titles[] = {0, ""};
+	};
+	class fluier_91
+	{
+		name = "fluier_91"; // Name for mission editor
+		sound[] = {\sound\fluier_91.ogg, db+5, 1.0};
+		titles[] = {0, ""};
+	};
+	class fluier_92
+	{
+		name = "fluier_92"; // Name for mission editor
+		sound[] = {\sound\fluier_92.ogg, db+5, 1.0};
+		titles[] = {0, ""};
+	};
+	class fluier_93
+	{
+		name = "fluier_93"; // Name for mission editor
+		sound[] = {\sound\fluier_93.ogg, db+5, 1.0};
+		titles[] = {0, ""};
+	};	
+	class furnal
+	{
+		name = "furnal";
+		sound[] = {"\sound\furnal.ogg", 0.4, 1};
+		titles[] = {1, ""};
+	};
+	class burned
+	{
+		name = "burned";
+		sound[] = {"\sound\burned.ogg", 1, 1};
+		titles[] = {1, ""};
+	};
+	class tipat
+	{
+		name = "tipat";
+		sound[] = {"\sound\tipat.ogg", 0.8, 1};
+		titles[] = {1, ""};
+	};
+	class napalm
+	{
+		name = "napalm";
+		sound[] = {"\sound\napalm.ogg", db+20, 1};
+		titles[] = {1, ""};
+	};	
+	class 03
+	{
+		name = "03";
+		sound[] = {"\sound\03.ogg",1, 1};
+		titles[] = {1, ""};
+	};
+	class 01
+	{
+		name = "01";
+		sound[] = {"\sound\01.ogg",1, 1};
+		titles[] = {1, ""};
+	};		
+	class 02
+	{
+		name = "02";
+		sound[] = {"\sound\02.ogg",1, 1};
+		titles[] = {1, ""};
+	};	
+	class 04
+	{
+		name = "04";
+		sound[] = {"\sound\04.ogg",1, 1};
+		titles[] = {1, ""};
+	};
+	class 05
+	{
+		name = "05";
+		sound[] = {"\sound\05.ogg",1, 1};
+		titles[] = {1, ""};
+	};
+	class flames
+	{
+		name = "flames";
+		sound[] = {"\sound\flames.ogg",1, 1};
+		titles[] = {1, ""};
+	};
+	class foc_initial_2
+	{
+		name = "foc_initial_2";
+		sound[] = {"\sound\foc_initial_2.ogg",db+20, 1};
+		titles[] = {1, ""};
+	};
+	class NoSound 
+	{
+		name = "NoSound";
+		sound[] = {"", 0, 1};
+		titles[] = {0, ""};
+	};
+	class unit_fire
+	{
+		name = "unit_fire";
+		sound[] = {"\sound\unit_fire.ogg",0.1,1};
+		titles[] = {1,""};
+	};
+	class eko_1
+	{
+		name = "eko_1";
+		sound[] = {"\sound\eko_1.ogg",1,1};
+		titles[] = {1,""};
+	};
+	class eko_2
+	{
+		name = "eko_2";
+		sound[] = {"\sound\eko_2.ogg",1,1};
+		titles[] = {1,""};
+	};
+	class eko_3
+	{
+		name = "eko_3";
+		sound[] = {"\sound\eko_3.ogg",1,1};
+		titles[] = {1,""};
+	};
+};
+
+#undef description_sounds
+
+#define description_insignia
+	
+class CfgUnitInsignia {
+
+	#include "core\description.hpp" //DO NOT REMOVE
+	#include "modules\modules.sqf" //DO NOT REMOVE
+
+};
+
+#undef description_insignia
+
+#define description_params
+
+class Params {
+	
+	#include "core\description.hpp" //DO NOT REMOVE
+	#include "modules\modules.sqf" //DO NOT REMOVE
+	
+};
+
+#undef description_params

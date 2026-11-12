@@ -189,6 +189,11 @@ h1 {
 .log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
 .log li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 6px; overflow-wrap: anywhere; }
 .log .ok { color: var(--ok); } .log .warn { color: var(--warn); } .log .err { color: var(--team-red); }
+.fwlist { list-style: none; margin: -4px 0 0 28px; padding: 0; font-size: 12.5px; display: grid; gap: 3px; }
+.fwlist li { display: flex; gap: 6px; }
+.fwlist .ok { color: var(--friendly); font-weight: 700; }
+.fwlist .no { color: var(--hostile, #c0392b); font-weight: 700; }
+.note.fw { margin: 0 0 12px; }
 .note { background: var(--warn-soft); color: var(--fg); border-radius: var(--radius); padding: 8px 10px; font-size: 12.5px; }
 
 details.howto { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; margin-top: 24px; }
@@ -389,6 +394,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       </div>
       <dl class="facts" id="facts"></dl>
       <label class="check" id="sys-row"><input type="checkbox" id="sys" checked><span>Include JANTAC SYSTEM<small>Headless client, respawn logic and ACE headless module</small></span></label>
+      <label class="check" id="fw-row"><input type="checkbox" id="fw-inc"><span>Get the framework<small id="fw-note"></small></span></label>
+      <ul class="fwlist" id="fw-list" hidden></ul>
       <label class="check"><input type="checkbox" id="brief-inc"><span>Include briefing.sqf<small>Replaces the mission's customization\briefing.sqf. <a href="#briefing">Write the briefing</a></small></span></label>
       <label class="check"><input type="checkbox" id="set-inc"><span>Include missionSettings.hpp<small>Replaces the mission's customization\missionSettings.hpp. <a href="#mission-settings">Edit settings</a></small></span></label>
       <label class="check"><input type="checkbox" id="mf-inc"><span>Put it in a mission folder<small id="mf-note"></small></span></label>
@@ -438,6 +445,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
     <h3>6. Take it to your mission (manifest on the Units tab)</h3>
     <ul>
+      <li><b>Get the framework</b> adds the whole JANTAC framework, so you get a complete mission folder without copying the framework yourself. The framework needs four files the page makes for you: <code>gear.sqf</code> and a loadout (from your units), <code>briefing.sqf</code> (Briefing tab) and <code>missionSettings.hpp</code> (Mission settings tab). While it's ticked, the briefing and mission settings are always included, and the download stays off until the Units, Briefing and Mission settings tabs are filled in; the list under the checkbox shows what's left.</li>
       <li>Tick <b>Include briefing.sqf</b> and <b>Include missionSettings.hpp</b> to add them. They tick themselves once you start editing.</li>
       <li><b>Download zip</b> works in any browser. It holds the compositions, the loadout files, a <code>gear.sqf</code>, your briefing and settings, and an <code>INSTALL.txt</code>.</li>
       <li><b>Add to a mission…</b> (Chrome or Edge, on the GitHub page) writes into a mission folder you pick. It copies the loadouts, adds their lines to <code>gear.sqf</code> without touching your other lines, and replaces the briefing and settings. Any file it replaces is kept with <code>.bak</code> added to its name.</li>
@@ -456,6 +464,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       <li>Copy the loadout files to your mission's <code>customization\loadouts</code> folder and add their gear.sqf lines inside <code>switch (_type) do { … }</code>. A ready-made <code>gear.sqf</code> is in the zip if your mission has no custom lines.</li>
       <li>In Eden, open Compositions → JANTAC Mission Framework and place your units.</li>
       <li>If you wrote a briefing, copy <code>customization\briefing.sqf</code> over your mission's.</li>
+      <li>If you ticked <b>Get the framework</b>, the mission folder in the zip is already complete: copy it into your profile's <code>missions</code> folder.</li>
       <li>Copy <code>customization\missionSettings.hpp</code> over your mission's, or set <code>maxPlayers</code> in yours to the number shown in the manifest (it counts the headless client).</li>
     </ol>
   </details>
@@ -498,6 +507,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   </div>
 
   <div id="view-briefing" hidden>
+    <p class="note fw" id="b-fwnote" hidden></p>
     <div class="brief">
       <form class="form" id="bform" autocomplete="off">
         <fieldset>
@@ -595,6 +605,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   </div>
 
   <div id="view-settings" hidden>
+    <p class="note fw" id="s-fwnote" hidden></p>
     <div class="brief">
       <form class="form" id="sform" autocomplete="off">
         <fieldset>
@@ -934,12 +945,14 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   function renderManifest() {
     const own = state.source === "own", n = squadsNow(), L = loadoutsNow();
     $("m-title").textContent = unitsTitle();
+    renderFw();
     if (state.source === "none") {
       $("facts").innerHTML = '<dt>Units</dt><dd>pick a package, or Custom options</dd>';
       ["sys-row", "incl-box", "inst-comp"].forEach((id) => ($(id).hidden = true));
       $("brief-inc").checked = brief.include; $("set-inc").checked = sett.include;
       $("zip").disabled = true; $("inst-miss").disabled = true; $("inst-new").hidden = true;
       $("fs-hint").textContent = "Pick a package above, or under Custom options build a platoon or choose My mission already has units.";
+      $("inst-comp").hidden = true;
       return;
     }
     let facts = "";
@@ -965,13 +978,15 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     const broken = state.source === "custom" && (!chosen() || issuesFor(chosen()).length);
     $("zip").disabled = nothing || broken;
     const folderBad = mf.include && !folderValid();
-    $("zip").disabled = nothing || broken || folderBad;
-    $("inst-miss").disabled = nothing || broken || useFolder();
+    const fwBad = fwOn() && !fwReady();
+    $("zip").disabled = nothing || broken || folderBad || fwBad;
+    $("inst-miss").disabled = nothing || broken || useFolder() || fwBad;
     $("inst-miss").title = useFolder() ? "Off while “Put it in a mission folder” is ticked. Use “Create mission folder…”." : "";
     $("inst-new").hidden = !canFS || !useFolder();
-    $("inst-new").disabled = broken;
+    $("inst-new").disabled = broken || fwBad;
     $("inst-comp").disabled = broken;
     $("fs-hint").textContent = broken ? "Fix the custom design before downloading." :
+      fwBad ? "Get the framework is ticked: finish the items marked ✕ above, or untick it." :
       folderBad ? "Finish the mission folder name in the Mission folder tab, or untick “Put it in a mission folder”." :
       nothing ? "Tick the briefing or mission settings to have something to take to your mission." :
       canFS && useFolder() ? "“Add to a mission…” is off while “Put it in a mission folder” is ticked: “Create mission folder…” makes the folder and writes the files. Nothing else on your computer is touched." :
@@ -1481,6 +1496,46 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const mf = Object.assign({ type: "CO", slots: "", slotsEdited: false, name: "", world: "", other: "", include: false, includeTouched: false }, load("jantac-folder") || {});
   if (!["CO", "TVT", ""].includes(mf.type)) mf.type = "CO";
   const saveMf = () => store("jantac-folder", mf);
+
+  // ---- Get the framework ------------------------------------------------------------------------
+  // The stripped framework ships without the four files this page makes: gear.sqf, a loadout,
+  // briefing.sqf and missionSettings.hpp. Ticking it makes all four required.
+  const FW = LIB.framework;
+  const fw = Object.assign({ include: false }, load("jantac-fw") || {});
+  const saveFw = () => store("jantac-fw", fw);
+  const fwOn = () => !!FW && fw.include;
+  const fwLabel = () => (FW ? FW.name.replace(/_/g, " ") : "");
+  function fwChecks() {
+    const src = state.source, broken = src === "custom" && (!chosen() || issuesFor(chosen()).length);
+    return [
+      { ok: (src === "pkg" || src === "custom") && !broken, href: "#units",
+        text: src === "own" ? "Units and loadout: the framework needs a loadout from this page. Pick a package or a custom platoon." :
+              broken ? "Units and loadout: fix the custom design." :
+              src === "none" ? "Units and loadout: pick a package or a custom platoon." : "Units, gear.sqf and loadout" },
+      { ok: hasContent(), href: "#briefing", text: hasContent() ? "briefing.sqf" : "briefing.sqf: write the briefing in the Briefing tab." },
+      { ok: !!(sett.v.name || "").trim(), href: "#mission-settings",
+        text: (sett.v.name || "").trim() ? "missionSettings.hpp" : "missionSettings.hpp: give the mission a name in the Mission settings tab." },
+    ];
+  }
+  const fwReady = () => fwChecks().every((c) => c.ok);
+  function renderFw() {
+    $("fw-row").hidden = !FW;
+    if (!FW) return;
+    $("fw-inc").checked = fw.include;
+    $("fw-note").textContent = "Adds the complete " + fwLabel() + " (" + FW.files + " files). Needs units with a loadout, the briefing and the mission settings.";
+    $("brief-inc").disabled = $("set-inc").disabled = fwOn();
+    const list = $("fw-list");
+    list.hidden = !fwOn();
+    list.innerHTML = fwOn() ? fwChecks().map((c) => '<li><span class="' + (c.ok ? "ok" : "no") + '">' + (c.ok ? "✓" : "✕") + "</span>" +
+      (c.ok ? "<span>" + esc(c.text) + "</span>" : '<a href="' + c.href + '">' + esc(c.text) + "</a>") + "</li>").join("") : "";
+    const b = fwOn() && !hasContent(), st = fwOn() && !(sett.v.name || "").trim();
+    $("b-fwnote").hidden = !b;
+    $("b-fwnote").textContent = "Required: Get the framework is ticked, so the mission needs this briefing. Fill in at least one section.";
+    $("s-fwnote").hidden = !st;
+    $("s-fwnote").textContent = "Required: Get the framework is ticked, so the mission needs these settings. Give the mission a name.";
+  }
+  let fwZip = null;
+  const fwFiles = () => (fwZip = fwZip || JSZip.loadAsync(FW.zip, { base64: true }));
   const MAPS = (LIB.maps || []).slice().sort((a, b) => a.name.localeCompare(b.name));
   const cleanMissionName = (s) => String(s || "").trim().replace(/\s+/g, "_").replace(/[^A-Za-z0-9_\-]/g, "");
   const worldNow = () => (mf.world === "__other" ? (mf.other || "").trim() : mf.world || "");
@@ -1541,6 +1596,14 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("f-map").addEventListener("change", (e) => { mf.world = e.target.value; touched(); });
     $("f-other").addEventListener("input", (e) => { mf.other = e.target.value; touched(); });
     $("fform").addEventListener("submit", (e) => e.preventDefault());
+    $("fw-inc").addEventListener("change", (e) => {
+      fw.include = e.target.checked; saveFw();
+      if (fw.include) {
+        brief.include = sett.include = true; brief.includeTouched = sett.includeTouched = true;
+        saveBrief(); saveSett();
+      }
+      updateBriefing(); updateSettings(); renderManifest();
+    });
     $("mf-inc").addEventListener("change", (e) => { mf.include = e.target.checked; mf.includeTouched = true; saveMf(); updateFolder(); renderManifest(); });
     bindCopy("f-copy", "f-out", () => folderName() || "");
   }
@@ -1610,6 +1673,19 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     const L = loadoutsNow(), comps = compsNow(), own = state.source === "own";
     const out = ["JANTAC Unit Library - " + unitsTitle(), LIB.build, ""];
     let k = 1;
+    if (fwOn()) {
+      const F = useFolder() ? folderName() : "mission";
+      out.push(k++ + ". The '" + F + "' folder is a complete mission: " + fwLabel() + " with your gear.sqf, loadout" + (L.length > 1 ? "s" : "") +
+          ", briefing.sqf and missionSettings.hpp.",
+        "   Copy it into Documents\\Arma 3 - Other Profiles\\<profile>\\missions   (or Documents\\Arma 3\\missions).");
+      if (!useFolder()) out.push("   Rename it to MissionName.WorldName first, e.g. MyMission.Altis (the part after the dot is the map).");
+      if (comps.length) out.push(k++ + ". Copy the folders in 'compositions' into your Arma profile's compositions folder:",
+        "   Documents\\Arma 3 - Other Profiles\\<profile>\\compositions   (or Documents\\Arma 3\\compositions)");
+      out.push(k++ + ". In Eden, open " + (useFolder() ? mapLabel(worldNow()) : "the map") + (comps.length ? ", place Compositions > JANTAC Mission Framework > " + comps[0].name : "") +
+        ", and save the scenario as " + (useFolder() ? scenarioName() : "the folder's name (without the .WorldName)") + " so it saves into the same folder.",
+        k++ + ". Set the team names in customization\\settings.sqf (the FNC_addTeam lines) and check customization\\endConditions.sqf.", "");
+      return out.join("\r\n");
+    }
     if (useFolder()) {
       const F = folderName();
       out.push(k++ + ". Mission folder: " + F + "  (" + mapLabel(worldNow()) + ")",
@@ -1643,7 +1719,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     return out.join("\r\n");
   }
   async function buildZip() {
-    const zip = new JSZip(), L = loadoutsNow(), base = useFolder() ? folderName() + "/" : "";
+    const zip = new JSZip(), L = loadoutsNow(), base = useFolder() ? folderName() + "/" : fwOn() ? "mission/" : "";
+    if (fwOn()) {
+      const src = await fwFiles();
+      for (const f of Object.values(src.files)) {
+        if (!f.dir) zip.file(base + f.name, await f.async("uint8array"), { date: f.date });
+      }
+    }
     compsNow().forEach((c) => {
       zip.file("compositions/" + c.folder + "/header.sqe", c.header);
       zip.file("compositions/" + c.folder + "/composition.sqe", c.composition);
@@ -1789,13 +1871,31 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       const dir = await parent.getDirectoryHandle(F, { create: true });
       log(existed ? "warn" : "ok", (existed ? "Using the existing folder " : "Created ") + parent.name + "\\" + F);
       await writeMissionFiles(dir);
-      log("ok", "Next: copy your JANTAC framework files into it (keep these files), then in Eden open " + mapLabel(worldNow()) +
+      log("ok", (fwOn() ? "Next: in Eden open " : "Next: copy your JANTAC framework files into it (keep these files), then in Eden open ") + mapLabel(worldNow()) +
         " and save the scenario as " + scenarioName() + ".");
     } catch (e) { log("err", "Could not create the mission folder: " + e.message); }
   });
 
+  async function writeFramework(dir) {
+    const src = await fwFiles();
+    let wrote = 0, kept = 0;
+    for (const f of Object.values(src.files)) {
+      if (f.dir) continue;
+      const parts = f.name.split("/"), name = parts.pop();
+      let d = dir;
+      for (const p of parts) d = await d.getDirectoryHandle(p, { create: true });
+      let exists = true;
+      try { await d.getFileHandle(name); } catch (e) { exists = false; }
+      if (exists) { kept++; continue; }
+      await writeFile(d, name, await f.async("uint8array"));
+      wrote++;
+    }
+    log("ok", "Framework: wrote " + wrote + " file" + (wrote === 1 ? "" : "s") + " of " + fwLabel() + (kept ? "; kept your " + kept + " existing file" + (kept === 1 ? "" : "s") : "") + ".");
+  }
+
   async function writeMissionFiles(dir) {
     const L = loadoutsNow();
+    if (fwOn()) await writeFramework(dir);
     {
       const cust = await dir.getDirectoryHandle("customization", { create: true });
       if (L.length) {
