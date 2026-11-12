@@ -46,6 +46,12 @@ writes the framework into the new folder; existing files are never overwritten.
 mission settings. Enter your squad count, playable slots and CO unit class so the radios,
 `maxPlayers` and CO tab come out right.
 
+**Play as / Team 2 (TVT)**: any package can be placed as BLUFOR, OPFOR or INDFOR (**Play as** on its
+card). The page rewrites the composition's sides and swaps each unit class for the same role on the other
+side (`B_Soldier_TL_F` → `O_Soldier_TL_F` / `I_Soldier_TL_F`, table `CLASS_ROWS` in `site/template.html`), so
+faces and voices follow the side while the gear script stays the same. **Add a Team 2 (TVT)** adds a second
+package on another side: both compositions and loadouts go into the mission and the briefing turns to TVT.
+
 Radio channels follow the squad count: squad 1'N is on PRC-343 channel N and the HQ (1'0) is
 always on the channel after the last squad.
 
