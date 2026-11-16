@@ -647,7 +647,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
           <div class="field"><label for="s-intro">Intro message</label><input id="s-intro" placeholder="Made with JANFU Mission Framework v1.54"></div>
           <label class="check"><input type="checkbox" id="s-mtime"><span>Show date and time while the mission loads</span></label>
           <label class="check"><input type="checkbox" id="s-itime"><span>Show date and time while the intro loads</span></label>
-          <div class="field"><label for="s-screen">Loading image <button type="button" class="linkbtn" id="s-screen-auto" hidden>Use the added image</button></label><input id="s-screen" placeholder="images\railwayload.jpg"></div>
+          <div class="field"><label for="s-screen">Loading image <button type="button" class="linkbtn" id="s-screen-auto" hidden>Use the added image</button></label><input id="s-screen" placeholder="images\janfulogo.paa (framework default)"></div>
           <div class="field">
             <label for="s-image">Add an image to the mission <span class="aux">.jpg or .paa</span></label>
             <input id="s-image" type="file" accept=".jpg,.jpeg,.paa">
@@ -1615,9 +1615,11 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const saveSett = () => store("jantac-settings", sett);
   let shot = null; // the loading image chosen this visit: {name, blob}
   const hppStr = (s) => '"' + String(s).replace(/[\r\n]+/g, " ").replace(/"/g, '""') + '"';
+  // The framework ships images\janfulogo.paa, so that is the loading image unless the mission maker changes it.
+  const DEFAULT_SCREEN = "images\\janfulogo.paa";
   function screenPath() {
     if (shot && !sett.screenEdited) return "images\\" + shot.name;
-    return (sett.v.screen || "").trim();
+    return (sett.v.screen || "").trim() || DEFAULT_SCREEN;
   }
   const settName = () => (sett.v.name || "").trim() || (brief.v.title || "").trim() || "Untitled mission";
   const maxPlayers = () => (sett.maxEdited ? posInt(sett.v.maxp, maxAuto() || 1) : maxAuto() || 1);
@@ -1634,8 +1636,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       "onLoadIntro\t\t\t\t= " + hppStr(v("intro") || "Made with JANFU Mission Framework v1.54") + ";\t// Displays a message while the intro is loading.",
       "onLoadMissionTime\t\t= " + (sett.mtime ? 1 : 0) + ";\t// Define whether you will see the time and date displayed while the mission loads.",
       "onLoadIntroTime\t\t\t= " + (sett.itime ? 1 : 0) + ";\t// Define whether you will see the time and date displayed while the intro loads.",
-      scr ? "loadScreen = " + hppStr(scr) + "; //Sets the image displayed during the loading screen"
-          : '//loadScreen = "images\\loading.jpg"; //Sets the image displayed during the loading screen',
+      "loadScreen = " + hppStr(scr) + "; //Sets the image displayed during the loading screen",
       "",
       "class Header {",
       "\t",
@@ -1664,7 +1665,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("s-name-aux").textContent = !(sett.v.name || "").trim() && (brief.v.title || "").trim() ? "using the briefing title" : "";
     $("s-image-note").textContent = shot
       ? "Added " + shot.name + " (" + Math.round(shot.blob.size / 1024) + " KB). It goes into the mission's images folder. Add it again if you reload the page."
-      : "Optional. The image is copied into the mission's images folder.";
+      : "Optional. Without one the loading screen uses images\\janfulogo.paa, which comes with the framework. An added image is copied into the mission's images folder.";
     if (!sett.v.gametype) $("s-gametype").value = gameTypeNow();
     $("s-out").textContent = genSettings();
     $("s-status").textContent = sett.include
