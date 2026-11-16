@@ -306,6 +306,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 .pal-target b { color: var(--fg); font-family: var(--font-mono); }
 
 .dboard { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.resetbar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+.tbtn.armed { border-color: #c0392b; color: #c0392b; }
 .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
 .toolbar .field { flex: 1 1 200px; }
 .tbtn {
@@ -529,6 +531,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   </div>
 
   <div id="view-briefing" hidden>
+    <div class="resetbar"><span>Your briefing is saved in this browser between visits.</span><button type="button" class="tbtn" id="b-reset">Reset briefing</button></div>
     <p class="note fw" id="b-fwnote" hidden></p>
     <div class="brief">
       <form class="form" id="bform" autocomplete="off">
@@ -637,6 +640,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   </div>
 
   <div id="view-settings" hidden>
+    <div class="resetbar"><span>Your mission settings are saved in this browser between visits.</span><button type="button" class="tbtn" id="s-reset">Reset mission settings</button></div>
     <p class="note fw" id="s-fwnote" hidden></p>
     <div class="brief">
       <form class="form" id="sform" autocomplete="off">
@@ -1602,11 +1606,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("b-fcomp-auto").addEventListener("click", () => { brief.fcompEdited = false; brief.v.fcomp = ""; saveBrief(); updateBriefing(); });
     $("brief-inc").addEventListener("change", (e) => { brief.include = e.target.checked; brief.includeTouched = true; saveBrief(); updateBriefing(); renderManifest(); });
     bindCopy("b-copy", "b-out", genBriefing);
-    bindClear("b-clear", () => {
+    const resetBrief = () => {
       Object.assign(brief, { v: {}, fcompEdited: false, include: false, includeTouched: false, mode: "", sideB: "", team: 1 });
       BF.concat(T2K).forEach((k) => ($("b-" + k).value = ""));
       saveBrief(); updateBriefing(); renderManifest();
-    });
+    };
+    bindClear("b-clear", resetBrief);
+    bindClear("b-reset", resetBrief, "Reset briefing", "Click again to erase the briefing");
   }
 
   // ---- mission settings -----------------------------------------------------------------------
@@ -1702,13 +1708,15 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("sform").addEventListener("submit", (e) => e.preventDefault());
     $("set-inc").addEventListener("change", (e) => { sett.include = e.target.checked; sett.includeTouched = true; saveSett(); updateSettings(); renderManifest(); });
     bindCopy("s-copy", "s-out", genSettings);
-    bindClear("s-clear", () => {
+    bindClear("s-reset", () => resetSett(), "Reset mission settings", "Click again to erase the settings");
+    const resetSett = () => {
       shot = null; $("s-image").value = "";
       Object.assign(sett, { v: {}, mtime: false, itime: false, maxEdited: false, screenEdited: false, include: false, includeTouched: false });
       SF.forEach((k) => { if (k !== "gametype") $("s-" + k).value = ""; });
       $("s-gametype").value = gameTypeNow(); $("s-mtime").checked = false; $("s-itime").checked = false;
       saveSett(); updateSettings(); renderManifest();
-    });
+    };
+    bindClear("s-clear", resetSett);
   }
 
   // ---- mission folder ------------------------------------------------------------------------------
@@ -1849,13 +1857,15 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       catch (e) { sel(); }
     });
   }
-  function bindClear(btnId, doClear) {
+  // Two clicks within 3 seconds, so a stray click never erases anything.
+  function bindClear(btnId, doClear, label = "Clear", armedLabel = "Click again to clear") {
     let armed = 0;
-    $(btnId).addEventListener("click", () => {
-      if (Date.now() - armed < 3000) { armed = 0; doClear(); $(btnId).textContent = "Clear"; }
+    const btn = $(btnId), idle = () => { armed = 0; btn.textContent = label; btn.classList.remove("armed"); };
+    btn.addEventListener("click", () => {
+      if (Date.now() - armed < 3000) { idle(); doClear(); }
       else {
-        armed = Date.now(); $(btnId).textContent = "Click again to clear";
-        setTimeout(() => { if (armed && Date.now() - armed >= 3000) { armed = 0; $(btnId).textContent = "Clear"; } }, 3100);
+        armed = Date.now(); btn.textContent = armedLabel; btn.classList.add("armed");
+        setTimeout(() => { if (armed && Date.now() - armed >= 3000) idle(); }, 3100);
       }
     });
   }
