@@ -269,6 +269,9 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 .t2-row { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: end; }
 .t2-row .field { min-width: 0; }
 .t2-row select { max-width: 100%; }
+.t3-check { border-top: 1px solid var(--line); padding-top: 14px; }
+.t3-body { display: flex; flex-direction: column; gap: 14px; }
+.side-fixed { margin: 0; padding: 7px 12px; border: 1px solid var(--line); border-radius: var(--radius); font: 600 13px var(--font-body); display: inline-block; }
 .side-note { font-size: 12.5px; color: var(--muted); margin: 0; }
 .picked { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
 .picked a { color: var(--friendly); }
@@ -467,6 +470,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
     <h3>TVT: Team 2 and playing a platoon as another side</h3>
     <p>Open a package and use <b>Play as</b> to place it as BLUFOR, OPFOR or INDFOR. The gear and roles stay the same; the units become that side's classes, so faces and voices follow the new side. For a TVT mission, tick <b>Add a Team 2 (TVT)</b> under the list: pick the other platoon, its side and squad count. Both compositions and both loadouts go into the mission, maxPlayers counts both teams, and the briefing switches to TVT with Team 2's side, composition and radios filled in. If either side is INDFOR, set who INDFOR is enemy to in Eden (Attributes &gt; General); INSTALL.txt reminds you.</p>
+    <p>For a 3-way TVT, tick <b>Add a Team 3</b> inside the Team 2 box. Team 3 is always the side neither team 1 nor team 2 is on, so BLUFOR, OPFOR and INDFOR all play. The briefing gets a third team to write (a Team 3 button appears next to Team 1 and Team 2), and INDFOR has to be set enemy to both other sides in Eden.</p>
     <h3>6. Take it to your mission (manifest on the Units tab)</h3>
     <ul>
       <li><b>Get the framework</b> adds the whole JANTAC framework (pick the version with modules or without when there's more than one), so you get a complete mission folder without copying the framework yourself. The framework needs four files the page makes for you: <code>gear.sqf</code> and a loadout (from your units), <code>briefing.sqf</code> (Briefing tab) and <code>missionSettings.hpp</code> (Mission settings tab). While it's ticked, the briefing and mission settings are always included, and the download stays off until the Units, Briefing and Mission settings tabs are filled in; the list under the checkbox shows what's left.</li>
@@ -541,7 +545,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
           <div class="seg wide" id="b-mode" role="group" aria-label="Mission type"><button type="button" data-m="CO" aria-pressed="false">COOP</button><button type="button" data-m="TVT" aria-pressed="false">TVT</button></div>
           <div class="btype-row" id="b-tvt-row" hidden>
             <div class="field"><label for="b-sideb">Team 2 side</label><select id="b-sideb"></select></div>
-            <div class="field"><label>Editing</label><div class="seg wide" id="b-team" role="group" aria-label="Team to edit"><button type="button" data-t="1" aria-pressed="true"></button><button type="button" data-t="2" aria-pressed="false"></button></div></div>
+            <div class="field"><label>Editing</label><div class="seg wide" id="b-team" role="group" aria-label="Team to edit"><button type="button" data-t="1" aria-pressed="true"></button><button type="button" data-t="2" aria-pressed="false"></button><button type="button" data-t="3" aria-pressed="false" hidden></button></div></div>
           </div>
           <div class="field" id="b-title-row"><label for="b-title">Mission title <span class="aux">both teams see it</span></label><input id="b-title" placeholder="Clipped Rotors"></div>
         </fieldset>
@@ -581,6 +585,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
           <div class="field"><label for="b-signal">Other signals</label><textarea id="b-signal" placeholder="1'1 is wearing blue chemlights, 1'2 green."></textarea></div>
         </fieldset>
         <div class="b-team2" id="b-team2"></div>
+        <div class="b-team2" id="b-team3"></div>
         <fieldset data-shared>
           <legend>Mission notes <span style="font:400 12px var(--font-body);color:var(--muted)">every side sees this tab</span></legend>
           <div class="field"><label for="b-modules">Modules <span class="aux">one per line</span></label><textarea id="b-modules" placeholder="ACE Advanced Medical&#10;ACE Cargo&#10;ACE Explosives"></textarea></div>
@@ -714,7 +719,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   // ---- selection state -----------------------------------------------------------
   // source: "pkg" (a package), "custom" (the Custom units design) or "own" (units already in the mission)
   const state = { source: "pkg", prefix: prefixes[0], n: {}, sys: true, branch: "", customId: null, own: { squads: "3", slots: "", co: "B_officer_F", side: "West" },
-    playAs: {}, t2: { on: false, prefix: "", n: 0, side: "" } };
+    playAs: {}, t2: { on: false, prefix: "", n: 0, side: "" }, t3: { on: false, prefix: "", n: 0 } };
   prefixes.forEach((p) => (state.n[p] = LIB.packages[p].maxSquads));
   (() => {
     const s = load("jantac-sel");
@@ -733,6 +738,11 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       if (LIB.packages[s.t2.prefix]) state.t2.prefix = s.t2.prefix;
       state.t2.n = posInt(s.t2.n, 0);
       if (SIDES[s.t2.side]) state.t2.side = s.t2.side;
+    }
+    if (s.t3) {
+      state.t3.on = !!s.t3.on;
+      if (LIB.packages[s.t3.prefix]) state.t3.prefix = s.t3.prefix;
+      state.t3.n = posInt(s.t3.n, 0);
     }
   })();
   const remember = () => store("jantac-sel", state);
@@ -842,8 +852,15 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const t2Groups = () => (t2On() ? groupsFor(state.t2.prefix, t2N()) : []);
   const t2Slots = () => t2Groups().reduce((a, g) => a + g.units.length, 0);
   const t2Comp = () => (t2On() ? asSide(compFor(state.t2.prefix, t2N()), sideOf(state.t2.prefix), t2Side()) : null);
+  // ---- Team 3 (3-way TVT): the side neither Team 1 nor Team 2 is on ----------------------------
+  const t3On = () => t2On() && state.t3.on && !!LIB.packages[state.t3.prefix];
+  const t3Side = () => Object.keys(SIDES).find((sd) => sd !== sideNow() && sd !== t2Side());
+  const t3N = () => Math.min(Math.max(state.t3.n || LIB.packages[state.t3.prefix].maxSquads, 1), LIB.packages[state.t3.prefix].maxSquads);
+  const t3Groups = () => (t3On() ? groupsFor(state.t3.prefix, t3N()) : []);
+  const t3Slots = () => t3Groups().reduce((a, g) => a + g.units.length, 0);
+  const t3Comp = () => (t3On() ? asSide(compFor(state.t3.prefix, t3N()), sideOf(state.t3.prefix), t3Side()) : null);
   const t1Slots = () => groupsNow().reduce((a, g) => a + g.units.length, 0);
-  const slotsNow = () => t1Slots() + t2Slots();
+  const slotsNow = () => t1Slots() + t2Slots() + t3Slots();
   function maxAuto() {
     if (state.source === "own") return posInt(state.own.slots, 0);
     if (state.source === "none") return 0;
@@ -854,6 +871,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (state.source === "pkg") list = [state.prefix];
     if (state.source === "custom") list = chosen() ? prefixesOf(chosen()) : [];
     if (t2On() && !list.includes(state.t2.prefix)) list.push(state.t2.prefix);
+    if (t3On() && !list.includes(state.t3.prefix)) list.push(state.t3.prefix);
     return list;
   }
   const loadoutsNow = () => prefixesNow().map((p) => LIB.packages[p]);
@@ -867,12 +885,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (state.source === "pkg") list.push(asSide(compFor(state.prefix, state.n[state.prefix]), sideOf(state.prefix), playAs(state.prefix)));
     if (state.source === "custom" && chosen() && !issuesFor(chosen()).length) list.push(customComp(chosen()));
     if (list.length && t2On()) list.push(t2Comp());
+    if (list.length && t3On()) list.push(t3Comp());
     if (state.sys && state.source !== "own" && list.length) list.push(LIB.system);
     return list;
   }
   function unitsTitle() {
     const n = squadsNow(), sq = "HQ + " + n + " squad" + (n === 1 ? "" : "s");
-    if (state.source === "pkg") return pkg().name + " — " + sq + (t2On() ? " vs " + LIB.packages[state.t2.prefix].name : "");
+    if (state.source === "pkg") return pkg().name + " — " + sq + (t2On() ? " vs " + LIB.packages[state.t2.prefix].name : "") + (t3On() ? " vs " + LIB.packages[state.t3.prefix].name : "");
     if (state.source === "custom") return nameOf(chosen()) + " — " + sq;
     if (state.source === "none") return "Nothing selected";
     return "Your own units — " + sq;
@@ -1018,11 +1037,26 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (!state.t2.on) return;
     if (!LIB.packages[state.t2.prefix]) state.t2.prefix = prefixes.find((p) => sideOf(p) === OTHER[sideNow()]) || prefixes[0];
     const P = LIB.packages[state.t2.prefix], n = t2N(), sd = t2Side();
-    const opts = Object.keys(SIDES).map((s2) => {
+    const pkgOpts = (cur) => Object.keys(SIDES).map((s2) => {
       const ps = prefixes.filter((p) => sideOf(p) === s2);
       return ps.length ? '<optgroup label="' + SIDES[s2].label + '">' + ps.map((p) =>
-        '<option value="' + p + '"' + (p === state.t2.prefix ? " selected" : "") + ">" + esc(LIB.packages[p].name) + (LIB.packages[p].by ? " (by " + esc(LIB.packages[p].by) + ")" : "") + "</option>").join("") + "</optgroup>" : "";
+        '<option value="' + p + '"' + (p === cur ? " selected" : "") + ">" + esc(LIB.packages[p].name) + (LIB.packages[p].by ? " (by " + esc(LIB.packages[p].by) + ")" : "") + "</option>").join("") + "</optgroup>" : "";
     }).join("");
+    const opts = pkgOpts(state.t2.prefix);
+    if (state.t3.on && !LIB.packages[state.t3.prefix]) state.t3.prefix = prefixes.find((p) => sideOf(p) === t3Side()) || prefixes[0];
+    let t3html = '<label class="check t3-check"><input type="checkbox" id="t3-on"' + (state.t3.on ? " checked" : "") + '><span><b>Add a Team 3 (3-way TVT)</b><small>The third side, ' +
+      SIDES[t3Side()].label + ", gets its own platoon. BLUFOR, OPFOR and INDFOR all fight.</small></span></label>";
+    if (t3On()) {
+      const P3 = LIB.packages[state.t3.prefix], n3 = t3N(), sd3 = t3Side();
+      const seg3 = Array.from({ length: P3.maxSquads }, (_, i) => i + 1).map((k) =>
+        '<button type="button" data-n3="' + k + '" aria-pressed="' + (k === n3) + '">' + k + "</button>").join("");
+      t3html += '<div class="t3-body"><div class="t2-row"><div class="field"><label for="t3-pkg">Team 3 platoon</label><select id="t3-pkg">' + pkgOpts(state.t3.prefix) + "</select></div>" +
+        '<div class="field"><label>Team 3 side</label><p class="side-fixed">' + SIDES[sd3].label + "</p></div></div>" +
+        '<div class="squad-pick"><span class="lbl">Squads under 1\'0</span><div class="seg" role="group" aria-label="Team 3 squads">' + seg3 + "</div>" +
+        '<span class="lbl">' + t3Slots() + " slots · " + esc(P3.loadout) + "</span></div>" +
+        (sd3 !== sideOf(state.t3.prefix) ? '<p class="side-note">Placed as ' + SIDES[sd3].label + ": same gear and roles, " + SIDES[sd3].label + " unit classes, faces and voices.</p>" : "") +
+        orbat(t3Groups(), n3, sd3) + "</div>";
+    }
     const seg = Array.from({ length: P.maxSquads }, (_, i) => i + 1).map((k) =>
       '<button type="button" data-n2="' + k + '" aria-pressed="' + (k === n) + '">' + k + "</button>").join("");
     $("t2-body").innerHTML =
@@ -1031,10 +1065,15 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       '<div class="squad-pick"><span class="lbl">Squads under 1\'0</span><div class="seg" role="group" aria-label="Team 2 squads">' + seg + "</div>" +
       '<span class="lbl">' + t2Slots() + " slots · " + esc(P.loadout) + "</span></div>" +
       (sd !== sideOf(state.t2.prefix) ? '<p class="side-note">Placed as ' + SIDES[sd].label + ": same gear and roles, " + SIDES[sd].label + " unit classes, faces and voices.</p>" : "") +
-      orbat(t2Groups(), n, sd);
+      orbat(t2Groups(), n, sd) + t3html;
     $("t2-pkg").addEventListener("change", (e) => { state.t2.prefix = e.target.value; state.t2.n = 0; remember(); render(); });
     $("t2-body").querySelectorAll("[data-n2]").forEach((b) => b.addEventListener("click", () => { state.t2.n = Number(b.dataset.n2); remember(); render(); }));
     $("t2-body").querySelectorAll("#t2-side button").forEach((b) => b.addEventListener("click", () => { state.t2.side = b.dataset.side; remember(); render(); }));
+    $("t3-on").addEventListener("change", (e) => { state.t3.on = e.target.checked; if (state.t3.on) { brief.mode = "TVT"; saveBrief(); } remember(); render(); });
+    if (t3On()) {
+      $("t3-pkg").addEventListener("change", (e) => { state.t3.prefix = e.target.value; state.t3.n = 0; remember(); render(); });
+      $("t2-body").querySelectorAll("[data-n3]").forEach((b) => b.addEventListener("click", () => { state.t3.n = Number(b.dataset.n3); remember(); render(); }));
+    }
   }
 
   function finishUnits(html) {
@@ -1088,12 +1127,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       return;
     }
     let facts = "";
-    if (!own) facts += "<dt>Player slots</dt><dd>" + (t2On() ? t1Slots() + " + " + t2Slots() + " (Team 2)" : slotsNow()) + (state.sys ? " + 1 headless client" : "") + "</dd>";
-    if (t2On()) facts += "<dt>Sides</dt><dd>Team 1 " + SIDES[sideNow()].label + " · Team 2 " + SIDES[t2Side()].label + "</dd>";
+    if (!own) facts += "<dt>Player slots</dt><dd>" + (t2On() ? t1Slots() + " + " + t2Slots() + " (Team 2)" + (t3On() ? " + " + t3Slots() + " (Team 3)" : "") : slotsNow()) + (state.sys ? " + 1 headless client" : "") + "</dd>";
+    if (t2On()) facts += "<dt>Sides</dt><dd>Team 1 " + SIDES[sideNow()].label + " · Team 2 " + SIDES[t2Side()].label + (t3On() ? " · Team 3 " + SIDES[t3Side()].label : "") + "</dd>";
     facts += "<dt>maxPlayers</dt><dd>" + (maxAuto() || "enter your playable slots") + "</dd>";
     facts += "<dt>Callsigns</dt><dd>1'0 – 1'" + n + "</dd>";
     facts += "<dt>Radios</dt><dd>squads CH 1–" + n + ", HQ CH " + (n + 1) + "</dd>";
     if (t2On()) facts += "<dt>Team 2</dt><dd>1'0 – 1'" + t2N() + ", squads CH 1–" + t2N() + ", HQ CH " + (t2N() + 1) + "</dd>";
+    if (t3On()) facts += "<dt>Team 3</dt><dd>1'0 – 1'" + t3N() + ", squads CH 1–" + t3N() + ", HQ CH " + (t3N() + 1) + "</dd>";
     if (!own) {
       facts += "<dt>Loadout" + (L.length > 1 ? "s" : "") + "</dt><dd>" + (L.map((P) => esc(P.loadout)).join("<br>") || "none yet") + "</dd>";
       const tc = teamComps();
@@ -1421,6 +1461,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     ["Command and signal", [["radios", "Radios", 1, "Radio scrambler is on.\nBabel is off."], ["signal", "Other signals", 1, "1'1 is wearing blue chemlights."]]],
   ];
   const T2K = T2.flatMap((f) => f[1].map((x) => "t_" + x[0]));
+  const T3K = T2.flatMap((f) => f[1].map((x) => "u_" + x[0])); // team 3 (3-way TVT) uses the same fields with a u_ prefix
   const brief = Object.assign({ v: {}, fcompEdited: false, include: false, includeTouched: false, mode: "", sideB: "", team: 1 }, load("jantac-brief") || {});
   const T1K = BF.filter((k) => !["fcomp", "modules", "author", "fw", "co"].includes(k));
   const filled = (keys) => keys.some((k) => (brief.v[k] || "").trim());
@@ -1429,10 +1470,11 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const OPP = { West: "East", East: "West", Independent: "West" };
   const sideB = () => (t2On() ? t2Side() : brief.sideB && brief.sideB !== sideNow() ? brief.sideB : OPP[sideNow()]);
   // What the framework needs: a mode, and something written for each team.
-  const briefReady = () => !!brief.mode && filled(T1K) && (!tvt() || filled(T2K));
+  const three = () => tvt() && t3On();
+  const briefReady = () => !!brief.mode && filled(T1K) && (!tvt() || filled(T2K)) && (!three() || filled(T3K));
   const briefMissing = () => !brief.mode ? "choose COOP or TVT in the Briefing tab, then write the briefing." :
     !filled(T1K) ? (tvt() ? "write team 1's briefing in the Briefing tab." : "write the briefing in the Briefing tab.") :
-    "write team 2's briefing in the Briefing tab.";
+    !filled(T2K) ? "write team 2's briefing in the Briefing tab." : "write team 3's briefing in the Briefing tab.";
   const saveBrief = () => store("jantac-brief", brief);
   const squadText = (n) => (n ? n + "x squad" + (n === 1 ? "" : "s") + " of infantry with a 1x PLT HQ." : "1x PLT HQ.");
   const autoComp = () => squadText(squadsNow());
@@ -1443,7 +1485,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     out.push("1'0 on 343 channel " + (n + 1));
     return out;
   };
-  const hasContent = () => filled(BF.filter((k) => k !== "fcomp").concat(tvt() ? T2K : []));
+  const hasContent = () => filled(BF.filter((k) => k !== "fcomp").concat(tvt() ? T2K : [], three() ? T3K : []));
 
   // Briefing text sits inside a string the preprocessor cannot see, so typed text is made safe:
   // XML-escaped for structured text, quotes doubled, // broken up, macro names lowered,
@@ -1477,7 +1519,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   // One side's tabs. team 1 uses the main fields (with the units' composition and radios),
   // team 2 the t_ fields.
   function sideTabs(team) {
-    const p = team === 2 ? "t_" : "";
+    const p = team === 2 ? "t_" : team === 3 ? "u_" : "";
     const v = (k) => (brief.v[p + k] || "").trim(), title = (brief.v.title || "").trim();
     const tabs = [];
     const sit = [];
@@ -1489,7 +1531,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     const sec = block("Secondary Objective:", bullets(v("secondary")), 14);
     if (pri.length || sec.length) mis.push(H("Objectives:"), ...pri, ...sec);
     tabs.push(["Mission:", mis]);
-    const fcomp = team === 2 ? v("fcomp") || (t2On() ? squadText(t2N()) : "") : brief.fcompEdited ? v("fcomp") : autoComp();
+    const fcomp = team === 2 ? v("fcomp") || (t2On() ? squadText(t2N()) : "") : team === 3 ? v("fcomp") || squadText(t3N())
+      : brief.fcompEdited ? v("fcomp") : autoComp();
     tabs.push(["Friendly Forces:", [...block("Composition:", fcomp),
       ...block("Disposition:", v("fdisp")), ...block("Uniform/PID:", v("fpid"))]]);
     tabs.push(["Enemy Forces:", [...block("Composition:", v("ecomp")), ...block("Disposition:", v("edisp")),
@@ -1497,6 +1540,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     tabs.push(["Execution:", block("", v("exec"))]);
     tabs.push(["Service Support:", block("", v("support"))]);
     const radios = team === 2 ? v("radios") || (t2On() ? ["All squads on LR channel 1"].concat(radioLinesFor(t2N())).join("\n") : "")
+      : team === 3 ? v("radios") || ["All squads on LR channel 1"].concat(radioLinesFor(t3N())).join("\n")
       : [v("lr") || "All squads on LR channel 1"].concat(radioLines()).join("\n");
     tabs.push(["Command & Signal:", [...block("Radios:", radios), ...block("Other signals:", v("signal"))]]);
     return tabs.filter((t) => t[1].length);
@@ -1507,10 +1551,10 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     const out = [
       '#include "core\\briefingCore.sqf" //DO NOT REMOVE', "",
       "waitUntil {!(isNull player)};//This is needed for JIP compatibility since this code is spawned not called", "",
-      "// Generated by the JANTAC Unit Library" + (tvt() ? " (TVT)" : ""), "",
+      "// Generated by the JANTAC Unit Library" + (three() ? " (3-way TVT)" : tvt() ? " (TVT)" : ""), "",
       "switch (side player) do { //Checks what team the player is on",
     ];
-    const sides = tvt() ? [[sideNow(), 1], [sideB(), 2]] : [[sideNow(), 1]];
+    const sides = tvt() ? [[sideNow(), 1], [sideB(), 2]].concat(three() ? [[t3Side(), 3]] : []) : [[sideNow(), 1]];
     let most = 0;
     sides.forEach(([side, team], n) => {
       if (n) out.push("");
@@ -1539,6 +1583,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   window.__jantacBriefing = { gen: genBriefing, lines: sqfLines, brief }; // exposed for testing
 
   function layoutBriefing() {
+    if (brief.team === 3 && !three()) brief.team = 1;
     const m = brief.mode, t = tvt() ? brief.team : 1;
     $("b-mode").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.m === m)));
     $("b-mode-q").hidden = !!m;
@@ -1549,7 +1594,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("b-sideb").value = sideB();
     $("b-sideb").disabled = t2On();
     $("b-sideb").title = t2On() ? "Set by Team 2 on the Units tab" : "";
-    const lbl = { 1: "Team 1 · " + SIDES[sideNow()].label, 2: "Team 2 · " + SIDES[sideB()].label };
+    const lbl = { 1: "Team 1 · " + SIDES[sideNow()].label, 2: "Team 2 · " + SIDES[sideB()].label, 3: three() ? "Team 3 · " + SIDES[t3Side()].label : "Team 3" };
+    $("b-team").querySelector('[data-t="3"]').hidden = !three();
     $("b-team").querySelectorAll("button").forEach((b) => { b.textContent = lbl[b.dataset.t]; b.setAttribute("aria-pressed", String(Number(b.dataset.t) === t)); });
     $("bform").querySelectorAll("fieldset[data-team]").forEach((f) => {
       f.hidden = !m || Number(f.dataset.team) !== t;
@@ -1571,11 +1617,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   }
 
   function bindBriefing() {
-    $("b-team2").innerHTML = T2.map(([legend, fields]) => '<fieldset data-team="2" hidden><legend>' + legend + '<span class="team-tag"></span></legend>' +
-      fields.map(([k, label, area, ph, aux]) => '<div class="field"><label for="b-t_' + k + '">' + label + (aux ? ' <span class="aux">' + aux + "</span>" : "") + "</label>" +
-        (area ? '<textarea id="b-t_' + k + '" placeholder="' + esc(ph) + '"></textarea>' : '<input id="b-t_' + k + '" placeholder="' + esc(ph) + '">') + "</div>").join("") +
+    const teamFields = (team, pre) => T2.map(([legend, fields]) => '<fieldset data-team="' + team + '" hidden><legend>' + legend + '<span class="team-tag"></span></legend>' +
+      fields.map(([k, label, area, ph, aux]) => '<div class="field"><label for="b-' + pre + k + '">' + label + (aux ? ' <span class="aux">' + aux + "</span>" : "") + "</label>" +
+        (area ? '<textarea id="b-' + pre + k + '" placeholder="' + esc(ph) + '"></textarea>' : '<input id="b-' + pre + k + '" placeholder="' + esc(ph) + '">') + "</div>").join("") +
       "</fieldset>").join("");
-    T2K.forEach((k) => {
+    $("b-team2").innerHTML = teamFields(2, "t_");
+    $("b-team3").innerHTML = teamFields(3, "u_");
+    T2K.concat(T3K).forEach((k) => {
       const el = $("b-" + k);
       el.value = brief.v[k] || "";
       el.addEventListener("input", () => {
@@ -1608,7 +1656,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     bindCopy("b-copy", "b-out", genBriefing);
     const resetBrief = () => {
       Object.assign(brief, { v: {}, fcompEdited: false, include: false, includeTouched: false, mode: "", sideB: "", team: 1 });
-      BF.concat(T2K).forEach((k) => ($("b-" + k).value = ""));
+      BF.concat(T2K, T3K).forEach((k) => ($("b-" + k).value = ""));
       saveBrief(); updateBriefing(); renderManifest();
     };
     bindClear("b-clear", resetBrief);
@@ -1913,10 +1961,15 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
   // ---- zip ---------------------------------------------------------------------------------------------
   const teamComps = () => compsNow().filter((c) => c !== LIB.system);
-  const placeList = () => teamComps().map((c) => c.name).join(" and ");
+  const placeList = () => { const n = teamComps().map((c) => c.name); return n.length > 2 ? n.slice(0, -1).join(", ") + " and " + n[n.length - 1] : n.join(" and "); };
   function installText() {
     const text = installSteps();
     if (!t2On()) return text;
+    if (t3On()) {
+      return text.replace(/(\r\n)?$/, "\r\n" + ["3-way TVT: Team 1 is " + SIDES[sideNow()].label + ", Team 2 is " + SIDES[t2Side()].label + ", Team 3 is " + SIDES[t3Side()].label +
+        ". Each composition keeps its own 1'0 - 1'N callsigns and radio channels.",
+        "INDFOR is friendly to one side by default: in Eden open Attributes > General > Independent and make it enemy to both BLUFOR and OPFOR."].join("\r\n") + "\r\n");
+    }
     const notes = ["TVT: Team 1 is " + SIDES[sideNow()].label + ", Team 2 is " + SIDES[t2Side()].label + ". Both compositions keep their own 1'0 - 1'N callsigns and radio channels."];
     if (sideNow() === "Independent" || t2Side() === "Independent") {
       const other = sideNow() === "Independent" ? t2Side() : sideNow();

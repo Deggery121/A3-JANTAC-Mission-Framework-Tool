@@ -51,6 +51,8 @@ card). The page rewrites the composition's sides and swaps each unit class for t
 side (`B_Soldier_TL_F` → `O_Soldier_TL_F` / `I_Soldier_TL_F`, table `CLASS_ROWS` in `site/template.html`), so
 faces and voices follow the side while the gear script stays the same. **Add a Team 2 (TVT)** adds a second
 package on another side: both compositions and loadouts go into the mission and the briefing turns to TVT.
+Inside it, **Add a Team 3** makes a 3-way TVT: the third side (whichever of BLUFOR, OPFOR and INDFOR
+is left) gets its own platoon, composition, loadout and briefing.
 
 Radio channels follow the squad count: squad 1'N is on PRC-343 channel N and the HQ (1'0) is
 always on the channel after the last squad.
