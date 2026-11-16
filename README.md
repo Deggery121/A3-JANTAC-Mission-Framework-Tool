@@ -26,7 +26,7 @@ picked. Tick **Include briefing.sqf** and it goes into the zip and into **Add to
 replacing the mission's briefing (the old one is kept as `briefing.sqf.bak`).
 
 The **Mission settings** tab builds `customization\missionSettings.hpp` the same way: loading
-screen name and messages, the loading image (`images\\janfulogo.paa` from the framework unless you add your own, which is copied into the mission's `images`
+screen name and messages, the loading image (`images\janfulogo.paa` from the framework unless you add your own, which is copied into the mission's `images`
 folder), game type and player limits. `maxPlayers` fills in from the package: player slots
 plus the headless client.
 
