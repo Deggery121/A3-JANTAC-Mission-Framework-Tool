@@ -109,6 +109,16 @@
       ],
       "by": "Aiello",
       "description": "Modern PLA marines \u00b7 ocean camo, QBZ-95, CAR-95 LMG, RPG-7, ZBD crews, helo crew"
+    },
+    "GULF_": {
+      "name": "Gulf War US Military",
+      "loadout": "GULF.sqf",
+      "requiredAddons": [
+        "A3_Characters_F",
+        "A3_Characters_F_Exp"
+      ],
+      "by": "Deggery",
+      "description": "1991 Gulf War US \u00b7 6-color desert, PASGT, M16A2, M249, M203, M72 LAW"
     }
   }
 }

@@ -12,7 +12,7 @@ class EditorData
 	};
 	class ItemIDProvider
 	{
-		nextID=436;
+		nextID=472;
 	};
 	class LayerIndexProvider
 	{
@@ -114,7 +114,7 @@ class Mission
 	};
 	class Entities
 	{
-		items=11;
+		items=12;
 		class Item0
 		{
 			dataType="Layer";
@@ -14265,6 +14265,1299 @@ class Mission
 				};
 			};
 			id=435;
+		};
+		class Item11
+		{
+			dataType="Layer";
+			name="GULF_ | GULF | HQ + 3 squads";
+			class Entities
+			{
+				items=4;
+				class Item0
+				{
+					dataType="Group";
+					side="West";
+					class Entities
+					{
+						items=9;
+						class Item0
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6296.9087,5.0014391,4757.5903};
+								angles[]={-0,3.6206853,0};
+							};
+							side="West";
+							flags=6;
+							class Attributes
+							{
+								rank="LIEUTENANT";
+								init="[this, ""GULF_SL""] call FNC_GearScript;";
+								description="Squad Leader@1'2";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=436;
+							type="B_T_Soldier_SL_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,2]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item1
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6301.1353,5.0014391,4758.814};
+								angles[]={-0,3.6200902,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								rank="SERGEANT";
+								init="[this, ""GULF_TL""] call FNC_GearScript; [this, ""RED""] call FNC_Autocolor;";
+								description="Red Team Leader";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=437;
+							type="B_Soldier_TL_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,2]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item2
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6300.7798,5.0014391,4761.123};
+								angles[]={-0,3.7167816,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								init="[this, ""GULF_RF""] call FNC_GearScript; [this, ""RED""] call FNC_Autocolor;";
+								description="Red Rifleman";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=438;
+							type="B_support_MG_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,2]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item3
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6300.7144,5.0014391,4763.0488};
+								angles[]={-0,3.7217906,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								init="[this, ""GULF_AHEAVY""] call FNC_GearScript; [this, ""RED""] call FNC_Autocolor;";
+								description="Red Ast. Autorifleman";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=439;
+							type="B_Soldier_A_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,2]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item4
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6300.6792,5.0014391,4766.3765};
+								angles[]={-0,3.6200202,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								rank="CORPORAL";
+								init="[this, ""GULF_HEAVY""] call FNC_GearScript; [this, ""RED""] call FNC_Autocolor;";
+								description="Red Autorifleman";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=440;
+							type="B_Soldier_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,2]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item5
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6294.9595,5.0014391,4760.7661};
+								angles[]={-0,3.6203172,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								rank="SERGEANT";
+								init="[this, ""GULF_TL""] call FNC_GearScript; [this, ""BLUE""] call FNC_Autocolor;";
+								description="Blue Team Leader";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=441;
+							type="B_Soldier_TL_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,2]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item6
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6295.603,5.0014391,4764.1138};
+								angles[]={-0,3.6201775,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								init="[this, ""GULF_AT""] call FNC_GearScript; [this, ""BLUE""] call FNC_Autocolor;";
+								description="Blue Rifleman (LAT)";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=442;
+							type="B_soldier_LAT_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,2]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item7
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6296.5918,5.0014391,4767.1987};
+								angles[]={-0,3.6203172,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								init="[this, ""GULF_RFG""] call FNC_GearScript; [this, ""BLUE""] call FNC_Autocolor;";
+								description="Blue Rifleman Gren.";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=443;
+							type="B_Soldier_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,2]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item8
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6299.1421,5.0014391,4768.4331};
+								angles[]={-0,3.6204045,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								rank="CORPORAL";
+								init="[this, ""GULF_MD""] call FNC_GearScript; [this, ""GREEN""] call FNC_Autocolor;";
+								description="Medic";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=444;
+							type="B_medic_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,2]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+					};
+					class Attributes
+					{
+					};
+					id=445;
+				};
+				class Item1
+				{
+					dataType="Group";
+					side="West";
+					class Entities
+					{
+						items=9;
+						class Item0
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6297.9541,5.0014391,4742.9038};
+								angles[]={-0,4.7388639,0};
+							};
+							side="West";
+							flags=6;
+							class Attributes
+							{
+								rank="LIEUTENANT";
+								init="[this, ""GULF_SL""] call FNC_GearScript;";
+								description="Squad Leader@1'3";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=446;
+							type="B_T_Soldier_SL_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,3]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item1
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6300.9019,5.0014391,4739.6372};
+								angles[]={-0,4.7383051,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								rank="SERGEANT";
+								init="[this, ""GULF_TL""] call FNC_GearScript; [this, ""RED""] call FNC_Autocolor;";
+								description="Red Team Leader";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=447;
+							type="B_Soldier_TL_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,3]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item2
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6302.9165,5.0014391,4740.6948};
+								angles[]={-0,4.8348918,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								init="[this, ""GULF_RF""] call FNC_GearScript; [this, ""RED""] call FNC_Autocolor;";
+								description="Red Rifleman";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=448;
+							type="B_support_MG_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,3]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item3
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6304.5259,5.0014391,4741.8682};
+								angles[]={-0,4.839901,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								init="[this, ""GULF_AHEAVY""] call FNC_GearScript; [this, ""RED""] call FNC_Autocolor;";
+								description="Red Ast. Autorifleman";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=449;
+							type="B_Soldier_A_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,3]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item4
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6306.5542,5.0014391,4743.0723};
+								angles[]={-0,4.7381482,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								rank="CORPORAL";
+								init="[this, ""GULF_HEAVY""] call FNC_GearScript; [this, ""RED""] call FNC_Autocolor;";
+								description="Red Autorifleman";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=450;
+							type="B_Soldier_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,3]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item5
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6299.416,5.0014391,4744.7808};
+								angles[]={-0,4.7384973,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								rank="SERGEANT";
+								init="[this, ""GULF_TL""] call FNC_GearScript; [this, ""BLUE""] call FNC_Autocolor;";
+								description="Blue Team Leader";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=451;
+							type="B_Soldier_TL_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,3]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item6
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6301.4194,5.0014391,4746.0181};
+								angles[]={-0,4.7383928,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								init="[this, ""GULF_AT""] call FNC_GearScript; [this, ""BLUE""] call FNC_Autocolor;";
+								description="Blue Rifleman (LAT)";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=452;
+							type="B_soldier_LAT_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,3]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item7
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6303.1323,5.0014391,4746.6987};
+								angles[]={-0,4.7385321,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								init="[this, ""GULF_RFG""] call FNC_GearScript; [this, ""BLUE""] call FNC_Autocolor;";
+								description="Blue Rifleman Gren.";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=453;
+							type="B_Soldier_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,3]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item8
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6306.7866,5.0014391,4746.9111};
+								angles[]={-0,4.7386022,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								rank="CORPORAL";
+								init="[this, ""GULF_MD""] call FNC_GearScript; [this, ""GREEN""] call FNC_Autocolor;";
+								description="Medic";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=454;
+							type="B_medic_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,3]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+					};
+					class Attributes
+					{
+					};
+					id=455;
+				};
+				class Item2
+				{
+					dataType="Group";
+					side="West";
+					class Entities
+					{
+						items=9;
+						class Item0
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6311.8257,5.0014391,4755.875};
+								angles[]={-0,3.1757312,0};
+							};
+							side="West";
+							flags=6;
+							class Attributes
+							{
+								rank="LIEUTENANT";
+								init="[this, ""GULF_SL""] call FNC_GearScript;";
+								description="Squad Leader@1'1";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=456;
+							type="B_T_Soldier_SL_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,1]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item1
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6314.3662,5.0014391,4757.9956};
+								angles[]={-0,3.1757295,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								rank="SERGEANT";
+								init="[this, ""GULF_TL""] call FNC_GearScript; [this, ""RED""] call FNC_Autocolor;";
+								description="Red Team Leader";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=457;
+							type="B_Soldier_TL_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,1]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item2
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6314.8657,5.0014391,4760.5698};
+								angles[]={-0,3.2729094,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								rank="CORPORAL";
+								init="[this, ""GULF_RF""] call FNC_GearScript; [this, ""RED""] call FNC_Autocolor;";
+								description="Red Rifleman";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=458;
+							type="B_support_MG_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,1]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item3
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6315.4595,5.0014391,4763.7158};
+								angles[]={-0,3.2783372,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								init="[this, ""GULF_AHEAVY""] call FNC_GearScript; [this, ""RED""] call FNC_Autocolor;";
+								description="Red Ast. Autorifleman";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=459;
+							type="B_Soldier_A_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,1]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item4
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6315.3257,5.0014391,4765.5664};
+								angles[]={-0,3.1866033,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								rank="CORPORAL";
+								init="[this, ""GULF_HEAVY""] call FNC_GearScript; [this, ""RED""] call FNC_Autocolor;";
+								description="Red Autorifleman";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=460;
+							type="B_Soldier_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,1]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item5
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6310.7407,5.0014391,4758.417};
+								angles[]={-0,3.1757295,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								rank="SERGEANT";
+								init="[this, ""GULF_TL""] call FNC_GearScript; [this, ""BLUE""] call FNC_Autocolor;";
+								description="Blue Team Leader";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=461;
+							type="B_Soldier_TL_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,1]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item6
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6310.6001,5.0014391,4761.501};
+								angles[]={-0,3.1873362,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								init="[this, ""GULF_AT""] call FNC_GearScript; [this, ""BLUE""] call FNC_Autocolor;";
+								description="Blue Rifleman (LAT)";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=462;
+							type="B_soldier_LAT_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,1]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item7
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6310.751,5.0014544,4764.8525};
+								angles[]={-0,3.1866033,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								init="[this, ""GULF_RFG""] call FNC_GearScript; [this, ""BLUE""] call FNC_Autocolor;";
+								description="Blue Rifleman Gren.";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=463;
+							type="B_Soldier_F";
+							atlOffset=1.5258789e-05;
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,1]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item8
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6312.1685,5.0014391,4767.8872};
+								angles[]={-0,3.1810181,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								rank="CORPORAL";
+								init="[this, ""GULF_MD""] call FNC_GearScript; [this, ""GREEN""] call FNC_Autocolor;";
+								description="Medic";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=464;
+							type="B_medic_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,1]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+					};
+					class Attributes
+					{
+					};
+					id=465;
+				};
+				class Item3
+				{
+					dataType="Group";
+					side="West";
+					class Entities
+					{
+						items=4;
+						class Item0
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6275.4897,5.0014391,4749.6494};
+								angles[]={-0,0.45490259,0};
+							};
+							side="West";
+							flags=6;
+							class Attributes
+							{
+								rank="MAJOR";
+								init="[this, ""GULF_PL""] call FNC_GearScript;";
+								description="Platoon Leader@1'0";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=466;
+							type="B_officer_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,4]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item1
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6276.8525,5.0014391,4754.9077};
+								angles[]={-0,3.8715398,0};
+							};
+							side="West";
+							flags=4;
+							class Attributes
+							{
+								rank="CAPTAIN";
+								init="[this, ""GULF_SL""] call FNC_GearScript;";
+								description="Platoon Sergeant";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=467;
+							type="B_Soldier_SL_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,4]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item2
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6274.4741,5.0014396,4752.5273};
+								angles[]={0,2.2397442,0};
+							};
+							side="West";
+							flags=5;
+							class Attributes
+							{
+								rank="CORPORAL";
+								init="[this, ""GULF_MD""] call FNC_GearScript; [this, ""GREEN""] call FNC_Autocolor;";
+								description="Platoon Medic";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=468;
+							type="B_medic_F";
+							atlOffset=4.7683716e-07;
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,4]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+						class Item3
+						{
+							dataType="Object";
+							class PositionInfo
+							{
+								position[]={6278.0679,5.0014391,4751.603};
+								angles[]={0,4.6451221,0};
+							};
+							side="West";
+							flags=5;
+							class Attributes
+							{
+								rank="CORPORAL";
+								init="[this, ""GULF_MD""] call FNC_GearScript; [this, ""GREEN""] call FNC_Autocolor;";
+								description="Platoon Medic";
+								isPlayable=1;
+								class Inventory
+								{
+								};
+							};
+							id=469;
+							type="B_medic_F";
+							class CustomAttributes
+							{
+								class Attribute0
+								{
+									property="acre_sys_radio_edenSetup";
+									expression="_this setVariable [""acre_sys_radio_setup"", _value, true]";
+									class Value
+									{
+										class data
+										{
+											singleType="STRING";
+											value="[[""ACRE_PRC343"",[1,4]],[""ACRE_PRC152"",1],[""ACRE_PRC117F"",1]]";
+										};
+									};
+								};
+								nAttributes=1;
+							};
+						};
+					};
+					class Attributes
+					{
+					};
+					id=470;
+				};
+			};
+			id=471;
 		};
 	};
 };

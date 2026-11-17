@@ -26,4 +26,5 @@ switch (_type) do {
 	#include "loadouts\USRNG.sqf"
 	#include "loadouts\RUSD.sqf"
 	#include "loadouts\CHIN.sqf"
+	#include "loadouts\GULF.sqf"
 };

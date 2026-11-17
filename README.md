@@ -131,5 +131,5 @@ the page uses the highest one). Leave out `customization\gear.sqf`, `customizati
 ## Credits
 
 - Built on the [Olsen Framework for Arma 3](https://github.com/dklollol/Olsen-Framework-Arma-3). Thanks to Olsen and its contributors.
-- Loadouts: TCR units by Kelly; 1980s British (Winter) and PLA Naval Marines by Aiello; 1980s US Army, US Army Early 2000s and Early 2000s USMC (Des) by Deggery.
+- Loadouts: TCR units by Kelly; 1980s British (Winter) and PLA Naval Marines by Aiello; 1980s US Army, US Army Early 2000s, Early 2000s USMC (Des), Gulf War US Military and the other modern packages by Deggery.
 - JANFU: https://www.janfu.work/
