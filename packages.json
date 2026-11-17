@@ -100,6 +100,15 @@
       ],
       "by": "Deggery",
       "description": "Modern Russian \u00b7 Desert EMR Ratnik, AK-12, RPK-74M, Pecheneg, RPG-26, pilots"
+    },
+    "CHIN_": {
+      "name": "PLA Naval Marines",
+      "loadout": "CHIN.sqf",
+      "requiredAddons": [
+        "A3_Characters_F"
+      ],
+      "by": "Aiello",
+      "description": "Modern PLA marines \u00b7 ocean camo, QBZ-95, CAR-95 LMG, RPG-7, ZBD crews, helo crew"
     }
   }
 }
