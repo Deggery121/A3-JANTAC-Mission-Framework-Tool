@@ -182,6 +182,8 @@ h1 {
   font: 12.5px/1.5 var(--font-mono); background: var(--sunken); border-radius: var(--radius);
   padding: 8px 10px; overflow-x: auto; white-space: pre; margin: 0; tab-size: 4;
 }
+.steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; }
+#a-out { max-height: 70vh; overflow: auto; }
 .code-row { display: flex; gap: 8px; align-items: stretch; }
 .code-row .code { flex: 1; min-width: 0; }
 .copy { font: 500 12px var(--font-body); border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: var(--radius); padding: 0 10px; cursor: pointer; }
@@ -389,6 +391,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     <a href="#briefing" id="tab-briefing">Briefing</a>
     <a href="#mission-settings" id="tab-settings">Mission settings</a>
     <a href="#mission-folder" id="tab-folder">Mission folder</a>
+    <a href="#addon-settings" id="tab-addons">Addon settings</a>
   </nav>
 
   <div id="view-units">
@@ -686,6 +689,39 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         </div>
         <p class="hint" id="s-status"></p>
         <pre class="code" id="s-out"></pre>
+      </section>
+    </div>
+  </div>
+  <div id="view-addons" hidden>
+    <div class="brief">
+      <div class="form">
+        <fieldset>
+          <legend>JANFU addon settings</legend>
+          <p class="hint" style="margin:0" id="a-summary"></p>
+          <p class="hint" style="margin:0">These are the CBA addon options (ACE, ACRE2 and the rest) from the Eden <b>Addon Options → Mission</b> tab. They are saved inside the mission's <code>mission.sqm</code>, so each mission maker imports them once per mission and can change anything that mission needs differently.</p>
+        </fieldset>
+        <fieldset>
+          <legend>Import them into your mission</legend>
+          <ol class="steps">
+            <li>Press <b>Copy all settings</b>. Use <b>Copy forced only</b> if you only want the settings that overwrite clients.</li>
+            <li>In Arma, open your mission in the Eden editor.</li>
+            <li>In the top menu open <b>Settings → Addon Options</b> and pick the <b>MISSION</b> tab.</li>
+            <li>Press <b>IMPORT</b>. CBA reads the clipboard and fills in every listed setting; forced ones get <b>Overwrite Clients</b> ticked.</li>
+            <li>Change anything this mission needs differently, press <b>OK</b>, then save the mission (Ctrl+S).</li>
+          </ol>
+          <p class="hint" style="margin:0">Arma only reads the clipboard in the editor and singleplayer, not on a multiplayer server. Settings for mods you don't have loaded are skipped.</p>
+        </fieldset>
+      </div>
+      <section class="preview" aria-labelledby="av-h">
+        <div class="preview-head">
+          <h2 class="m-title" id="av-h">Addon Options · Mission</h2>
+          <div class="preview-actions">
+            <button class="copy" id="a-copy" type="button">Copy all settings</button>
+            <button class="copy" id="a-copyf" type="button">Copy forced only</button>
+          </div>
+        </div>
+        <p class="hint" id="a-status"></p>
+        <pre class="code" id="a-out"></pre>
       </section>
     </div>
   </div>
@@ -1897,11 +1933,35 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     bindCopy("f-copy", "f-out", () => folderName() || "");
   }
 
+  // ---- addon settings (CBA export, copied and imported in Eden) ------------------------------------
+  function bindAddons() {
+    const all = (LIB.addonSettings || "").replace(/\r\n/g, "\n");
+    const lines = all.split("\n");
+    const isSetting = (l) => /^\s*(force\s+)?\w+\s*=/.test(l);
+    const total = lines.filter(isSetting).length, forced = lines.filter((l) => /^\s*force\s/.test(l)).length;
+    const groups = lines.filter((l) => /^\/\/ /.test(l)).length;
+    // Forced only: keep each addon's header line when it has at least one forced setting.
+    const forcedText = () => {
+      const out = []; let head = "", body = [];
+      const flush = () => { if (body.length) { if (out.length) out.push(""); out.push(head, ...body); } body = []; };
+      lines.forEach((l) => { if (/^\/\/ /.test(l)) { flush(); head = l; } else if (/^\s*force\s/.test(l)) body.push(l); });
+      flush();
+      return out.join("\r\n") + "\r\n";
+    };
+    $("a-summary").textContent = total ? total.toLocaleString("en-US") + " settings from " + groups + " addons. " + forced + " of them are forced (Overwrite Clients ticked)." : "No addon settings are in this build.";
+    $("a-out").textContent = all;
+    $("a-copy").disabled = $("a-copyf").disabled = !total;
+    bindCopy("a-copy", "a-out", () => all.replace(/\n/g, "\r\n"), "Copy all settings");
+    bindCopy("a-copyf", "a-out", forcedText, "Copy forced only");
+    $("a-status").textContent = "Copy, then press IMPORT on the MISSION tab of Addon Options in Eden.";
+  }
+
   // ---- shared buttons ----------------------------------------------------------------------------
-  function bindCopy(btnId, preId, textFn) {
+  function bindCopy(btnId, preId, textFn, label = "Copy") {
     $(btnId).addEventListener("click", () => {
       const sel = () => { const r = document.createRange(); r.selectNodeContents($(preId)); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
-      try { navigator.clipboard.writeText(textFn()).then(() => { $(btnId).textContent = "Copied"; setTimeout(() => ($(btnId).textContent = "Copy"), 1500); }, sel); }
+      const done = () => { $(btnId).textContent = "Copied"; setTimeout(() => ($(btnId).textContent = label), 1500); };
+      try { navigator.clipboard.writeText(textFn()).then(done, () => { sel(); try { if (document.execCommand("copy")) done(); } catch (e) {} }); }
       catch (e) { sel(); }
     });
   }
@@ -1921,12 +1981,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
   // ---- views ---------------------------------------------------------------------------------------
   function route() {
-    const view = { "#briefing": "briefing", "#mission-settings": "settings", "#custom-units": "custom", "#mission-folder": "folder" }[location.hash] || "units";
-    ["units", "custom", "briefing", "settings", "folder"].forEach((v) => {
+    const view = { "#briefing": "briefing", "#mission-settings": "settings", "#custom-units": "custom", "#mission-folder": "folder", "#addon-settings": "addons" }[location.hash] || "units";
+    ["units", "custom", "briefing", "settings", "folder", "addons"].forEach((v) => {
       $("view-" + v).hidden = v !== view;
       $("tab-" + v).setAttribute("aria-current", v === view ? "page" : "false");
     });
   }
+  bindAddons();
   window.addEventListener("hashchange", route);
 
   // ---- gear.sqf ------------------------------------------------------------------------------------

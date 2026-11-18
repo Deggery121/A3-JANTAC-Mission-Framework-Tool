@@ -153,6 +153,8 @@ def main():
         "system": comp(CONFIG["infrastructure"]["folder"]),
         "gearTemplate": read(os.path.join(MASTER, "customization", "gear.sqf")),
         "maps": json.load(open(os.path.join(ROOT, "maps.json"))),
+        # JANFU's standard CBA addon settings, exported from Eden (Addon Options > Mission > Export)
+        "addonSettings": read(os.path.join(ROOT, "addon_settings.txt")) if os.path.exists(os.path.join(ROOT, "addon_settings.txt")) else "",
         "frameworks": frameworks(),
     }
     data = json.dumps(lib, separators=(",", ":")).replace("</", "<\\/")
