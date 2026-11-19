@@ -719,9 +719,9 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
           <legend>Loadout file</legend>
           <p class="hint" style="margin:0">Build a gear script for the framework from Arma's own arsenal exports. Dress a unit in ACE Arsenal or the Virtual Arsenal, press its <b>Export</b> button (it copies the loadout), and paste it here as a role. The page writes the <code>.sqf</code> in the same layout as the library's loadouts.</p>
           <div class="own-grid">
-            <div class="field"><label for="lb-prefix">Package prefix</label><div class="suffix-in"><input id="lb-prefix" placeholder="CHIN" autocomplete="off" spellcheck="false"><span aria-hidden="true">_</span></div></div>
+            <div class="field"><label for="lb-prefix">Package prefix</label><div class="suffix-in"><input id="lb-prefix" placeholder="Loadout" autocomplete="off" spellcheck="false"><span aria-hidden="true">_</span></div></div>
             <div class="field"><label for="lb-author">Author</label><input id="lb-author" placeholder="Deggery" autocomplete="off"></div>
-            <div class="field"><label for="lb-fname">Loadout name</label><div class="suffix-in"><input id="lb-fname" placeholder="CHIN" autocomplete="off" spellcheck="false"><span aria-hidden="true">.sqf</span></div></div>
+            <div class="field"><label for="lb-fname">Loadout name</label><div class="suffix-in"><input id="lb-fname" placeholder="Loadout" autocomplete="off" spellcheck="false"><span aria-hidden="true">.sqf</span></div></div>
           </div>
           <p class="hint" style="margin:0" id="lb-gate"></p>
         </fieldset>
@@ -766,7 +766,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
             <li><b>ACE Arsenal:</b> build the loadout, then press <b>Export</b> at the bottom. It copies the loadout.</li>
             <li><b>Virtual Arsenal:</b> build the loadout, then press <b>Export</b> (or Ctrl+C). It copies a script.</li>
             <li><b>Any unit:</b> in the Eden debug console run <code>copyToClipboard str getUnitLoadout player</code>.</li>
-            <li>Paste it above, name the role (the part after the prefix, e.g. <code>AR</code> for <code>CHIN_AR</code>) and press <b>Add role</b>. Repeat for every role.</li>
+            <li>Paste it above, name the role (the part after the prefix, e.g. <code>AR</code> for <code>LOADOUT_AR</code>) and press <b>Add role</b>. Repeat for every role.</li>
           </ol>
           <p class="hint" style="margin:0">Random choices (<code>FNC_AddItemRandom</code> with several items) can't come from one export: edit those lines in after. ACRE radio IDs are removed, so <code>ACRE_PRC343_ID_4</code> becomes <code>ACRE_PRC343</code>. <code>ItemRadio</code> and <code>FirstAidKit</code> are always left out.</p>
         </fieldset>
@@ -2281,7 +2281,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const lbFile = () => (LB.fname || (LB.prefix ? LB.prefix.replace(/_$/, "") : "LOADOUT")) + ".sqf";
   function lbIssues() {
     const out = [];
-    if (!/^[A-Z0-9]+_$/.test(LB.prefix)) out.push("Give the package prefix, e.g. CHIN (the _ is added for you).");
+    if (!/^[A-Z0-9]+_$/.test(LB.prefix)) out.push("Give the package prefix, e.g. Loadout (the _ is added for you).");
     if (!LB.author.trim()) out.push("Give the author's name.");
     if (!LB.roles.length) out.push("Add at least one role.");
     return out;
@@ -2290,7 +2290,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (document.activeElement !== $("lb-prefix")) $("lb-prefix").value = LB.prefix.replace(/_$/, "");
     if (document.activeElement !== $("lb-author")) $("lb-author").value = LB.author;
     if (document.activeElement !== $("lb-fname")) $("lb-fname").value = LB.fname || "";
-    $("lb-fname").placeholder = LB.prefix ? LB.prefix.replace(/_$/, "") : "CHIN";
+    $("lb-fname").placeholder = LB.prefix ? LB.prefix.replace(/_$/, "") : "Loadout";
     if (document.activeElement !== $("lb-ifak")) $("lb-ifak").value = LB.ifak;
     if (document.activeElement !== $("lb-items")) $("lb-items").value = LB.items;
     if (document.activeElement !== $("lb-medsup")) $("lb-medsup").value = LB.medic;
