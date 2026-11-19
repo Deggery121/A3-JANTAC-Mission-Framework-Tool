@@ -739,7 +739,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
             <div class="field"><label for="lb-desc">Description <span class="aux">optional</span></label><input id="lb-desc" placeholder="Auto rifleman" autocomplete="off"></div>
           </div>
           <label class="check"><input type="checkbox" id="lb-medic"><span>Medic<small>Adds <code>_unit call FNC_defineMedic;</code> and the medic supplies from Shared groups. ACE medical items in the exported backpack are replaced by these.</small></span></label>
-          <label class="check"><input type="checkbox" id="lb-lr"><span>Long range radio<small>Adds <code>["ACRE_PRC148", 1] call FNC_AddItem; //Long range radio</code> at the top of the role. A PRC-148 in the export is left out so it isn't doubled.</small></span></label>
+          <label class="check"><input type="checkbox" id="lb-lr"><span>Long range radio<small>Adds <code>["ACRE_PRC148", 1] call FNC_AddItem; //Long range radio</code> right after the uniform. A PRC-148 in the export is left out so it isn't doubled.</small></span></label>
           <div class="field"><label for="lb-src">Arsenal export</label><textarea id="lb-src" rows="7" spellcheck="false" placeholder="ACE Arsenal: Export button. Virtual Arsenal: Export (Ctrl+C). Or in the debug console: copyToClipboard str getUnitLoadout player"></textarea></div>
           <div class="toolbar"><button type="button" class="btn" id="lb-add" style="width:auto">Add role</button><button type="button" class="tbtn" id="lb-cancel" hidden>Cancel edit</button><span class="hint" id="lb-msg" role="status"></span></div>
           </div>
@@ -2152,7 +2152,6 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   function roleLines(L, medic, lr) {
     const out = [];
     if (lr) {
-      out.push({ cat: "lr", key: "lr", text: LR_LINE });
       const noLR = (list) => list.filter(([c]) => !/^ACRE_PRC148$/i.test(c));
       L = Object.assign({}, L, { contents: { uniform: noLR(L.contents.uniform), vest: noLR(L.contents.vest), backpack: noLR(L.contents.backpack) } });
     }
@@ -2169,6 +2168,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (L.uniform) add("dress", "[" + q(L.uniform) + "] call FNC_AddItem;");
     if (L.headgear) add("dress", "[" + q(L.headgear) + "] call FNC_AddItem;");
     if (L.goggles) add("dress", "[" + q(L.goggles) + "] call FNC_AddItem;");
+    // The long range radio comes right after the uniform, before the vest and backpack.
+    if (lr) out.push({ cat: "lr", key: "lr", text: LR_LINE });
     if (L.vest) add("gear", "[" + q(L.vest) + "] call FNC_AddItem;");
     if (L.backpack) add("gear", "[" + q(L.backpack) + "] call FNC_AddItem;");
     L.linked.forEach((c) => add("items", "[" + q(c) + "] call FNC_AddItem;"));
