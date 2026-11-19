@@ -54,6 +54,12 @@ package on another side: both compositions and loadouts go into the mission and 
 Inside it, **Add a Team 3** makes a 3-way TVT: the third side (whichever of BLUFOR, OPFOR and INDFOR
 is left) gets its own platoon, composition, loadout and briefing.
 
+**Loadout builder** tab: turns Arma's own arsenal exports (ACE Arsenal **Export**, Virtual Arsenal
+**Export**, or `copyToClipboard str getUnitLoadout player`) into a framework loadout `.sqf`, one role per
+export, in the same layout as `CHIN.sqf`: header with every init line, `#define package`, shared
+`SET_GROUP` blocks (uniform, IFAK, items) and a `case` per role. Copy or download the file, then put it in
+`customization\loadouts` and add its `#include` to `gear.sqf`.
+
 **Addon settings** tab: JANFU's standard CBA addon options (ACE, ACRE2 and the rest) with **Copy all
 settings** / **Copy forced only** buttons and the steps to import them in Eden (Settings → Addon Options →
 MISSION → IMPORT). To update them, export from that tab in Eden and replace `addon_settings.txt`.

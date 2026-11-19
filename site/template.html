@@ -183,7 +183,8 @@ h1 {
   padding: 8px 10px; overflow-x: auto; white-space: pre; margin: 0; tab-size: 4;
 }
 .steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; }
-#a-out { max-height: 70vh; overflow: auto; }
+#a-out, #lb-out { max-height: 75vh; overflow: auto; }
+#lb-src { font: 12px/1.45 var(--font-mono); }
 .code-row { display: flex; gap: 8px; align-items: stretch; }
 .code-row .code { flex: 1; min-width: 0; }
 .copy { font: 500 12px var(--font-body); border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: var(--radius); padding: 0 10px; cursor: pointer; }
@@ -388,6 +389,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   <nav class="tabs" aria-label="Views">
     <a href="#units" id="tab-units">Units</a>
     <a href="#custom-units" id="tab-custom">Custom units</a>
+    <a href="#loadout-builder" id="tab-builder">Loadout builder</a>
     <a href="#briefing" id="tab-briefing">Briefing</a>
     <a href="#mission-settings" id="tab-settings">Mission settings</a>
     <a href="#mission-folder" id="tab-folder">Mission folder</a>
@@ -689,6 +691,57 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         </div>
         <p class="hint" id="s-status"></p>
         <pre class="code" id="s-out"></pre>
+      </section>
+    </div>
+  </div>
+  <div id="view-builder" hidden>
+    <div class="brief">
+      <div class="form">
+        <fieldset>
+          <legend>Loadout file</legend>
+          <p class="hint" style="margin:0">Build a gear script for the framework from Arma's own arsenal exports. Dress a unit in ACE Arsenal or the Virtual Arsenal, press its <b>Export</b> button (it copies the loadout), and paste it here as a role. The page writes the <code>.sqf</code> in the same layout as the library's loadouts.</p>
+          <div class="own-grid">
+            <div class="field"><label for="lb-prefix">Package prefix</label><input id="lb-prefix" placeholder="CHIN_" autocomplete="off" spellcheck="false"></div>
+            <div class="field"><label for="lb-author">Author</label><input id="lb-author" placeholder="Deggery" autocomplete="off"></div>
+          </div>
+          <label class="check"><input type="checkbox" id="lb-groups"><span>Group what every role shares<small>Lines every role has in common go into SET_GROUP blocks like CHIN.sqf: <code>uniform</code> (uniform, headgear, goggles), <code>IFAK</code> (ACE medical in the uniform) and <code>items</code> (map, compass, watch, radio and the rest of the uniform).</small></span></label>
+        </fieldset>
+        <fieldset>
+          <legend>Roles</legend>
+          <ul class="slist" id="lb-roles"></ul>
+        </fieldset>
+        <fieldset>
+          <legend>Add a role</legend>
+          <div class="own-grid">
+            <div class="field"><label for="lb-name">Role</label><input id="lb-name" placeholder="AR" autocomplete="off" spellcheck="false"></div>
+            <div class="field"><label for="lb-desc">Description <span class="aux">optional</span></label><input id="lb-desc" placeholder="Auto rifleman" autocomplete="off"></div>
+          </div>
+          <label class="check"><input type="checkbox" id="lb-medic"><span>Medic<small>Adds <code>_unit call FNC_defineMedic;</code> so ACE treats this role as a medic.</small></span></label>
+          <div class="field"><label for="lb-src">Arsenal export</label><textarea id="lb-src" rows="7" spellcheck="false" placeholder="ACE Arsenal: Export button. Virtual Arsenal: Export (Ctrl+C). Or in the debug console: copyToClipboard str getUnitLoadout player"></textarea></div>
+          <div class="toolbar"><button type="button" class="btn" id="lb-add" style="width:auto">Add role</button><button type="button" class="tbtn" id="lb-cancel" hidden>Cancel edit</button><span class="hint" id="lb-msg" role="status"></span></div>
+        </fieldset>
+        <fieldset>
+          <legend>How to export from Arma</legend>
+          <ol class="steps">
+            <li><b>ACE Arsenal:</b> build the loadout, then press <b>Export</b> at the bottom. It copies the loadout.</li>
+            <li><b>Virtual Arsenal:</b> build the loadout, then press <b>Export</b> (or Ctrl+C). It copies a script.</li>
+            <li><b>Any unit:</b> in the Eden debug console run <code>copyToClipboard str getUnitLoadout player</code>.</li>
+            <li>Paste it above, name the role (the part after the prefix, e.g. <code>AR</code> for <code>CHIN_AR</code>) and press <b>Add role</b>. Repeat for every role.</li>
+          </ol>
+          <p class="hint" style="margin:0">Random choices (<code>FNC_AddItemRandom</code> with several items) can't come from one export: edit those lines in after. ACRE radio IDs are removed, so <code>ACRE_PRC343_ID_4</code> becomes <code>ACRE_PRC343</code>.</p>
+        </fieldset>
+      </div>
+      <section class="preview" aria-labelledby="lb-h">
+        <div class="preview-head">
+          <h2 class="m-title" id="lb-h"><span id="lb-file"></span></h2>
+          <div class="preview-actions">
+            <button class="copy" id="lb-copy" type="button">Copy</button>
+            <button class="copy" id="lb-dl" type="button">Download .sqf</button>
+            <button class="copy" id="lb-reset" type="button">Start over</button>
+          </div>
+        </div>
+        <p class="hint" id="lb-status"></p>
+        <pre class="code" id="lb-out"></pre>
       </section>
     </div>
   </div>
@@ -1933,6 +1986,261 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     bindCopy("f-copy", "f-out", () => folderName() || "");
   }
 
+  // ---- Loadout builder: Arma arsenal exports -> Olsen/JANTAC loadout .sqf ---------------------------
+  // Accepts ACE Arsenal / getUnitLoadout arrays and Virtual Arsenal (BIS) script exports.
+  const LB = Object.assign({ prefix: "", author: "", groups: true, roles: [] }, load("jantac-lb") || {});
+  if (!Array.isArray(LB.roles)) LB.roles = [];
+  const saveLB = () => store("jantac-lb", LB);
+  let lbEdit = -1;
+
+  // SQF array literal -> JS (strings "x" / 'x' with doubled quotes, numbers, true/false).
+  function parseSqfArray(text) {
+    let i = 0;
+    const ws = () => { while (i < text.length && /\s/.test(text[i])) i++; };
+    const val = () => {
+      ws();
+      const c = text[i];
+      if (c === "[") {
+        i++; const out = []; ws();
+        if (text[i] === "]") { i++; return out; }
+        for (;;) {
+          out.push(val()); ws();
+          if (text[i] === ",") { i++; continue; }
+          if (text[i] === "]") { i++; return out; }
+          throw new Error("expected , or ] at character " + i);
+        }
+      }
+      if (c === '"' || c === "'") {
+        let s = ""; i++;
+        for (;;) {
+          if (i >= text.length) throw new Error("unterminated string");
+          if (text[i] === c) { if (text[i + 1] === c) { s += c; i += 2; continue; } i++; return s; }
+          s += text[i++];
+        }
+      }
+      const m = /^(-?\d+(?:\.\d+)?(?:e-?\d+)?|true|false|nil)/i.exec(text.slice(i));
+      if (!m) throw new Error("unexpected '" + (c || "end") + "' at character " + i);
+      i += m[0].length;
+      const w = m[0].toLowerCase();
+      return w === "true" ? true : w === "false" ? false : w === "nil" ? null : Number(m[0]);
+    };
+    const v = val(); ws();
+    if (i < text.length && text.slice(i).trim().replace(/;$/, "")) throw new Error("extra text after the loadout");
+    return v;
+  }
+
+  const cleanCls = (c) => String(c || "").replace(/_ID_\d+$/, ""); // ACRE radios export with instance IDs
+  const isAttach = (c) => /optic|scope|sight|acc_|_acc|muzzle|silencer|suppress|flash|laser|pointer|bipod|flashlight/i.test(c);
+  const isBino = (c) => /binocular|rangefinder|laserdesignator|vector|_bino|bino_/i.test(c);
+  const emptyLoadout = () => ({ uniform: "", vest: "", backpack: "", headgear: "", goggles: "", binocular: "", linked: [], contents: { uniform: [], vest: [], backpack: [] }, weapons: [] });
+
+  function fromArray(a) {
+    if (Array.isArray(a) && a.length === 2 && Array.isArray(a[0]) && a[0].length === 10) a = a[0]; // CBA extended loadout
+    if (!Array.isArray(a) || a.length !== 10) throw new Error("this isn't a loadout array (it should have 10 parts)");
+    const L = emptyLoadout();
+    const weap = (w, kind) => {
+      if (!Array.isArray(w) || !w[0]) return;
+      const W = { kind, cls: w[0], attach: [], mags: [] };
+      [w[1], w[2], w[3], w[6]].forEach((x) => { if (typeof x === "string" && x) W.attach.push(x); });
+      [w[4], w[5]].forEach((m) => { if (Array.isArray(m) && m[0]) W.mags.push(m[0]); });
+      L.weapons.push(W);
+    };
+    weap(a[0], "primary"); weap(a[1], "launcher"); weap(a[2], "handgun");
+    ["uniform", "vest", "backpack"].forEach((k, n) => {
+      const c = a[3 + n];
+      if (!Array.isArray(c) || !c[0]) return;
+      L[k] = c[0];
+      (c[1] || []).forEach((it) => {
+        if (!Array.isArray(it)) return;
+        if (Array.isArray(it[0])) { if (it[0][0]) L.contents[k].push([it[0][0], Number(it[1]) || 1]); return; } // weapon stored in a container
+        if (it[0]) L.contents[k].push([cleanCls(it[0]), Number(it[1]) || 1, it.length > 2]);
+      });
+    });
+    L.headgear = a[6] || ""; L.goggles = a[7] || "";
+    if (Array.isArray(a[8]) && a[8][0]) L.binocular = a[8][0];
+    (a[9] || []).forEach((x) => { if (typeof x === "string" && x) L.linked.push(cleanCls(x)); });
+    return L;
+  }
+
+  function fromScript(t) {
+    const L = emptyLoadout();
+    let cur = null;
+    const re = /(?:for\s+"_i"\s+from\s+1\s+to\s+(\d+)\s+do\s*\{\s*)?\b\w+\s+(addWeapon|addPrimaryWeaponItem|addSecondaryWeaponItem|addHandgunItem|forceAddUniform|addUniform|addVest|addBackpack|addHeadgear|addGoggles|addItemToUniform|addItemToVest|addItemToBackpack|linkItem|addMagazine|addItem)\s+"([^"]+)"/g;
+    let m, found = 0;
+    while ((m = re.exec(t))) {
+      found++;
+      const n = Number(m[1]) || 1, cmd = m[2], c = cleanCls(m[3]);
+      if (cmd === "addWeapon") {
+        if (isBino(c)) { L.binocular = c; continue; }
+        cur = { kind: ["primary", "launcher", "handgun"][Math.min(L.weapons.length, 2)], cls: c, attach: [], mags: [] };
+        L.weapons.push(cur);
+      } else if (/WeaponItem$|HandgunItem$/.test(cmd)) {
+        const kind = cmd === "addPrimaryWeaponItem" ? "primary" : cmd === "addSecondaryWeaponItem" ? "launcher" : "handgun";
+        const W = L.weapons.find((w) => w.kind === kind) || cur;
+        if (W) (isAttach(c) ? W.attach : W.mags).push(c);
+      } else if (cmd === "forceAddUniform" || cmd === "addUniform") L.uniform = c;
+      else if (cmd === "addVest") L.vest = c;
+      else if (cmd === "addBackpack") L.backpack = c;
+      else if (cmd === "addHeadgear") L.headgear = c;
+      else if (cmd === "addGoggles") L.goggles = c;
+      else if (cmd === "linkItem") L.linked.push(c);
+      else if (cmd.startsWith("addItemTo")) L.contents[cmd.slice(9).toLowerCase()].push([c, n]);
+    }
+    if (!found) throw new Error("no arsenal commands found");
+    // Virtual Arsenal adds weapons in the order primary, launcher, handgun but skips empty slots:
+    // fix the kind from the weapon item commands that follow each one.
+    L.weapons.forEach((w) => { if (/hgun|pistol|handgun/i.test(w.cls)) w.kind = "handgun"; else if (/launch|rpg|law|m72|maaws|nlaw|at4|carl/i.test(w.cls)) w.kind = "launcher"; });
+    return L;
+  }
+
+  function parseLoadout(text) {
+    const t = String(text || "").trim();
+    if (!t) throw new Error("paste an arsenal export first");
+    if (t.startsWith("[")) return fromArray(parseSqfArray(t.replace(/;\s*$/, "")));
+    return fromScript(t);
+  }
+
+  // One role -> lines of SQF (without indentation). Each line has a key (its text without the comment)
+  // so lines every role shares can be pulled into SET_GROUP blocks.
+  function roleLines(L, medic) {
+    const out = [];
+    const add = (cat, code, note) => out.push({ cat, key: code, text: code + (note ? " //" + note : "") });
+    const q = (c) => '"' + String(c).replace(/"/g, '""') + '"';
+    const merge = (list) => { const m = new Map(); list.forEach(([c, n, mag]) => { const e = m.get(c) || [0, mag]; e[0] += n; m.set(c, e); }); return [...m].map(([c, [n, mag]]) => [c, n, mag]); };
+    if (medic) out.push({ cat: "medic", key: "_unit call FNC_defineMedic;", text: "_unit call FNC_defineMedic;" });
+    if (L.uniform) add("dress", "[" + q(L.uniform) + "] call FNC_AddItem;");
+    if (L.headgear) add("dress", "[" + q(L.headgear) + "] call FNC_AddItem;");
+    if (L.goggles) add("dress", "[" + q(L.goggles) + "] call FNC_AddItem;");
+    if (L.vest) add("gear", "[" + q(L.vest) + "] call FNC_AddItem;");
+    if (L.backpack) add("gear", "[" + q(L.backpack) + "] call FNC_AddItem;");
+    L.linked.filter((c) => c !== "ItemRadio" || !L.linked.some((x) => /^ACRE_/.test(x))).forEach((c) => add("items", "[" + q(c) + "] call FNC_AddItem;"));
+    if (L.binocular) add("kit", "[" + q(L.binocular) + "] call FNC_AddItem;");
+    ["uniform", "vest", "backpack"].forEach((k) => merge(L.contents[k]).forEach(([c, n, mag]) => {
+      const note = /^ACRE_PRC(148|152|117)/.test(c) ? "Long range radio" : /^ACRE_/.test(c) ? "Radio"
+        : /smoke/i.test(c) ? "Smoke" : /grenade|rgd|rgo|m67|mk2|f1_|v40/i.test(c) && !/1rnd|shell|40mm|gp25/i.test(c) ? "Frag grenade"
+        : mag || /rnd|_mag|magazine|belt/i.test(c) ? "Magazines" : "";
+      // In the uniform: ACE medical is the IFAK; the radio and small personal items go with map/compass/watch.
+      const cat = k === "uniform" ? (/^ACE_/.test(c) ? "ifak" : mag ? "kit" : "items") : "kit";
+      add(cat, "[" + q(c) + ", " + n + ', "' + k + '"] call FNC_AddItem;', note);
+    }));
+    L.weapons.forEach((w) => {
+      add("weapon", "[" + q(w.cls) + "] call FNC_AddItem;", { primary: "Primary rifle", launcher: "Launcher", handgun: "Sidearm" }[w.kind]);
+      w.attach.forEach((c) => add("weapon", "[" + q(c) + "] call FNC_AddItem;"));
+      w.mags.forEach((c) => add("weapon", "[" + q(c) + "] call FNC_AddItem;", " starting magazine"));
+    });
+    return out;
+  }
+
+  // Groups like CHIN.sqf: uniform (clothes), IFAK (ACE medical in the uniform), items (linked items, radio).
+  const GROUP_OF = { dress: "uniform", ifak: "IFAK", items: "items" };
+  function genLoadoutFile() {
+    const prefix = LB.prefix, CRLF = "\r\n";
+    const roles = LB.roles.map((r) => { try { return { r, lines: roleLines(parseLoadout(r.src), r.medic) }; } catch (e) { return { r, err: e.message }; } });
+    const ok = roles.filter((x) => x.lines);
+    const groups = {};
+    if (LB.groups && ok.length > 1) {
+      const common = ok[0].lines.filter((l) => GROUP_OF[l.cat] && ok.every((x) => x.lines.some((m) => m.key === l.key)));
+      common.forEach((l) => (groups[GROUP_OF[l.cat]] = groups[GROUP_OF[l.cat]] || []).push(l));
+    }
+    const groupOfKey = {};
+    Object.keys(groups).forEach((g) => groups[g].forEach((l) => (groupOfKey[l.key] = g)));
+    const out = ["//AUTHOR: " + (LB.author || "unknown"), "//"];
+    LB.roles.forEach((r) => out.push('//[this, "' + prefix + r.name + '"] call FNC_GearScript;' + (r.desc ? " " + r.desc.toUpperCase() : "")));
+    out.push("", '#define package "' + prefix + '"', "");
+    ["uniform", "IFAK", "items"].forEach((g) => {
+      if (!groups[g]) return;
+      out.push("SET_GROUP(" + g + ")", ...groups[g].map((l) => "\t" + l.text), "END_GROUP;", "\t");
+    });
+    out.push("\t");
+    roles.forEach(({ r, lines, err }) => {
+      if (err) { out.push("// " + r.name + ": could not read this export (" + err + ")", ""); return; }
+      out.push("case (package + " + '"' + r.name + '"' + "): {", "\t");
+      const done = new Set();
+      let last = null;
+      lines.forEach((l) => {
+        const g = groupOfKey[l.key];
+        const block = g ? "group" : l.cat;
+        if (last && block !== last && !(last === "group" && g)) out.push("\t");
+        if (g) { if (!done.has(g)) { done.add(g); out.push("\tADD_GROUP(" + g + ");"); } }
+        else out.push("\t" + l.text);
+        last = block;
+      });
+      out.push("\t", "};", "");
+    });
+    return out.join(CRLF);
+  }
+
+  const lbFile = () => (LB.prefix ? LB.prefix.replace(/_$/, "") : "LOADOUT") + ".sqf";
+  function lbIssues() {
+    const out = [];
+    if (!/^[A-Za-z0-9]+_$/.test(LB.prefix)) out.push("Give the package prefix: letters and numbers ending in _, e.g. CHIN_.");
+    if (!LB.roles.length) out.push("Add at least one role.");
+    return out;
+  }
+  function renderLB() {
+    $("lb-prefix").value = LB.prefix; $("lb-author").value = LB.author; $("lb-groups").checked = LB.groups;
+    $("lb-roles").innerHTML = LB.roles.length ? LB.roles.map((r, i) => {
+      let info;
+      try { const L = parseLoadout(r.src); info = [L.uniform && "uniform", L.weapons.map((w) => w.cls).join(", ")].filter(Boolean).join(" · "); }
+      catch (e) { info = "⚠ " + e.message; }
+      return '<li class="' + (i === lbEdit ? "editing" : "") + '"><span class="nm">' + esc(LB.prefix + r.name) + "</span>" +
+        (r.medic ? '<span class="meta">medic</span>' : "") + '<span class="meta">' + esc(info) + "</span>" +
+        '<span class="acts"><button class="tbtn" type="button" data-up="' + i + '"' + (i ? "" : " disabled") + ' aria-label="Move up">↑</button>' +
+        '<button class="tbtn" type="button" data-edit="' + i + '">Edit</button><button class="tbtn" type="button" data-del="' + i + '">Delete</button></span></li>';
+    }).join("") : '<li><span class="empty-row">No roles yet. Paste an arsenal export below and press Add role.</span></li>';
+    $("lb-add").textContent = lbEdit >= 0 ? "Update role" : "Add role";
+    $("lb-cancel").hidden = lbEdit < 0;
+    const issues = lbIssues();
+    $("lb-file").textContent = "customization\\loadouts\\" + lbFile();
+    $("lb-out").textContent = issues.length ? "// " + issues.join("\n// ") : genLoadoutFile().replace(/\r\n/g, "\n");
+    $("lb-copy").disabled = $("lb-dl").disabled = !!issues.length;
+    $("lb-status").textContent = issues.length ? "" : LB.roles.length + " role" + (LB.roles.length === 1 ? "" : "s") + ". Add it to gear.sqf with " + includeLine(lbFile()) + ".";
+    $("lb-roles").querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
+      const r = LB.roles[lbEdit = Number(b.dataset.edit)];
+      $("lb-name").value = r.name; $("lb-desc").value = r.desc || ""; $("lb-medic").checked = !!r.medic; $("lb-src").value = r.src;
+      $("lb-msg").textContent = ""; renderLB(); $("lb-name").focus();
+    }));
+    $("lb-roles").querySelectorAll("[data-up]").forEach((b) => b.addEventListener("click", () => {
+      const i = Number(b.dataset.up); [LB.roles[i - 1], LB.roles[i]] = [LB.roles[i], LB.roles[i - 1]];
+      if (lbEdit === i) lbEdit--; else if (lbEdit === i - 1) lbEdit++;
+      saveLB(); renderLB();
+    }));
+    $("lb-roles").querySelectorAll("[data-del]").forEach((b) => bindClear(b.id = "lb-del-" + b.dataset.del, () => {
+      LB.roles.splice(Number(b.dataset.del), 1); lbEdit = -1; saveLB(); renderLB();
+    }, "Delete", "Click again"));
+  }
+  function bindLB() {
+    $("lb-prefix").addEventListener("input", (e) => { LB.prefix = e.target.value.trim().toUpperCase().replace(/[^A-Z0-9_]/g, ""); saveLB(); renderLB(); });
+    $("lb-author").addEventListener("input", (e) => { LB.author = e.target.value; saveLB(); renderLB(); });
+    $("lb-groups").addEventListener("change", (e) => { LB.groups = e.target.checked; saveLB(); renderLB(); });
+    const clearForm = () => { lbEdit = -1; ["lb-name", "lb-desc", "lb-src"].forEach((k) => ($(k).value = "")); $("lb-medic").checked = false; };
+    $("lb-add").addEventListener("click", () => {
+      const name = $("lb-name").value.trim().toUpperCase(), src = $("lb-src").value.trim(), msg = $("lb-msg");
+      if (!/^[A-Z0-9]+$/.test(name)) { msg.textContent = "Role names are letters and numbers only, e.g. AR or MD."; return; }
+      if (LB.roles.some((r, i) => r.name === name && i !== lbEdit)) { msg.textContent = name + " is already in the list."; return; }
+      try { parseLoadout(src); } catch (e) { msg.textContent = "Could not read the export: " + e.message + "."; return; }
+      const role = { name, desc: $("lb-desc").value.trim(), medic: $("lb-medic").checked, src };
+      if (lbEdit >= 0) LB.roles[lbEdit] = role; else LB.roles.push(role);
+      msg.textContent = (lbEdit >= 0 ? "Updated " : "Added ") + LB.prefix + name + ".";
+      clearForm(); saveLB(); renderLB();
+    });
+    $("lb-cancel").addEventListener("click", () => { clearForm(); $("lb-msg").textContent = ""; renderLB(); });
+    bindCopy("lb-copy", "lb-out", genLoadoutFile);
+    bindClear("lb-reset", () => { Object.assign(LB, { prefix: "", author: "", groups: true, roles: [] }); clearForm(); saveLB(); renderLB(); }, "Start over", "Click again to erase all roles");
+    $("lb-dl").addEventListener("click", async () => {
+      const name = lbFile(), text = genLoadoutFile(), st = $("lb-status");
+      try {
+        if (hasViewer) {
+          const zip = new JSZip(); zip.file(name, text);
+          await saveFile(name.replace(/\.sqf$/, "") + " loadout.zip", await zip.generateAsync({ type: "blob", compression: "DEFLATE" }));
+        } else await saveFile(name, new Blob([text], { type: "text/plain" }));
+        st.textContent = "Saved " + name + ". Put it in customization\\loadouts and add " + includeLine(name) + " to gear.sqf.";
+      } catch (e) { st.textContent = "Could not save: " + (e && e.message || e); }
+    });
+    renderLB();
+  }
+  window.__jantacLoadout = { parseLoadout, genLoadoutFile, LB };
+
   // ---- addon settings (CBA export, copied and imported in Eden) ------------------------------------
   function bindAddons() {
     const all = (LIB.addonSettings || "").replace(/\r\n/g, "\n");
@@ -1981,13 +2289,14 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
   // ---- views ---------------------------------------------------------------------------------------
   function route() {
-    const view = { "#briefing": "briefing", "#mission-settings": "settings", "#custom-units": "custom", "#mission-folder": "folder", "#addon-settings": "addons" }[location.hash] || "units";
-    ["units", "custom", "briefing", "settings", "folder", "addons"].forEach((v) => {
+    const view = { "#briefing": "briefing", "#mission-settings": "settings", "#custom-units": "custom", "#mission-folder": "folder", "#addon-settings": "addons", "#loadout-builder": "builder" }[location.hash] || "units";
+    ["units", "custom", "builder", "briefing", "settings", "folder", "addons"].forEach((v) => {
       $("view-" + v).hidden = v !== view;
       $("tab-" + v).setAttribute("aria-current", v === view ? "page" : "false");
     });
   }
   bindAddons();
+  bindLB();
   window.addEventListener("hashchange", route);
 
   // ---- gear.sqf ------------------------------------------------------------------------------------
