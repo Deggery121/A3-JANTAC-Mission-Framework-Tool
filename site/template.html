@@ -189,6 +189,12 @@ h1 {
 .suffix-in input { flex: 1; min-width: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
 .suffix-in span { display: flex; align-items: center; padding: 0 10px; border: 1px solid var(--line); border-left: 0; border-radius: 0 var(--radius) var(--radius) 0; background: var(--sunken); font: 600 14px var(--font-mono); }
 .lb-locked { opacity: .5; pointer-events: none; }
+.role-tog { display: inline-flex; align-items: center; gap: 8px; background: none; border: 0; padding: 0; color: var(--fg); cursor: pointer; font: inherit; }
+.role-tog .tri { font-size: 11px; color: var(--muted); width: 12px; }
+.slist .meta.edited { color: var(--friendly); font-weight: 600; }
+.role-code { flex-basis: 100%; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--line); margin-top: 4px; }
+.role-code label { font-size: 13px; font-weight: 600; }
+.role-code textarea { width: 100%; box-sizing: border-box; tab-size: 4; white-space: pre; overflow-x: auto; }
 .rand-box { display: flex; flex-direction: column; gap: 10px; margin: -4px 0 4px 28px; }
 .lbl-sm { font-size: 13px; font-weight: 600; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
@@ -2237,7 +2243,10 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     out.push("SET_GROUP(items)", ...groupLines(LB.items).map((l) => "\t" + l), "END_GROUP;", "\t");
     out.push("\t");
     roles.forEach(({ r, lines, err }) => {
+      // Code the mission maker edited by hand goes in as written.
+      if (typeof r.code === "string") { out.push("case (package + " + '"' + r.name + '"' + "): {", ...r.code.replace(/\r\n/g, "\n").split("\n"), "};", ""); return; }
       if (err) { out.push("// " + r.name + ": could not read this export (" + err + ")", ""); return; }
+      const start = out.length;
       out.push("case (package + " + '"' + r.name + '"' + "): {", "\t");
       const done = new Set();
       let last = null, shared = false;
@@ -2259,9 +2268,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       });
       addShared();
       out.push("\t", "};", "");
+      LB_GEN[r.name] = out.slice(start + 1, out.length - 2).join("\n");
     });
     return out.join(CRLF);
   }
+  // The generated body of each role (between "case ... {" and "};"), filled in by genLoadoutFile.
+  const LB_GEN = {};
+  const lbOpen = new Set();
 
   const lbFile = () => (LB.prefix ? LB.prefix.replace(/_$/, "") : "LOADOUT") + ".sqf";
   function lbIssues() {
@@ -2290,10 +2303,17 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       let info;
       try { const L = parseLoadout(r.src); info = [L.uniform && "uniform", L.weapons.map((w) => w.cls).join(", ")].filter(Boolean).join(" · "); }
       catch (e) { info = "⚠ " + e.message; }
-      return '<li class="' + (i === lbEdit ? "editing" : "") + '"><span class="nm">' + esc(LB.prefix + r.name) + "</span>" +
-        (r.medic ? '<span class="meta">medic</span>' : "") + (r.lr ? '<span class="meta">LR radio</span>' : "") + '<span class="meta">' + esc(info) + "</span>" +
+      const open = lbOpen.has(r.name);
+      return '<li class="' + (i === lbEdit ? "editing" : "") + '"><button type="button" class="role-tog" data-tog="' + esc(r.name) + '" aria-expanded="' + open + '">' +
+        '<span class="tri" aria-hidden="true">' + (open ? "▼" : "▶") + '</span><span class="nm">' + esc(LB.prefix + r.name) + "</span></button>" +
+        (r.medic ? '<span class="meta">medic</span>' : "") + (r.lr ? '<span class="meta">LR radio</span>' : "") +
+        '<span class="meta edited" data-edited="' + i + '"' + (typeof r.code === "string" ? "" : " hidden") + ">code edited</span>" + '<span class="meta">' + esc(info) + "</span>" +
         '<span class="acts"><button class="tbtn" type="button" data-up="' + i + '"' + (i ? "" : " disabled") + ' aria-label="Move up">↑</button>' +
-        '<button class="tbtn" type="button" data-edit="' + i + '">Edit</button><button class="tbtn" type="button" data-del="' + i + '">Delete</button></span></li>';
+        '<button class="tbtn" type="button" data-edit="' + i + '">Edit</button><button class="tbtn" type="button" data-del="' + i + '">Delete</button></span>' +
+        (open ? '<div class="role-code"><label for="lb-code-' + i + '">Code for <code>case (package + "' + esc(r.name) + '")</code> <span class="aux">edit freely; the file uses exactly this</span></label>' +
+          '<textarea id="lb-code-' + i + '" class="mono" data-code-i="' + i + '" rows="16" spellcheck="false"></textarea>' +
+          '<div class="toolbar"><button type="button" class="tbtn" data-revert="' + i + '"' + (typeof r.code === "string" ? "" : " disabled") + '>Revert to generated</button>' +
+          '<span class="hint">Edited code stays as you wrote it when the shared groups change. Updating the role with a new export, Medic or Long range radio replaces it, and Revert brings back the generated code.</span></div></div>' : "") + "</li>";
     }).join("") : '<li><span class="empty-row">No roles yet. Paste an arsenal export below and press Add role.</span></li>';
     $("lb-common").innerHTML = COMMON_ROLES.map(([code, desc]) => {
       const have = LB.roles.some((r) => r.name === code);
@@ -2313,6 +2333,22 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("lb-out").textContent = issues.length ? "// " + issues.join("\n// ") : genLoadoutFile().replace(/\r\n/g, "\n");
     $("lb-copy").disabled = $("lb-dl").disabled = !!issues.length;
     $("lb-status").textContent = issues.length ? "" : LB.roles.length + " role" + (LB.roles.length === 1 ? "" : "s") + ". Add it to gear.sqf with " + includeLine(lbFile()) + ".";
+    $("lb-roles").querySelectorAll("[data-tog]").forEach((b) => b.addEventListener("click", () => {
+      const n = b.dataset.tog; if (lbOpen.has(n)) lbOpen.delete(n); else lbOpen.add(n); renderLB();
+    }));
+    $("lb-roles").querySelectorAll("[data-code-i]").forEach((ta) => {
+      const r = LB.roles[Number(ta.dataset.codeI)];
+      ta.value = typeof r.code === "string" ? r.code : LB_GEN[r.name] || "";
+      ta.addEventListener("input", () => {
+        r.code = ta.value; saveLB();
+        $("lb-out").textContent = genLoadoutFile().replace(/\r\n/g, "\n");
+        $("lb-roles").querySelector('[data-edited="' + ta.dataset.codeI + '"]').hidden = false;
+        $("lb-roles").querySelector('[data-revert="' + ta.dataset.codeI + '"]').disabled = false;
+      });
+    });
+    $("lb-roles").querySelectorAll("[data-revert]").forEach((b) => b.addEventListener("click", () => {
+      delete LB.roles[Number(b.dataset.revert)].code; saveLB(); renderLB();
+    }));
     $("lb-roles").querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
       const r = LB.roles[lbEdit = Number(b.dataset.edit)];
       $("lb-name").value = r.name; $("lb-desc").value = r.desc || ""; $("lb-medic").checked = !!r.medic; $("lb-lr").checked = !!r.lr; $("lb-src").value = r.src;
@@ -2363,8 +2399,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       if (LB.roles.some((r, i) => r.name === name && i !== lbEdit)) { msg.textContent = name + " is already in the list."; return; }
       try { parseLoadout(src); } catch (e) { msg.textContent = "Could not read the export: " + e.message + "."; return; }
       const role = { name, desc: $("lb-desc").value.trim(), medic: $("lb-medic").checked, lr: $("lb-lr").checked, src };
+      // A changed export or option replaces code that was edited by hand.
+      const old = lbEdit >= 0 ? LB.roles[lbEdit] : null;
+      const kept = old && typeof old.code === "string" && old.src === src && old.medic === role.medic && old.lr === role.lr;
+      if (kept) role.code = old.code;
+      if (old && old.name !== name && lbOpen.delete(old.name)) lbOpen.add(name);
       if (lbEdit >= 0) LB.roles[lbEdit] = role; else LB.roles.push(role);
-      msg.textContent = (lbEdit >= 0 ? "Updated " : "Added ") + LB.prefix + name + ".";
+      msg.textContent = (lbEdit >= 0 ? "Updated " : "Added ") + LB.prefix + name + "." + (old && typeof old.code === "string" && !kept ? " Your hand edits to its code were replaced." : "");
       clearForm(); saveLB(); renderLB();
     });
     $("lb-cancel").addEventListener("click", () => { clearForm(); $("lb-msg").textContent = ""; renderLB(); });
