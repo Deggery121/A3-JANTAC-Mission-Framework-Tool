@@ -195,6 +195,9 @@ h1 {
 .role-code { flex-basis: 100%; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--line); margin-top: 4px; }
 .role-code label { font-size: 13px; font-weight: 600; }
 .role-code textarea { width: 100%; box-sizing: border-box; tab-size: 4; white-space: pre; overflow-x: auto; }
+.lb-units { display: flex; flex-direction: column; gap: 8px; margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.lb-units .toolbar { align-items: center; }
+.pal.mine summary { color: var(--friendly); }
 .rand-box { display: flex; flex-direction: column; gap: 10px; margin: -4px 0 4px 28px; }
 .lbl-sm { font-size: 13px; font-weight: 600; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
@@ -330,7 +333,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
 .dboard { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .resetbar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; margin: 0 0 12px; font-size: 13px; color: var(--muted); }
-.tbtn.armed { border-color: #c0392b; color: #c0392b; }
+.tbtn.armed, .btn.armed { border-color: #c0392b; color: #c0392b; }
 .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
 .toolbar .field { flex: 1 1 200px; }
 .tbtn {
@@ -780,6 +783,11 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
           </div>
         </div>
         <p class="hint" id="lb-status"></p>
+        <div class="lb-units" id="lb-units">
+          <p class="hint" style="margin:0"><b>Use it for units:</b> your roles are in the <a href="#custom-units">Custom units</a> unit list as "My loadout". Or make a whole platoon from them now:</p>
+          <div class="toolbar"><label for="lb-squads" class="hint">Squads</label><select id="lb-squads"><option>1</option><option>2</option><option selected>3</option><option>4</option></select>
+            <button type="button" class="btn" id="lb-platoon" style="width:auto">Make a platoon from this loadout</button></div>
+        </div>
         <pre class="code" id="lb-out"></pre>
       </section>
     </div>
@@ -831,6 +839,22 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const LIB = JSON.parse(document.getElementById("lib").textContent);
   const $ = (id) => document.getElementById(id);
   const prefixes = Object.keys(LIB.packages);
+  // The Loadout builder's file acts as one more package for Custom units (not listed on the Units tab).
+  // Its loadout text is read live from the builder.
+  let lbPkgPrefix = "";
+  function lbRegister(prefix, author, fname) {
+    if (lbPkgPrefix && LIB.packages[lbPkgPrefix] && LIB.packages[lbPkgPrefix].custom) delete LIB.packages[lbPkgPrefix];
+    lbPkgPrefix = "";
+    if (!/^[A-Z0-9]+_$/.test(prefix || "") || prefixes.includes(prefix)) return;
+    const file = (fname || prefix.replace(/_$/, "")) + ".sqf";
+    LIB.packages[prefix] = {
+      custom: true, name: "My loadout: " + file.replace(/\.sqf$/, ""), by: author || "", side: "West", description: "",
+      loadout: file, requiredAddons: ["A3_Characters_F"], groups: [], maxSquads: 0, compositions: {},
+      get loadoutText() { return genLoadoutFile(); },
+    };
+    lbPkgPrefix = prefix;
+  }
+  (() => { let raw = {}; try { raw = JSON.parse(localStorage.getItem("jantac-lb")) || {}; } catch (e) {} lbRegister(raw.prefix, raw.author, raw.fname); })();
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const posInt = (s, d) => { const n = parseInt(s, 10); return n > 0 ? n : d; };
   const load = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
@@ -922,6 +946,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     ["B_soldier_AAT_F", "O_Soldier_AAT_F", "I_Soldier_AAT_F"],
     ["B_support_MG_F", "O_support_MG_F", "I_support_MG_F"],
     ["B_crew_F", "O_crew_F", "I_crew_F"],
+    ["B_Helipilot_F", "O_helipilot_F", "I_helipilot_F"],
   ];
   const SIDE_COL = { West: 0, East: 1, Independent: 2 };
   const CLASS_IDX = {};
@@ -1002,7 +1027,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (t3On() && !list.includes(state.t3.prefix)) list.push(state.t3.prefix);
     return list;
   }
-  const loadoutsNow = () => prefixesNow().map((p) => LIB.packages[p]);
+  const loadoutsNow = () => prefixesNow().map((p) => LIB.packages[p]).filter(Boolean);
   function coClassNow() {
     if (state.source === "own") return (state.own.co || "").trim() || "B_officer_F";
     const hq = groupsNow().find((g) => g.squad === 0);
@@ -1140,7 +1165,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       }
       html += card("custom:" + d.id, on, esc(nameOf(d)) + '<span class="side-tag ' + d.side + '">' + SIDES[d.side].label + "</span>",
         '<span class="pkg-desc">Custom platoon · HQ + ' + (d.groups.length - 1) + " squad" + (d.groups.length === 2 ? "" : "s") + "</span>",
-        "<span>" + slots + " slots</span>" + prefixesOf(d).map((p) => '<span class="file">' + esc(LIB.packages[p].loadout) + "</span>").join(""), body);
+        "<span>" + slots + " slots</span>" + prefixesOf(d).map((p) => '<span class="file">' + esc(LIB.packages[p] ? LIB.packages[p].loadout : p + " (missing)") + "</span>").join(""), body);
     });
 
     const oOn = state.source === "own";
@@ -1334,11 +1359,16 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   // Unit lists start collapsed; they are only rebuilt when the design's side changes.
   function renderPalette() {
     const sidePkgs = prefixes.filter((p) => sideOf(p) === design.side);
+    const mine = builderPalette();
+    const mineHtml = mine.length ? '<details class="pal mine" open><summary>' + esc(LIB.packages[lbPkgPrefix].name) + '<span class="by">Loadout builder</span></summary><ul>' +
+      mine.map((u, i) => '<li><button type="button" data-b="' + i + '" title="Add ' + esc(u.desc) + '"><i class="dot ' + forcedColor(u.role, u.color) + '"></i>' +
+        "<span>" + esc(u.desc) + '</span><span class="r">' + esc(u.role) + "</span></button></li>").join("") + "</ul></details>" : "";
     if (!sidePkgs.length) {
-      $("palette").innerHTML = '<div class="branch-empty">No ' + SIDES[design.side].label + " units in the library yet.</div>";
+      $("palette").innerHTML = mineHtml + '<div class="branch-empty">No ' + SIDES[design.side].label + " units in the library yet.</div>";
+      bindBuilderPalette(mine);
       return;
     }
-    $("palette").innerHTML = sidePkgs.map((p) => {
+    $("palette").innerHTML = mineHtml + sidePkgs.map((p) => {
       const P = LIB.packages[p];
       const rows = palette.map((u, i) => ({ u, i })).filter((x) => x.u.prefix === p).map(({ u, i }) =>
         '<li><button type="button" data-i="' + i + '" title="Add ' + esc(u.desc) + '"><i class="dot ' + forcedColor(u.role, u.color) + '"></i>' +
@@ -1349,13 +1379,22 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       design.groups[design.active].slots.push(slotFrom(palette[Number(b.dataset.i)]));
       saveDesign(); render();
     }));
+    bindBuilderPalette(mine);
+  }
+  function bindBuilderPalette(mine) {
+    $("palette").querySelectorAll("button[data-b]").forEach((b) => b.addEventListener("click", () => {
+      design.groups[design.active].slots.push(slotFrom(mine[Number(b.dataset.b)]));
+      saveDesign(); render();
+    }));
   }
 
   function issuesFor(d) {
     const out = [];
     if (!d.groups.length) out.push("Add an HQ group.");
     d.groups.forEach((g, i) => { if (!g.slots.length) out.push("1'" + i + " has no slots. Add units or remove it."); });
-    const other = [...new Set(d.groups.flatMap((g) => g.slots.filter((u) => sideOf(u.prefix) !== d.side).map((u) => u.prefix)))];
+    const gone = [...new Set(d.groups.flatMap((g) => g.slots.filter((u) => !LIB.packages[u.prefix]).map((u) => u.prefix)))];
+    if (gone.length) out.push(gone.join(", ") + " units are no longer available (the Loadout builder's prefix changed?). Remove them or set the prefix back.");
+    const other = [...new Set(d.groups.flatMap((g) => g.slots.filter((u) => LIB.packages[u.prefix] && !LIB.packages[u.prefix].custom && sideOf(u.prefix) !== d.side).map((u) => u.prefix)))];
     if (other.length) out.push(other.join(", ") + " units are not " + SIDES[d.side].label + ". Remove them or change the design's side.");
     if (d.groups.length - 1 > MAX_SQUADS) out.push("At most " + MAX_SQUADS + " squads fit on the PRC-343's first block.");
     return out;
@@ -1568,7 +1607,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       put(4, "};"); put(4, "class Attributes"); put(4, "{"); put(4, "};"); put(4, "id=" + gid + ";"); put(3, "};");
     });
     put(2, "};"); put(2, "id=" + (id++) + ";"); put(1, "};"); put(0, "};");
-    const addons = [...new Set(prefixesOf(d).flatMap((p) => LIB.packages[p].requiredAddons))];
+    const addons = [...new Set(prefixesOf(d).flatMap((p) => (LIB.packages[p] ? LIB.packages[p].requiredAddons : [])))];
     const header = ["version=54;", "name=" + sqmStr("Custom - " + nm + " - " + label) + ";", "author=" + sqmStr(LIB.author) + ";",
       "category=" + sqmStr(LIB.category) + ";", "requiredAddons[]=", "{"].concat(addons.map((a, i) => '\t"' + a + '"' + (i < addons.length - 1 ? "," : "")), ["};"]);
     const folder = ("JANTAC CUSTOM " + nm.replace(/[^\w \-]+/g, "").trim()).slice(0, 60).trim();
@@ -2287,6 +2326,10 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     return out;
   }
   function renderLB() {
+    const before = lbPkgPrefix;
+    lbRegister(LB.prefix, LB.author, LB.fname);
+    // Custom units lists these roles, and saved designs may use them: keep both in step.
+    if (before !== lbPkgPrefix) render(); else renderPalette();
     if (document.activeElement !== $("lb-prefix")) $("lb-prefix").value = LB.prefix.replace(/_$/, "");
     if (document.activeElement !== $("lb-author")) $("lb-author").value = LB.author;
     if (document.activeElement !== $("lb-fname")) $("lb-fname").value = LB.fname || "";
@@ -2302,7 +2345,11 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("lb-addbox").classList.toggle("lb-locked", !ready);
     $("lb-addbox").querySelectorAll("input, textarea, button").forEach((el) => (el.disabled = !ready));
     $("lb-addbox").setAttribute("aria-disabled", String(!ready));
-    $("lb-gate").textContent = ready ? "Roles will be named " + LB.prefix + "ROLE." : "Enter the package prefix and the author first. Then you can pick roles and paste exports.";
+    const clash = LB.prefix && prefixes.includes(LB.prefix);
+    $("lb-gate").textContent = !ready ? "Enter the package prefix and the author first. Then you can pick roles and paste exports."
+      : clash ? "Roles will be named " + LB.prefix + "ROLE. " + LB.prefix + " is already used by " + LIB.packages[LB.prefix].name + " in the library, so these roles can't be used in Custom units; pick another prefix for that."
+      : "Roles will be named " + LB.prefix + "ROLE.";
+    $("lb-units").hidden = !lbPkgPrefix || !LB.roles.length;
     $("lb-roles").innerHTML = LB.roles.length ? LB.roles.map((r, i) => {
       let info;
       try { const L = parseLoadout(r.src); info = [L.uniform && "uniform", L.weapons.map((w) => w.cls).join(", ")].filter(Boolean).join(" · "); }
@@ -2424,6 +2471,17 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     // Back to a blank file: prefix, author, roles and the default IFAK/items groups.
     const resetLB = () => { Object.assign(LB, { prefix: "", author: "", fname: "", groups: true, roles: [], ifak: LB_IFAK, items: LB_ITEMS, medic: LB_MEDIC, rand: randDefault() }); clearForm(); $("lb-msg").textContent = ""; $("lb-prefix").value = ""; $("lb-author").value = ""; $("lb-fname").value = ""; saveLB(); renderLB(); };
     bindClear("lb-reset-top", resetLB, "Reset loadout builder", "Click again to erase the loadout");
+    let platArmed = 0;
+    $("lb-platoon").addEventListener("click", () => {
+      const st = designStatus(), b = $("lb-platoon");
+      if ((st === "new" || st === "changed") && Date.now() - platArmed > 3000) {
+        platArmed = Date.now(); b.textContent = "Click again: replaces the unsaved design in Custom units"; b.classList.add("armed");
+        setTimeout(() => { if (Date.now() - platArmed >= 3000) { b.textContent = "Make a platoon from this loadout"; b.classList.remove("armed"); } }, 3100);
+        return;
+      }
+      platArmed = 0; b.textContent = "Make a platoon from this loadout"; b.classList.remove("armed");
+      lbMakePlatoon(Number($("lb-squads").value));
+    });
     $("lb-dl").addEventListener("click", async () => {
       const name = lbFile(), text = genLoadoutFile(), st = $("lb-status");
       try {
@@ -2435,6 +2493,41 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       } catch (e) { st.textContent = "Could not save: " + (e && e.message || e); }
     });
     renderLB();
+  }
+  // ---- builder roles as units for Custom units ------------------------------------------------
+  // Eden class for a role code: it only sets face, voice and the medic/engineer trait; gear comes from the script.
+  function classForRole(r) {
+    const n = r.name;
+    if (r.medic || /^MD|MEDIC/.test(n)) return "B_medic_F";
+    const rules = [[/^(PL|CO|OFF|PLT)/, "B_officer_F"], [/^(SL|PSG|RTO)/, "B_Soldier_SL_F"], [/^TL/, "B_Soldier_TL_F"],
+      [/^(AHEAVY|AAR|ARA|AMG|MGA)/, "B_soldier_AAR_F"], [/^(HEAVY|AR|MG|MMG|LMG)/, "B_soldier_AR_F"], [/^(MATA|HATA|ALAT|AAT)/, "B_soldier_AAT_F"],
+      [/^(MAT|HAT)/, "B_soldier_AT_F"], [/^(AT|LAT)/, "B_soldier_LAT_F"], [/^CREW/, "B_crew_F"], [/^(PIL|HELO)/, "B_Helipilot_F"]];
+    const hit = rules.find(([re]) => re.test(n));
+    return hit ? hit[1] : "B_Soldier_F";
+  }
+  function builderPalette() {
+    if (!lbPkgPrefix) return [];
+    return LB.roles.map((r) => ({ prefix: LB.prefix, role: r.name, desc: (r.desc || r.name).replace(/[@"]/g, ""), color: r.medic ? "GREEN" : "", type: classForRole(r), rank: "" }));
+  }
+  // A standard platoon from whichever of these roles the loadout has (missing ones fall back to RF).
+  function lbMakePlatoon(squads) {
+    const has = (codes) => codes.find((c) => LB.roles.some((r) => r.name === c));
+    const any = () => has(["RF", "RIF"]) || (LB.roles[0] && LB.roles[0].name);
+    const unit = (codes, desc, color) => {
+      const code = has(codes) || any(); if (!code) return null;
+      const r = LB.roles.find((x) => x.name === code);
+      return { prefix: LB.prefix, role: code, desc, color: forcedColor(code, color), type: classForRole(r), rank: "" };
+    };
+    const hq = [unit(["PL"], "Platoon Leader"), unit(["SL", "PSG"], "Platoon Sergeant"), unit(["MD"], "Platoon Medic")];
+    const squad = () => [unit(["SL"], "Squad Leader"),
+      unit(["TL", "TLA"], "Red Team Leader", "RED"), unit(["HEAVY", "AR", "MG"], "Red Autorifleman", "RED"), unit(["AHEAVY", "AAR", "ARA", "MGA"], "Red Asst. Autorifleman", "RED"), unit(["RF", "RIF"], "Red Rifleman", "RED"),
+      unit(["TL", "TLB"], "Blue Team Leader", "BLUE"), unit(["AT", "LAT"], "Blue Rifleman (AT)", "BLUE"), unit(["RFG", "GL", "TLA"], "Blue Grenadier", "BLUE"), unit(["MD"], "Medic")];
+    const groups = [{ slots: hq.filter(Boolean) }];
+    for (let i = 0; i < squads; i++) groups.push({ slots: squad().filter(Boolean) });
+    Object.assign(design, { id: null, name: LIB.packages[lbPkgPrefix].name.replace(/^My loadout: /, "") + " platoon", groups, active: 0 });
+    saveDesign();
+    location.hash = "#custom-units";
+    render();
   }
   window.__jantacLoadout = { parseLoadout, genLoadoutFile, LB };
 

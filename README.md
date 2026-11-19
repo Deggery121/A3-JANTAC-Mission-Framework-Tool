@@ -59,6 +59,10 @@ is left) gets its own platoon, composition, loadout and briefing.
 export, in the same layout as `CHIN.sqf`: header with every init line, `#define package`, shared
 `SET_GROUP` blocks (uniform, IFAK, items; IFAK, items and medic supplies are editable) and a `case` per role. Optional: random uniform items (`FNC_AddItemRandom` lists) and a long range radio per role. Copy or download the file, then put it in
 `customization\loadouts` and add its `#include` to `gear.sqf`.
+The builder's roles also appear in the **Custom units** unit list as "My loadout", and **Make a platoon from
+this loadout** builds an HQ + 1-4 squad design from them (Eden classes picked from the role codes). A custom
+platoon using them takes the builder's loadout file into the mission like any library loadout. Builder
+loadouts live in that browser only; send the file and design in to add them to the library.
 
 **Addon settings** tab: JANFU's standard CBA addon options (ACE, ACRE2 and the rest) with **Copy all
 settings** / **Copy forced only** buttons and the steps to import them in Eden (Settings → Addon Options →
