@@ -721,6 +721,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
           <div class="own-grid">
             <div class="field"><label for="lb-prefix">Package prefix</label><div class="suffix-in"><input id="lb-prefix" placeholder="CHIN" autocomplete="off" spellcheck="false"><span aria-hidden="true">_</span></div></div>
             <div class="field"><label for="lb-author">Author</label><input id="lb-author" placeholder="Deggery" autocomplete="off"></div>
+            <div class="field"><label for="lb-fname">Loadout name</label><div class="suffix-in"><input id="lb-fname" placeholder="CHIN" autocomplete="off" spellcheck="false"><span aria-hidden="true">.sqf</span></div></div>
           </div>
           <p class="hint" style="margin:0" id="lb-gate"></p>
         </fieldset>
@@ -2276,7 +2277,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const LB_GEN = {};
   const lbOpen = new Set();
 
-  const lbFile = () => (LB.prefix ? LB.prefix.replace(/_$/, "") : "LOADOUT") + ".sqf";
+  // The loadout's file name: what the mission maker typed, or the prefix without its _ (CHIN_ -> CHIN.sqf).
+  const lbFile = () => (LB.fname || (LB.prefix ? LB.prefix.replace(/_$/, "") : "LOADOUT")) + ".sqf";
   function lbIssues() {
     const out = [];
     if (!/^[A-Z0-9]+_$/.test(LB.prefix)) out.push("Give the package prefix, e.g. CHIN (the _ is added for you).");
@@ -2287,6 +2289,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   function renderLB() {
     if (document.activeElement !== $("lb-prefix")) $("lb-prefix").value = LB.prefix.replace(/_$/, "");
     if (document.activeElement !== $("lb-author")) $("lb-author").value = LB.author;
+    if (document.activeElement !== $("lb-fname")) $("lb-fname").value = LB.fname || "";
+    $("lb-fname").placeholder = LB.prefix ? LB.prefix.replace(/_$/, "") : "CHIN";
     if (document.activeElement !== $("lb-ifak")) $("lb-ifak").value = LB.ifak;
     if (document.activeElement !== $("lb-items")) $("lb-items").value = LB.items;
     if (document.activeElement !== $("lb-medsup")) $("lb-medsup").value = LB.medic;
@@ -2370,6 +2374,13 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       if (e.target.value !== base) e.target.value = base;
       LB.prefix = base ? base + "_" : ""; saveLB(); renderLB();
     });
+    // .sqf is always added: CHIN becomes CHIN.sqf. Letters, numbers, _ and - only.
+    $("lb-fname").addEventListener("input", (e) => {
+      const v = e.target.value.replace(/[^A-Za-z0-9_.-]/g, "");
+      if (e.target.value !== v) e.target.value = v;
+      LB.fname = v.replace(/\.sqf$/i, "").replace(/\./g, ""); saveLB(); renderLB();
+    });
+    $("lb-fname").addEventListener("change", (e) => { e.target.value = LB.fname; });
     $("lb-ifak").addEventListener("input", (e) => { LB.ifak = e.target.value; saveLB(); renderLB(); });
     $("lb-items").addEventListener("input", (e) => { LB.items = e.target.value; saveLB(); renderLB(); });
     $("lb-medsup").addEventListener("input", (e) => { LB.medic = e.target.value; saveLB(); renderLB(); });
@@ -2411,7 +2422,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("lb-cancel").addEventListener("click", () => { clearForm(); $("lb-msg").textContent = ""; renderLB(); });
     bindCopy("lb-copy", "lb-out", genLoadoutFile);
     // Back to a blank file: prefix, author, roles and the default IFAK/items groups.
-    const resetLB = () => { Object.assign(LB, { prefix: "", author: "", groups: true, roles: [], ifak: LB_IFAK, items: LB_ITEMS, medic: LB_MEDIC, rand: randDefault() }); clearForm(); $("lb-msg").textContent = ""; $("lb-prefix").value = ""; $("lb-author").value = ""; saveLB(); renderLB(); };
+    const resetLB = () => { Object.assign(LB, { prefix: "", author: "", fname: "", groups: true, roles: [], ifak: LB_IFAK, items: LB_ITEMS, medic: LB_MEDIC, rand: randDefault() }); clearForm(); $("lb-msg").textContent = ""; $("lb-prefix").value = ""; $("lb-author").value = ""; $("lb-fname").value = ""; saveLB(); renderLB(); };
     bindClear("lb-reset-top", resetLB, "Reset loadout builder", "Click again to erase the loadout");
     $("lb-dl").addEventListener("click", async () => {
       const name = lbFile(), text = genLoadoutFile(), st = $("lb-status");
