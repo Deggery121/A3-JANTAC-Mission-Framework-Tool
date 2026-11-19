@@ -195,8 +195,7 @@ h1 {
 .role-code { flex-basis: 100%; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--line); margin-top: 4px; }
 .role-code label { font-size: 13px; font-weight: 600; }
 .role-code textarea { width: 100%; box-sizing: border-box; tab-size: 4; white-space: pre; overflow-x: auto; }
-.lb-units { display: flex; flex-direction: column; gap: 8px; margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
-.lb-units .toolbar { align-items: center; }
+#lb-units .toolbar { align-items: center; }
 .pal.mine summary { color: var(--friendly); }
 .rand-box { display: flex; flex-direction: column; gap: 10px; margin: -4px 0 4px 28px; }
 .lbl-sm { font-size: 13px; font-weight: 600; }
@@ -749,6 +748,12 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
           <legend>Roles</legend>
           <ul class="slist" id="lb-roles"></ul>
         </fieldset>
+        <fieldset id="lb-units">
+          <legend>Use it for units</legend>
+          <p class="hint" style="margin:0">Your roles are in the <a href="#custom-units">Custom units</a> unit list as "My loadout". Or make a whole platoon from them now:</p>
+          <div class="toolbar"><label for="lb-squads" class="hint">Squads</label><select id="lb-squads"><option>1</option><option>2</option><option selected>3</option><option>4</option></select>
+            <button type="button" class="btn" id="lb-platoon" style="width:auto">Make a platoon from this loadout</button></div>
+        </fieldset>
         <fieldset>
           <legend>Add a role</legend>
           <div id="lb-addbox">
@@ -783,11 +788,6 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
           </div>
         </div>
         <p class="hint" id="lb-status"></p>
-        <div class="lb-units" id="lb-units">
-          <p class="hint" style="margin:0"><b>Use it for units:</b> your roles are in the <a href="#custom-units">Custom units</a> unit list as "My loadout". Or make a whole platoon from them now:</p>
-          <div class="toolbar"><label for="lb-squads" class="hint">Squads</label><select id="lb-squads"><option>1</option><option>2</option><option selected>3</option><option>4</option></select>
-            <button type="button" class="btn" id="lb-platoon" style="width:auto">Make a platoon from this loadout</button></div>
-        </div>
         <pre class="code" id="lb-out"></pre>
       </section>
     </div>
