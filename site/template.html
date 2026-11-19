@@ -705,6 +705,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     </div>
   </div>
   <div id="view-builder" hidden>
+    <div class="resetbar"><span>Your loadout file is saved in this browser between visits.</span><button type="button" class="tbtn" id="lb-reset-top">Reset loadout builder</button></div>
     <div class="brief">
       <div class="form">
         <fieldset>
@@ -2312,7 +2313,10 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     });
     $("lb-cancel").addEventListener("click", () => { clearForm(); $("lb-msg").textContent = ""; renderLB(); });
     bindCopy("lb-copy", "lb-out", genLoadoutFile);
-    bindClear("lb-reset", () => { Object.assign(LB, { prefix: "", author: "", groups: true, roles: [], ifak: LB_IFAK, items: LB_ITEMS }); clearForm(); $("lb-prefix").value = ""; $("lb-author").value = ""; saveLB(); renderLB(); }, "Start over", "Click again to erase all roles");
+    // Back to a blank file: prefix, author, roles and the default IFAK/items groups.
+    const resetLB = () => { Object.assign(LB, { prefix: "", author: "", groups: true, roles: [], ifak: LB_IFAK, items: LB_ITEMS }); clearForm(); $("lb-msg").textContent = ""; $("lb-prefix").value = ""; $("lb-author").value = ""; saveLB(); renderLB(); };
+    bindClear("lb-reset", resetLB, "Start over", "Click again to erase all roles");
+    bindClear("lb-reset-top", resetLB, "Reset loadout builder", "Click again to erase the loadout");
     $("lb-dl").addEventListener("click", async () => {
       const name = lbFile(), text = genLoadoutFile(), st = $("lb-status");
       try {
