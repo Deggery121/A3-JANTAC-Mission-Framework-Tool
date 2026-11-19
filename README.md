@@ -57,7 +57,7 @@ is left) gets its own platoon, composition, loadout and briefing.
 **Loadout builder** tab: turns Arma's own arsenal exports (ACE Arsenal **Export**, Virtual Arsenal
 **Export**, or `copyToClipboard str getUnitLoadout player`) into a framework loadout `.sqf`, one role per
 export, in the same layout as `CHIN.sqf`: header with every init line, `#define package`, shared
-`SET_GROUP` blocks (uniform, IFAK, items) and a `case` per role. Copy or download the file, then put it in
+`SET_GROUP` blocks (uniform, IFAK, items; IFAK, items and medic supplies are editable) and a `case` per role. Optional: random uniform items (`FNC_AddItemRandom` lists) and a long range radio per role. Copy or download the file, then put it in
 `customization\loadouts` and add its `#include` to `gear.sqf`.
 
 **Addon settings** tab: JANFU's standard CBA addon options (ACE, ACRE2 and the rest) with **Copy all

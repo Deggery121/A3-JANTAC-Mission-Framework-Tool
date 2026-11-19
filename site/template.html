@@ -189,6 +189,7 @@ h1 {
 .suffix-in input { flex: 1; min-width: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
 .suffix-in span { display: flex; align-items: center; padding: 0 10px; border: 1px solid var(--line); border-left: 0; border-radius: 0 var(--radius) var(--radius) 0; background: var(--sunken); font: 600 14px var(--font-mono); }
 .lb-locked { opacity: .5; pointer-events: none; }
+.rand-box { display: flex; flex-direction: column; gap: 10px; margin: -4px 0 4px 28px; }
 .lbl-sm { font-size: 13px; font-weight: 600; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .chip { font: 500 12.5px var(--font-body); border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
@@ -724,6 +725,14 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
           <div class="field"><label for="lb-items">SET_GROUP(items)</label><textarea id="lb-items" rows="6" spellcheck="false" class="mono"></textarea></div>
           <div class="field"><label for="lb-medsup">Medic supplies <span class="aux">added to every role marked Medic, under //Medical Supplies</span></label><textarea id="lb-medsup" rows="9" spellcheck="false" class="mono"></textarea></div>
           <div class="toolbar"><button type="button" class="tbtn" id="lb-defgroups">Reset groups to default</button></div>
+          <label class="check"><input type="checkbox" id="lb-rand-on"><span>Random uniform items<small>Every role gets one item picked at random from each list below with <code>FNC_AddItemRandom</code>, in <code>SET_GROUP(uniform)</code>. Leave a list empty to keep each role's own item for that slot.</small></span></label>
+          <div id="lb-rand" class="rand-box" hidden>
+            <div class="field"><label for="lb-rand-uniform">Uniforms <span class="aux">class names, one per line</span></label><textarea id="lb-rand-uniform" rows="3" spellcheck="false" class="mono" placeholder="JAN_PLA_Ocean&#10;JAN_PLA_Ocean_Rolled"></textarea></div>
+            <div class="field"><label for="lb-rand-headgear">Headgear</label><textarea id="lb-rand-headgear" rows="3" spellcheck="false" class="mono" placeholder="JAN_PLA_QGF3_O"></textarea></div>
+            <div class="field"><label for="lb-rand-goggles">Goggles / facewear</label><textarea id="lb-rand-goggles" rows="2" spellcheck="false" class="mono"></textarea></div>
+            <div class="field"><label for="lb-rand-vest">Vests</label><textarea id="lb-rand-vest" rows="2" spellcheck="false" class="mono"></textarea></div>
+            <div class="toolbar"><button type="button" class="tbtn" id="lb-rand-fill">Fill from the roles' exports</button><span class="hint" id="lb-rand-msg"></span></div>
+          </div>
           <label class="check"><input type="checkbox" id="lb-groups"><span>Also group the clothing every role shares<small>When every role wears the same uniform, headgear or goggles, they go into <code>SET_GROUP(uniform)</code>.</small></span></label>
         </fieldset>
         <fieldset>
@@ -2022,6 +2031,12 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const LR_LINE = '["ACRE_PRC148", 1] call FNC_AddItem; //Long range radio';
   const LB = Object.assign({ prefix: "", author: "", groups: true, roles: [], ifak: LB_IFAK, items: LB_ITEMS, medic: LB_MEDIC }, load("jantac-lb") || {});
   if (typeof LB.medic !== "string") LB.medic = LB_MEDIC;
+  const RAND_SLOTS = ["uniform", "headgear", "goggles", "vest"];
+  const randDefault = () => ({ on: false, uniform: "", headgear: "", goggles: "", vest: "" });
+  LB.rand = Object.assign(randDefault(), LB.rand || {});
+  // Class names typed in a list: one per line (commas and quotes are fine too).
+  const randList = (slot) => (LB.rand.on ? String(LB.rand[slot] || "").split(/[\r\n,]+/).map((c) => c.trim().replace(/^["']|["'];?$/g, "").trim()).filter(Boolean) : []);
+  const randActive = () => RAND_SLOTS.filter((sl) => randList(sl).length);
   if (typeof LB.ifak !== "string") LB.ifak = LB_IFAK;
   if (typeof LB.items !== "string") LB.items = LB_ITEMS;
   const lbReady = () => /^[A-Z0-9]+_$/.test(LB.prefix) && !!LB.author.trim();
@@ -2165,12 +2180,15 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     const q = (c) => '"' + String(c).replace(/"/g, '""') + '"';
     const merge = (list) => { const m = new Map(); list.forEach(([c, n, mag]) => { const e = m.get(c) || [0, mag]; e[0] += n; m.set(c, e); }); return [...m].map(([c, [n, mag]]) => [c, n, mag]); };
     if (medic) out.push({ cat: "medic", key: "_unit call FNC_defineMedic;", text: "_unit call FNC_defineMedic;" });
-    if (L.uniform) add("dress", "[" + q(L.uniform) + "] call FNC_AddItem;");
-    if (L.headgear) add("dress", "[" + q(L.headgear) + "] call FNC_AddItem;");
-    if (L.goggles) add("dress", "[" + q(L.goggles) + "] call FNC_AddItem;");
+    // Random uniform lists replace the role's own item for that slot (they live in SET_GROUP(uniform)).
+    const rand = randActive();
+    if (rand.length) out.push({ cat: "dress", key: "__rand", text: "" });
+    if (L.uniform && !rand.includes("uniform")) add("dress", "[" + q(L.uniform) + "] call FNC_AddItem;");
+    if (L.headgear && !rand.includes("headgear")) add("dress", "[" + q(L.headgear) + "] call FNC_AddItem;");
+    if (L.goggles && !rand.includes("goggles")) add("dress", "[" + q(L.goggles) + "] call FNC_AddItem;");
     // The long range radio comes right after the uniform, before the vest and backpack.
     if (lr) out.push({ cat: "lr", key: "lr", text: LR_LINE });
-    if (L.vest) add("gear", "[" + q(L.vest) + "] call FNC_AddItem;");
+    if (L.vest && !rand.includes("vest")) add("gear", "[" + q(L.vest) + "] call FNC_AddItem;");
     if (L.backpack) add("gear", "[" + q(L.backpack) + "] call FNC_AddItem;");
     L.linked.forEach((c) => add("items", "[" + q(c) + "] call FNC_AddItem;"));
     if (L.binocular) add("kit", "[" + q(L.binocular) + "] call FNC_AddItem;");
@@ -2201,12 +2219,16 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     const roles = LB.roles.map((r) => { try { return { r, lines: roleLines(parseLoadout(r.src), r.medic, r.lr) }; } catch (e) { return { r, err: e.message }; } });
     const ok = roles.filter((x) => x.lines);
     const groups = {};
+    const rq = (c) => '"' + String(c).replace(/"/g, '""') + '"';
+    const randLines = randActive().map((sl) => ({ key: "__rand:" + sl, text: "[" + randList(sl).map(rq).join(", ") + "] call FNC_AddItemRandom;" }));
+    if (randLines.length) groups.uniform = randLines.slice();
     if (LB.groups && ok.length > 1) {
-      const common = ok[0].lines.filter((l) => GROUP_OF[l.cat] && ok.every((x) => x.lines.some((m) => m.key === l.key)));
+      const common = ok[0].lines.filter((l) => GROUP_OF[l.cat] && l.key !== "__rand" && ok.every((x) => x.lines.some((m) => m.key === l.key)));
       common.forEach((l) => (groups[GROUP_OF[l.cat]] = groups[GROUP_OF[l.cat]] || []).push(l));
     }
     const groupOfKey = {};
     Object.keys(groups).forEach((g) => groups[g].forEach((l) => (groupOfKey[l.key] = g)));
+    if (randLines.length) groupOfKey.__rand = "uniform";
     const out = ["//AUTHOR: " + (LB.author || "unknown"), "//"];
     LB.roles.forEach((r) => out.push('//[this, "' + prefix + r.name + '"] call FNC_GearScript;' + (r.desc ? " " + r.desc.toUpperCase() : "")));
     out.push("", '#define package "' + prefix + '"', "");
@@ -2255,6 +2277,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (document.activeElement !== $("lb-ifak")) $("lb-ifak").value = LB.ifak;
     if (document.activeElement !== $("lb-items")) $("lb-items").value = LB.items;
     if (document.activeElement !== $("lb-medsup")) $("lb-medsup").value = LB.medic;
+    $("lb-rand-on").checked = LB.rand.on; $("lb-rand").hidden = !LB.rand.on;
+    RAND_SLOTS.forEach((sl) => { if (document.activeElement !== $("lb-rand-" + sl)) $("lb-rand-" + sl).value = LB.rand[sl]; });
     $("lb-groups").checked = LB.groups;
     // Nothing can be added until the file has a prefix and an author.
     const ready = lbReady();
@@ -2313,6 +2337,21 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("lb-ifak").addEventListener("input", (e) => { LB.ifak = e.target.value; saveLB(); renderLB(); });
     $("lb-items").addEventListener("input", (e) => { LB.items = e.target.value; saveLB(); renderLB(); });
     $("lb-medsup").addEventListener("input", (e) => { LB.medic = e.target.value; saveLB(); renderLB(); });
+    $("lb-rand-on").addEventListener("change", (e) => { LB.rand.on = e.target.checked; saveLB(); renderLB(); });
+    RAND_SLOTS.forEach((sl) => $("lb-rand-" + sl).addEventListener("input", (e) => { LB.rand[sl] = e.target.value; saveLB(); renderLB(); }));
+    // Start the lists from what the roles already wear (each class once).
+    $("lb-rand-fill").addEventListener("click", () => {
+      const seen = { uniform: new Set(), headgear: new Set(), goggles: new Set(), vest: new Set() };
+      LB.roles.forEach((r) => { try { const L = parseLoadout(r.src); RAND_SLOTS.forEach((sl) => { if (L[sl]) seen[sl].add(L[sl]); }); } catch (e) {} });
+      let n = 0;
+      RAND_SLOTS.forEach((sl) => {
+        const have = String(LB.rand[sl] || "").split(/\r?\n/).map((c) => c.trim()).filter(Boolean);
+        const add = [...seen[sl]].filter((c) => !have.includes(c)); n += add.length;
+        LB.rand[sl] = have.concat(add).join("\n");
+      });
+      $("lb-rand-msg").textContent = LB.roles.length ? n + " class name" + (n === 1 ? "" : "s") + " added." : "Add roles first.";
+      saveLB(); renderLB();
+    });
     $("lb-defgroups").addEventListener("click", () => { LB.ifak = LB_IFAK; LB.items = LB_ITEMS; LB.medic = LB_MEDIC; $("lb-ifak").value = LB.ifak; $("lb-items").value = LB.items; $("lb-medsup").value = LB.medic; saveLB(); renderLB(); });
     $("lb-author").addEventListener("input", (e) => { LB.author = e.target.value; saveLB(); renderLB(); });
     $("lb-groups").addEventListener("change", (e) => { LB.groups = e.target.checked; saveLB(); renderLB(); });
@@ -2331,7 +2370,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("lb-cancel").addEventListener("click", () => { clearForm(); $("lb-msg").textContent = ""; renderLB(); });
     bindCopy("lb-copy", "lb-out", genLoadoutFile);
     // Back to a blank file: prefix, author, roles and the default IFAK/items groups.
-    const resetLB = () => { Object.assign(LB, { prefix: "", author: "", groups: true, roles: [], ifak: LB_IFAK, items: LB_ITEMS, medic: LB_MEDIC }); clearForm(); $("lb-msg").textContent = ""; $("lb-prefix").value = ""; $("lb-author").value = ""; saveLB(); renderLB(); };
+    const resetLB = () => { Object.assign(LB, { prefix: "", author: "", groups: true, roles: [], ifak: LB_IFAK, items: LB_ITEMS, medic: LB_MEDIC, rand: randDefault() }); clearForm(); $("lb-msg").textContent = ""; $("lb-prefix").value = ""; $("lb-author").value = ""; saveLB(); renderLB(); };
     bindClear("lb-reset-top", resetLB, "Reset loadout builder", "Click again to erase the loadout");
     $("lb-dl").addEventListener("click", async () => {
       const name = lbFile(), text = genLoadoutFile(), st = $("lb-status");
