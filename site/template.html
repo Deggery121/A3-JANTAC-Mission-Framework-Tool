@@ -184,7 +184,11 @@ h1 {
 }
 .steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; }
 #a-out, #lb-out { max-height: 75vh; overflow: auto; }
-#lb-src { font: 12px/1.45 var(--font-mono); }
+#lb-src, textarea.mono { font: 12px/1.45 var(--font-mono); }
+.suffix-in { display: flex; align-items: stretch; }
+.suffix-in input { flex: 1; min-width: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.suffix-in span { display: flex; align-items: center; padding: 0 10px; border: 1px solid var(--line); border-left: 0; border-radius: 0 var(--radius) var(--radius) 0; background: var(--sunken); font: 600 14px var(--font-mono); }
+.lb-locked { opacity: .5; pointer-events: none; }
 .lbl-sm { font-size: 13px; font-weight: 600; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .chip { font: 500 12.5px var(--font-body); border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
@@ -707,10 +711,18 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
           <legend>Loadout file</legend>
           <p class="hint" style="margin:0">Build a gear script for the framework from Arma's own arsenal exports. Dress a unit in ACE Arsenal or the Virtual Arsenal, press its <b>Export</b> button (it copies the loadout), and paste it here as a role. The page writes the <code>.sqf</code> in the same layout as the library's loadouts.</p>
           <div class="own-grid">
-            <div class="field"><label for="lb-prefix">Package prefix</label><input id="lb-prefix" placeholder="CHIN_" autocomplete="off" spellcheck="false"></div>
+            <div class="field"><label for="lb-prefix">Package prefix</label><div class="suffix-in"><input id="lb-prefix" placeholder="CHIN" autocomplete="off" spellcheck="false"><span aria-hidden="true">_</span></div></div>
             <div class="field"><label for="lb-author">Author</label><input id="lb-author" placeholder="Deggery" autocomplete="off"></div>
           </div>
-          <label class="check"><input type="checkbox" id="lb-groups"><span>Group what every role shares<small>Lines every role has in common go into SET_GROUP blocks like CHIN.sqf: <code>uniform</code> (uniform, headgear, goggles), <code>IFAK</code> (ACE medical in the uniform) and <code>items</code> (map, compass, watch, radio and the rest of the uniform).</small></span></label>
+          <p class="hint" style="margin:0" id="lb-gate"></p>
+        </fieldset>
+        <fieldset>
+          <legend>Shared groups</legend>
+          <p class="hint" style="margin:0">Every role gets <code>ADD_GROUP(IFAK)</code> and <code>ADD_GROUP(items)</code>. Edit what's in them here, one line per item. Exported items that are already in a group are left out of the role so nothing is doubled.</p>
+          <div class="field"><label for="lb-ifak">SET_GROUP(IFAK)</label><textarea id="lb-ifak" rows="5" spellcheck="false" class="mono"></textarea></div>
+          <div class="field"><label for="lb-items">SET_GROUP(items)</label><textarea id="lb-items" rows="6" spellcheck="false" class="mono"></textarea></div>
+          <div class="toolbar"><button type="button" class="tbtn" id="lb-defgroups">Reset groups to default</button></div>
+          <label class="check"><input type="checkbox" id="lb-groups"><span>Also group the clothing every role shares<small>When every role wears the same uniform, headgear or goggles, they go into <code>SET_GROUP(uniform)</code>.</small></span></label>
         </fieldset>
         <fieldset>
           <legend>Roles</legend>
@@ -718,6 +730,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         </fieldset>
         <fieldset>
           <legend>Add a role</legend>
+          <div id="lb-addbox">
           <div class="field"><span class="lbl-sm">Common roles <span class="aux">click to fill in the role; ✓ = already added</span></span><div class="chips" id="lb-common"></div></div>
           <div class="own-grid">
             <div class="field"><label for="lb-name">Role</label><input id="lb-name" placeholder="AR" autocomplete="off" spellcheck="false"></div>
@@ -726,6 +739,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
           <label class="check"><input type="checkbox" id="lb-medic"><span>Medic<small>Adds <code>_unit call FNC_defineMedic;</code> and the standard medical supplies in the backpack (15 field dressings, 35 elastic, 25 packing, 12 morphine, 12 epinephrine, 8 tourniquets, 12 splints, 2 saline 500, 4 blood). ACE medical items in the exported backpack are replaced by these.</small></span></label>
           <div class="field"><label for="lb-src">Arsenal export</label><textarea id="lb-src" rows="7" spellcheck="false" placeholder="ACE Arsenal: Export button. Virtual Arsenal: Export (Ctrl+C). Or in the debug console: copyToClipboard str getUnitLoadout player"></textarea></div>
           <div class="toolbar"><button type="button" class="btn" id="lb-add" style="width:auto">Add role</button><button type="button" class="tbtn" id="lb-cancel" hidden>Cancel edit</button><span class="hint" id="lb-msg" role="status"></span></div>
+          </div>
         </fieldset>
         <fieldset>
           <legend>How to export from Arma</legend>
@@ -1995,7 +2009,16 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
   // ---- Loadout builder: Arma arsenal exports -> Olsen/JANTAC loadout .sqf ---------------------------
   // Accepts ACE Arsenal / getUnitLoadout arrays and Virtual Arsenal (BIS) script exports.
-  const LB = Object.assign({ prefix: "", author: "", groups: true, roles: [] }, load("jantac-lb") || {});
+  const LB_IFAK = ['["ACE_elasticBandage", 6, "uniform"] call FNC_AddItem;', '["ACE_packingBandage", 6, "uniform"] call FNC_AddItem;',
+    '["ACE_morphine", 1, "uniform"] call FNC_AddItem;', '["ACE_epinephrine", 1, "uniform"] call FNC_AddItem;', '["ACE_tourniquet", 1, "uniform"] call FNC_AddItem;'].join("\n");
+  const LB_ITEMS = ['["ACRE_PRC343", 1] call FNC_AddItem;', '["ItemMap"] call FNC_AddItem;', '["ItemCompass"] call FNC_AddItem;',
+    '["ItemWatch"] call FNC_AddItem;', '["cigs_nil_cigpack"] call FNC_AddItem;', '["cigs_lighter"] call FNC_AddItem;'].join("\n");
+  const LB = Object.assign({ prefix: "", author: "", groups: true, roles: [], ifak: LB_IFAK, items: LB_ITEMS }, load("jantac-lb") || {});
+  if (typeof LB.ifak !== "string") LB.ifak = LB_IFAK;
+  if (typeof LB.items !== "string") LB.items = LB_ITEMS;
+  const lbReady = () => /^[A-Z0-9]+_$/.test(LB.prefix) && !!LB.author.trim();
+  const groupLines = (t) => String(t || "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const groupClasses = () => new Set(groupLines(LB.ifak + "\n" + LB.items).map((l) => (/^\[\s*"([^"]+)"/.exec(l) || [])[1]).filter(Boolean).map((c) => c.toLowerCase()));
   if (!Array.isArray(LB.roles)) LB.roles = [];
   const saveLB = () => store("jantac-lb", LB);
   let lbEdit = -1;
@@ -2119,6 +2142,11 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   function roleLines(L, medic) {
     const out = [];
     if (medic) L = Object.assign({}, L, { contents: Object.assign({}, L.contents, { backpack: L.contents.backpack.filter(([c]) => !/^ACE_/.test(c)) }) });
+    const inGroup = groupClasses(), has = (c) => inGroup.has(String(c).toLowerCase());
+    L = Object.assign({}, L, {
+      linked: L.linked.filter((c) => !has(c)),
+      contents: { uniform: L.contents.uniform.filter(([c]) => !has(c)), vest: L.contents.vest.filter(([c]) => !(has(c) && /^ACRE_/.test(c))), backpack: L.contents.backpack.filter(([c]) => !(has(c) && /^ACRE_/.test(c))) },
+    });
     const add = (cat, code, note) => out.push({ cat, key: code, text: code + (note ? " //" + note : "") });
     const q = (c) => '"' + String(c).replace(/"/g, '""') + '"';
     const merge = (list) => { const m = new Map(); list.forEach(([c, n, mag]) => { const e = m.get(c) || [0, mag]; e[0] += n; m.set(c, e); }); return [...m].map(([c, [n, mag]]) => [c, n, mag]); };
@@ -2151,7 +2179,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   }
 
   // Groups like CHIN.sqf: uniform (clothes), IFAK (ACE medical in the uniform), items (linked items, radio).
-  const GROUP_OF = { dress: "uniform", ifak: "IFAK", items: "items" };
+  const GROUP_OF = { dress: "uniform" };
   function genLoadoutFile() {
     const prefix = LB.prefix, CRLF = "\r\n";
     const roles = LB.roles.map((r) => { try { return { r, lines: roleLines(parseLoadout(r.src), r.medic) }; } catch (e) { return { r, err: e.message }; } });
@@ -2166,17 +2194,24 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     const out = ["//AUTHOR: " + (LB.author || "unknown"), "//"];
     LB.roles.forEach((r) => out.push('//[this, "' + prefix + r.name + '"] call FNC_GearScript;' + (r.desc ? " " + r.desc.toUpperCase() : "")));
     out.push("", '#define package "' + prefix + '"', "");
-    ["uniform", "IFAK", "items"].forEach((g) => {
-      if (!groups[g]) return;
-      out.push("SET_GROUP(" + g + ")", ...groups[g].map((l) => "\t" + l.text), "END_GROUP;", "\t");
-    });
+    if (groups.uniform) out.push("SET_GROUP(uniform)", ...groups.uniform.map((l) => "\t" + l.text), "END_GROUP;", "\t");
+    out.push("SET_GROUP(IFAK)", ...groupLines(LB.ifak).map((l) => "\t" + l), "END_GROUP;", "\t");
+    out.push("SET_GROUP(items)", ...groupLines(LB.items).map((l) => "\t" + l), "END_GROUP;", "\t");
     out.push("\t");
     roles.forEach(({ r, lines, err }) => {
       if (err) { out.push("// " + r.name + ": could not read this export (" + err + ")", ""); return; }
       out.push("case (package + " + '"' + r.name + '"' + "): {", "\t");
       const done = new Set();
-      let last = null;
+      let last = null, shared = false;
+      // IFAK and items come right after the clothing, vest and backpack, as in CHIN.sqf.
+      const addShared = () => {
+        if (shared) return; shared = true;
+        if (last) out.push("\t");
+        out.push("\tADD_GROUP(IFAK);", "\tADD_GROUP(items);");
+        last = "shared";
+      };
       lines.forEach((l) => {
+        if (!["medic", "dress", "gear"].includes(l.cat)) addShared();
         const g = groupOfKey[l.key];
         const block = g ? "group" : l.cat;
         if (last && block !== last && !(last === "group" && g)) out.push("\t");
@@ -2184,6 +2219,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         else out.push("\t" + l.text);
         last = block;
       });
+      addShared();
       out.push("\t", "};", "");
     });
     return out.join(CRLF);
@@ -2192,12 +2228,23 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   const lbFile = () => (LB.prefix ? LB.prefix.replace(/_$/, "") : "LOADOUT") + ".sqf";
   function lbIssues() {
     const out = [];
-    if (!/^[A-Za-z0-9]+_$/.test(LB.prefix)) out.push("Give the package prefix: letters and numbers ending in _, e.g. CHIN_.");
+    if (!/^[A-Z0-9]+_$/.test(LB.prefix)) out.push("Give the package prefix, e.g. CHIN (the _ is added for you).");
+    if (!LB.author.trim()) out.push("Give the author's name.");
     if (!LB.roles.length) out.push("Add at least one role.");
     return out;
   }
   function renderLB() {
-    $("lb-prefix").value = LB.prefix; $("lb-author").value = LB.author; $("lb-groups").checked = LB.groups;
+    if (document.activeElement !== $("lb-prefix")) $("lb-prefix").value = LB.prefix.replace(/_$/, "");
+    if (document.activeElement !== $("lb-author")) $("lb-author").value = LB.author;
+    if (document.activeElement !== $("lb-ifak")) $("lb-ifak").value = LB.ifak;
+    if (document.activeElement !== $("lb-items")) $("lb-items").value = LB.items;
+    $("lb-groups").checked = LB.groups;
+    // Nothing can be added until the file has a prefix and an author.
+    const ready = lbReady();
+    $("lb-addbox").classList.toggle("lb-locked", !ready);
+    $("lb-addbox").querySelectorAll("input, textarea, button").forEach((el) => (el.disabled = !ready));
+    $("lb-addbox").setAttribute("aria-disabled", String(!ready));
+    $("lb-gate").textContent = ready ? "Roles will be named " + LB.prefix + "ROLE." : "Enter the package prefix and the author first. Then you can pick roles and paste exports.";
     $("lb-roles").innerHTML = LB.roles.length ? LB.roles.map((r, i) => {
       let info;
       try { const L = parseLoadout(r.src); info = [L.uniform && "uniform", L.weapons.map((w) => w.cls).join(", ")].filter(Boolean).join(" · "); }
@@ -2209,7 +2256,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     }).join("") : '<li><span class="empty-row">No roles yet. Paste an arsenal export below and press Add role.</span></li>';
     $("lb-common").innerHTML = COMMON_ROLES.map(([code, desc]) => {
       const have = LB.roles.some((r) => r.name === code);
-      return '<button type="button" class="chip' + (have ? " done" : "") + '" data-code="' + code + '" title="' + esc(desc) + '">' + (have ? "✓ " : "") + "<b>" + code + "</b> " + esc(desc) + "</button>";
+      return '<button type="button" class="chip' + (have ? " done" : "") + '" data-code="' + code + '" title="' + esc(desc) + '"' + (lbReady() ? "" : " disabled") + ">" + (have ? "✓ " : "") + "<b>" + code + "</b> " + esc(desc) + "</button>";
     }).join("");
     $("lb-common").querySelectorAll("[data-code]").forEach((b) => b.addEventListener("click", () => {
       const [code, desc] = COMMON_ROLES.find((r) => r[0] === b.dataset.code);
@@ -2240,11 +2287,20 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     }, "Delete", "Click again"));
   }
   function bindLB() {
-    $("lb-prefix").addEventListener("input", (e) => { LB.prefix = e.target.value.trim().toUpperCase().replace(/[^A-Z0-9_]/g, ""); saveLB(); renderLB(); });
+    // The trailing _ is always added: CHIN becomes CHIN_.
+    $("lb-prefix").addEventListener("input", (e) => {
+      const base = e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "").replace(/_+$/, "");
+      if (e.target.value !== base) e.target.value = base;
+      LB.prefix = base ? base + "_" : ""; saveLB(); renderLB();
+    });
+    $("lb-ifak").addEventListener("input", (e) => { LB.ifak = e.target.value; saveLB(); renderLB(); });
+    $("lb-items").addEventListener("input", (e) => { LB.items = e.target.value; saveLB(); renderLB(); });
+    $("lb-defgroups").addEventListener("click", () => { LB.ifak = LB_IFAK; LB.items = LB_ITEMS; $("lb-ifak").value = LB.ifak; $("lb-items").value = LB.items; saveLB(); renderLB(); });
     $("lb-author").addEventListener("input", (e) => { LB.author = e.target.value; saveLB(); renderLB(); });
     $("lb-groups").addEventListener("change", (e) => { LB.groups = e.target.checked; saveLB(); renderLB(); });
     const clearForm = () => { lbEdit = -1; ["lb-name", "lb-desc", "lb-src"].forEach((k) => ($(k).value = "")); $("lb-medic").checked = false; };
     $("lb-add").addEventListener("click", () => {
+      if (!lbReady()) return;
       const name = $("lb-name").value.trim().toUpperCase(), src = $("lb-src").value.trim(), msg = $("lb-msg");
       if (!/^[A-Z0-9]+$/.test(name)) { msg.textContent = "Role names are letters and numbers only, e.g. AR or MD."; return; }
       if (LB.roles.some((r, i) => r.name === name && i !== lbEdit)) { msg.textContent = name + " is already in the list."; return; }
@@ -2256,7 +2312,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     });
     $("lb-cancel").addEventListener("click", () => { clearForm(); $("lb-msg").textContent = ""; renderLB(); });
     bindCopy("lb-copy", "lb-out", genLoadoutFile);
-    bindClear("lb-reset", () => { Object.assign(LB, { prefix: "", author: "", groups: true, roles: [] }); clearForm(); saveLB(); renderLB(); }, "Start over", "Click again to erase all roles");
+    bindClear("lb-reset", () => { Object.assign(LB, { prefix: "", author: "", groups: true, roles: [], ifak: LB_IFAK, items: LB_ITEMS }); clearForm(); $("lb-prefix").value = ""; $("lb-author").value = ""; saveLB(); renderLB(); }, "Start over", "Click again to erase all roles");
     $("lb-dl").addEventListener("click", async () => {
       const name = lbFile(), text = genLoadoutFile(), st = $("lb-status");
       try {
