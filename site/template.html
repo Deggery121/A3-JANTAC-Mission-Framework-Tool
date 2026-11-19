@@ -752,7 +752,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
             <li><b>Any unit:</b> in the Eden debug console run <code>copyToClipboard str getUnitLoadout player</code>.</li>
             <li>Paste it above, name the role (the part after the prefix, e.g. <code>AR</code> for <code>CHIN_AR</code>) and press <b>Add role</b>. Repeat for every role.</li>
           </ol>
-          <p class="hint" style="margin:0">Random choices (<code>FNC_AddItemRandom</code> with several items) can't come from one export: edit those lines in after. ACRE radio IDs are removed, so <code>ACRE_PRC343_ID_4</code> becomes <code>ACRE_PRC343</code>.</p>
+          <p class="hint" style="margin:0">Random choices (<code>FNC_AddItemRandom</code> with several items) can't come from one export: edit those lines in after. ACRE radio IDs are removed, so <code>ACRE_PRC343_ID_4</code> becomes <code>ACRE_PRC343</code>. <code>ItemRadio</code> and <code>FirstAidKit</code> are always left out.</p>
         </fieldset>
       </div>
       <section class="preview" aria-labelledby="lb-h">
@@ -2131,11 +2131,16 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     return L;
   }
 
+  // Vanilla items the framework never hands out: dropped from every import.
+  const LB_DROP = new Set(["itemradio", "firstaidkit"]);
+  const keep = (c) => !LB_DROP.has(String(c || "").toLowerCase());
   function parseLoadout(text) {
     const t = String(text || "").trim();
     if (!t) throw new Error("paste an arsenal export first");
-    if (t.startsWith("[")) return fromArray(parseSqfArray(t.replace(/;\s*$/, "")));
-    return fromScript(t);
+    const L = t.startsWith("[") ? fromArray(parseSqfArray(t.replace(/;\s*$/, ""))) : fromScript(t);
+    L.linked = L.linked.filter(keep);
+    ["uniform", "vest", "backpack"].forEach((k) => (L.contents[k] = L.contents[k].filter(([c]) => keep(c))));
+    return L;
   }
 
   // One role -> lines of SQF (without indentation). Each line has a key (its text without the comment)
@@ -2166,7 +2171,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (L.goggles) add("dress", "[" + q(L.goggles) + "] call FNC_AddItem;");
     if (L.vest) add("gear", "[" + q(L.vest) + "] call FNC_AddItem;");
     if (L.backpack) add("gear", "[" + q(L.backpack) + "] call FNC_AddItem;");
-    L.linked.filter((c) => c !== "ItemRadio" || !L.linked.some((x) => /^ACRE_/.test(x))).forEach((c) => add("items", "[" + q(c) + "] call FNC_AddItem;"));
+    L.linked.forEach((c) => add("items", "[" + q(c) + "] call FNC_AddItem;"));
     if (L.binocular) add("kit", "[" + q(L.binocular) + "] call FNC_AddItem;");
     ["uniform", "vest", "backpack"].forEach((k) => merge(L.contents[k]).forEach(([c, n, mag]) => {
       const note = /^ACRE_PRC(148|152|117)/.test(c) ? "Long range radio" : /^ACRE_/.test(c) ? "Radio"
