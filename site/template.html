@@ -185,6 +185,12 @@ h1 {
 .steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; }
 #a-out, #lb-out { max-height: 75vh; overflow: auto; }
 #lb-src { font: 12px/1.45 var(--font-mono); }
+.lbl-sm { font-size: 13px; font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chip { font: 500 12.5px var(--font-body); border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.chip:hover { border-color: var(--friendly); }
+.chip.done { color: var(--muted); }
+.chip b { font-weight: 700; }
 .code-row { display: flex; gap: 8px; align-items: stretch; }
 .code-row .code { flex: 1; min-width: 0; }
 .copy { font: 500 12px var(--font-body); border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: var(--radius); padding: 0 10px; cursor: pointer; }
@@ -712,11 +718,12 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         </fieldset>
         <fieldset>
           <legend>Add a role</legend>
+          <div class="field"><span class="lbl-sm">Common roles <span class="aux">click to fill in the role; ✓ = already added</span></span><div class="chips" id="lb-common"></div></div>
           <div class="own-grid">
             <div class="field"><label for="lb-name">Role</label><input id="lb-name" placeholder="AR" autocomplete="off" spellcheck="false"></div>
             <div class="field"><label for="lb-desc">Description <span class="aux">optional</span></label><input id="lb-desc" placeholder="Auto rifleman" autocomplete="off"></div>
           </div>
-          <label class="check"><input type="checkbox" id="lb-medic"><span>Medic<small>Adds <code>_unit call FNC_defineMedic;</code> so ACE treats this role as a medic.</small></span></label>
+          <label class="check"><input type="checkbox" id="lb-medic"><span>Medic<small>Adds <code>_unit call FNC_defineMedic;</code> and the standard medical supplies in the backpack (15 field dressings, 35 elastic, 25 packing, 12 morphine, 12 epinephrine, 8 tourniquets, 12 splints, 2 saline 500, 4 blood). ACE medical items in the exported backpack are replaced by these.</small></span></label>
           <div class="field"><label for="lb-src">Arsenal export</label><textarea id="lb-src" rows="7" spellcheck="false" placeholder="ACE Arsenal: Export button. Virtual Arsenal: Export (Ctrl+C). Or in the debug console: copyToClipboard str getUnitLoadout player"></textarea></div>
           <div class="toolbar"><button type="button" class="btn" id="lb-add" style="width:auto">Add role</button><button type="button" class="tbtn" id="lb-cancel" hidden>Cancel edit</button><span class="hint" id="lb-msg" role="status"></span></div>
         </fieldset>
@@ -2102,8 +2109,16 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
   // One role -> lines of SQF (without indentation). Each line has a key (its text without the comment)
   // so lines every role shares can be pulled into SET_GROUP blocks.
+  // Every medic gets the group's standard medical supplies in the backpack.
+  const MEDIC_SUPPLIES = [["ACE_fieldDressing", 15], ["ACE_elasticBandage", 35], ["ACE_packingBandage", 25], ["ACE_morphine", 12],
+    ["ACE_epinephrine", 12], ["ACE_tourniquet", 8], ["ACE_splint", 12], ["ACE_salineIV_500", 2], ["ACE_bloodIV", 4]];
+  // Roles the library's loadouts share: the code after the prefix and its description.
+  const COMMON_ROLES = [["PL", "Officer"], ["SL", "Squad leader"], ["TL", "Team leader"], ["RF", "Rifleman"], ["RFG", "Rifleman (grenadier)"],
+    ["AT", "Rifleman (AT)"], ["HEAVY", "Autorifleman"], ["AHEAVY", "Asst. autorifleman"], ["MD", "Medic"], ["MG", "Machinegunner"],
+    ["MGA", "MG assistant"], ["MAT", "MAT gunner"], ["MATA", "MAT assistant"], ["RTO", "Radio operator"], ["CREW", "Crewman"], ["PIL", "Pilot"]];
   function roleLines(L, medic) {
     const out = [];
+    if (medic) L = Object.assign({}, L, { contents: Object.assign({}, L.contents, { backpack: L.contents.backpack.filter(([c]) => !/^ACE_/.test(c)) }) });
     const add = (cat, code, note) => out.push({ cat, key: code, text: code + (note ? " //" + note : "") });
     const q = (c) => '"' + String(c).replace(/"/g, '""') + '"';
     const merge = (list) => { const m = new Map(); list.forEach(([c, n, mag]) => { const e = m.get(c) || [0, mag]; e[0] += n; m.set(c, e); }); return [...m].map(([c, [n, mag]]) => [c, n, mag]); };
@@ -2128,6 +2143,10 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       w.attach.forEach((c) => add("weapon", "[" + q(c) + "] call FNC_AddItem;"));
       w.mags.forEach((c) => add("weapon", "[" + q(c) + "] call FNC_AddItem;", " starting magazine"));
     });
+    if (medic) {
+      out.push({ cat: "medical", key: "//Medical Supplies", text: "//Medical Supplies" });
+      MEDIC_SUPPLIES.forEach(([c, n]) => out.push({ cat: "medical", key: "med:" + c, text: "[" + q(c) + ", " + n + ', "backpack"] call FNC_AddItem;' }));
+    }
     return out;
   }
 
@@ -2188,6 +2207,17 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         '<span class="acts"><button class="tbtn" type="button" data-up="' + i + '"' + (i ? "" : " disabled") + ' aria-label="Move up">↑</button>' +
         '<button class="tbtn" type="button" data-edit="' + i + '">Edit</button><button class="tbtn" type="button" data-del="' + i + '">Delete</button></span></li>';
     }).join("") : '<li><span class="empty-row">No roles yet. Paste an arsenal export below and press Add role.</span></li>';
+    $("lb-common").innerHTML = COMMON_ROLES.map(([code, desc]) => {
+      const have = LB.roles.some((r) => r.name === code);
+      return '<button type="button" class="chip' + (have ? " done" : "") + '" data-code="' + code + '" title="' + esc(desc) + '">' + (have ? "✓ " : "") + "<b>" + code + "</b> " + esc(desc) + "</button>";
+    }).join("");
+    $("lb-common").querySelectorAll("[data-code]").forEach((b) => b.addEventListener("click", () => {
+      const [code, desc] = COMMON_ROLES.find((r) => r[0] === b.dataset.code);
+      const i = LB.roles.findIndex((r) => r.name === code);
+      if (i >= 0) { $("lb-roles").querySelector('[data-edit="' + i + '"]').click(); return; }
+      lbEdit = -1; $("lb-name").value = code; $("lb-desc").value = desc; $("lb-medic").checked = code === "MD";
+      $("lb-msg").textContent = "Now paste the " + desc.toLowerCase() + "'s arsenal export and press Add role."; renderLB(); $("lb-src").focus();
+    }));
     $("lb-add").textContent = lbEdit >= 0 ? "Update role" : "Add role";
     $("lb-cancel").hidden = lbEdit < 0;
     const issues = lbIssues();
