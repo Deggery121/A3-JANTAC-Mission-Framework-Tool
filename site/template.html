@@ -197,6 +197,12 @@ h1 {
 .role-code textarea { width: 100%; box-sizing: border-box; tab-size: 4; white-space: pre; overflow-x: auto; }
 #lb-units .toolbar { align-items: center; }
 .pal.mine summary { color: var(--friendly); }
+.gdrop { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.gdrop summary { cursor: pointer; padding: 8px 12px; font-size: 13.5px; font-weight: 600; }
+.gdrop summary .aux { font-weight: 400; color: var(--muted); }
+.gdrop[open] summary { border-bottom: 1px solid var(--line); }
+.gdrop .field { padding: 10px 12px; }
+.gdrop textarea { width: 100%; box-sizing: border-box; }
 .rand-box { display: flex; flex-direction: column; gap: 10px; margin: -4px 0 4px 28px; }
 .lbl-sm { font-size: 13px; font-weight: 600; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
@@ -730,9 +736,9 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         <fieldset>
           <legend>Shared groups</legend>
           <p class="hint" style="margin:0">Every role gets <code>ADD_GROUP(IFAK)</code> and <code>ADD_GROUP(items)</code>. Edit what's in them here, one line per item. Exported items that are already in a group are left out of the role so nothing is doubled.</p>
-          <div class="field"><label for="lb-ifak">SET_GROUP(IFAK)</label><textarea id="lb-ifak" rows="5" spellcheck="false" class="mono"></textarea></div>
-          <div class="field"><label for="lb-items">SET_GROUP(items)</label><textarea id="lb-items" rows="6" spellcheck="false" class="mono"></textarea></div>
-          <div class="field"><label for="lb-medsup">Medic supplies <span class="aux">added to every role marked Medic, under //Medical Supplies</span></label><textarea id="lb-medsup" rows="9" spellcheck="false" class="mono"></textarea></div>
+          <details class="gdrop"><summary>SET_GROUP(IFAK)</summary><div class="field"><textarea aria-label="SET_GROUP(IFAK)" id="lb-ifak" rows="5" spellcheck="false" class="mono"></textarea></div></details>
+          <details class="gdrop"><summary>SET_GROUP(items)</summary><div class="field"><textarea aria-label="SET_GROUP(items)" id="lb-items" rows="6" spellcheck="false" class="mono"></textarea></div></details>
+          <details class="gdrop"><summary>Medic supplies <span class="aux">added to every role marked Medic, under //Medical Supplies</span></summary><div class="field"><textarea aria-label="Medic supplies" id="lb-medsup" rows="9" spellcheck="false" class="mono"></textarea></div></details>
           <div class="toolbar"><button type="button" class="tbtn" id="lb-defgroups">Reset groups to default</button></div>
           <label class="check"><input type="checkbox" id="lb-rand-on"><span>Random uniform items<small>Every role gets one item picked at random from each list below with <code>FNC_AddItemRandom</code>, in <code>SET_GROUP(uniform)</code>. Leave a list empty to keep each role's own item for that slot.</small></span></label>
           <div id="lb-rand" class="rand-box" hidden>
