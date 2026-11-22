@@ -214,6 +214,12 @@ h1 {
 .code-row .code { flex: 1; min-width: 0; }
 .copy { font: 500 12px var(--font-body); border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: var(--radius); padding: 0 10px; cursor: pointer; }
 
+.tools { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+.tools .eyebrow { margin: 0; }
+.tools .row { display: flex; flex-wrap: wrap; gap: 8px; }
+.tools .row .btn { flex: 1 1 auto; }
+.filebtn { position: relative; overflow: hidden; }
+.filebtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
 .log li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 6px; overflow-wrap: anywhere; }
 .log .ok { color: var(--ok); } .log .warn { color: var(--warn); } .log .err { color: var(--team-red); }
@@ -471,6 +477,20 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         <p class="eyebrow" style="margin-bottom:6px" id="incl-h">gear.sqf line</p>
         <div class="code-row"><pre class="code" id="incl"></pre><button class="copy" id="copy" type="button">Copy</button></div>
       </div>
+      <div class="tools">
+        <p class="eyebrow">All compositions</p>
+        <p class="hint" style="margin:0" id="all-note"></p>
+        <div class="row">
+          <button class="btn secondary" id="inst-all" type="button" hidden>Install all compositions…</button>
+          <button class="btn secondary" id="zip-all" type="button">Download all compositions</button>
+        </div>
+        <p class="eyebrow">Slot order</p>
+        <p class="hint" style="margin:0">Eden sorts the units in a group alphabetically when you place them, and the lobby shows that order. This puts every JANTAC group in a mission back in the standard order: leader, command, red team, blue team, medics, then the rest. Do it after your last save in Eden. Save the scenario with <i>Binarize the scenario file</i> unticked.</p>
+        <div class="row">
+          <button class="btn secondary" id="so-dir" type="button" hidden>Fix slot order in a mission…</button>
+          <label class="btn secondary filebtn" id="so-file-btn">Fix a mission.sqm file<input type="file" id="so-file" accept=".sqm"></label>
+        </div>
+      </div>
       <ul class="log" id="log" aria-live="polite"></ul>
     </aside>
   </div>
@@ -727,7 +747,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     </div>
   </div>
   <div id="view-fwsettings" hidden>
-    <div class="resetbar"><span>Your framework settings are saved in this browser between visits. They start as the framework's defaults.</span><button type="button" class="tbtn" id="fs-reset">Reset framework settings</button></div>
+    <div class="resetbar"><span>Your framework settings are saved in this browser between visits. They start as the JANTAC defaults (debug messages off).</span><button type="button" class="tbtn" id="fs-reset">Reset framework settings</button></div>
     <p class="note fw" id="fs-fwnote" hidden></p>
     <div class="brief">
       <form class="form" id="fsform" autocomplete="off">
@@ -1995,7 +2015,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   }
 
   // ---- framework settings (customization\settings.sqf) ---------------------------------------------
-  // Starts as the framework's own settings.sqf; the generated file matches it byte for byte until edited.
+  // Starts as the framework's own settings.sqf with debug messages off (the JANTAC default).
   const FS_TEAMS = [
     { key: "west", label: "BLUFOR", sqf: "west", resp: "west", side: "West", note: "Blugyswood Police Department" },
     { key: "east", label: "OPFOR", sqf: "east", resp: "east", side: "East", note: "Redguys" },
@@ -2003,7 +2023,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     { key: "resistance", label: "INDFOR", sqf: "resistance", resp: "guer", side: "Independent", note: "Local Militia", extra: " (aka independent aka greenfor)" },
   ];
   const fsDefaults = () => ({
-    cook: false, ammo: false, svd: "2000", tl: "0", tlmsg: "TIME LIMIT REACHED!", debug: true, pvd: "1200", grid: true,
+    cook: false, ammo: false, svd: "2000", tl: "0", tlmsg: "TIME LIMIT REACHED!", debug: false, pvd: "1200", grid: true,
     teams: {
       west: { on: true, name: "BLUFOR", type: "player", tickets: "0" },
       east: { on: true, name: "OPFOR", type: "player", tickets: "0" },
@@ -2994,6 +3014,202 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       }
       log("ok", "Restart Eden or reopen the Compositions tab to see them.");
     } catch (e) { log("err", "Install failed: " + e.message); }
+  });
+
+  // ---- all compositions at once -------------------------------------------------------------------------------
+  function allComps() {
+    const out = [];
+    Object.keys(LIB.packages).forEach((p) => {
+      for (let n = 1; n <= LIB.packages[p].maxSquads; n++) if (compFor(p, n)) out.push(compFor(p, n));
+    });
+    if (LIB.system) out.push(LIB.system);
+    return out;
+  }
+  $("inst-all").hidden = !canFS;
+  $("all-note").textContent = "Every package at every size (" + allComps().length + " compositions, including JANTAC SYSTEM), so they are all in Eden's Compositions tab.";
+  $("inst-all").addEventListener("click", async () => {
+    clearLog();
+    let dir;
+    try { dir = await window.showDirectoryPicker({ id: "jantac-compositions", mode: "readwrite" }); }
+    catch (e) { if (!aborted(e)) log("err", "Could not open the folder: " + e.message); return; }
+    if (dir.name.toLowerCase() !== "compositions") log("warn", "The folder you picked is '" + dir.name + "', not 'compositions'. Eden only reads compositions from your profile's compositions folder.");
+    try {
+      const list = allComps();
+      for (const c of list) {
+        const d = await dir.getDirectoryHandle(c.folder, { create: true });
+        await writeFile(d, "header.sqe", c.header);
+        await writeFile(d, "composition.sqe", c.composition);
+      }
+      log("ok", "Installed " + list.length + " compositions into " + dir.name + ".");
+      log("ok", "Restart Eden or reopen the Compositions tab to see them under JANTAC Mission Framework.");
+    } catch (e) { log("err", "Install failed: " + e.message); }
+  });
+  $("zip-all").addEventListener("click", async () => {
+    const b = $("zip-all"); b.disabled = true; clearLog();
+    try {
+      const zip = new JSZip(), list = allComps();
+      list.forEach((c) => {
+        zip.file("compositions/" + c.folder + "/header.sqe", c.header);
+        zip.file("compositions/" + c.folder + "/composition.sqe", c.composition);
+      });
+      zip.file("INSTALL.txt", ["JANTAC Unit Library - all compositions", LIB.build, "",
+        "Copy the folders inside 'compositions' into your Arma profile's compositions folder:",
+        "   Documents\\Arma 3 - Other Profiles\\<profile>\\compositions   (or Documents\\Arma 3\\compositions)",
+        "   If Documents is in OneDrive: OneDrive\\Documents\\...",
+        "Then restart Eden. They are under Compositions > JANTAC Mission Framework.", ""].join("\r\n"));
+      await saveFile("JANTAC all compositions.zip", await zip.generateAsync({ type: "blob", compression: "DEFLATE" }));
+      log("ok", list.length + " compositions. Copy the folders in 'compositions' into your profile's compositions folder.");
+    } catch (e) { log("err", "Could not build the zip: " + (e && e.message || e)); }
+    finally { b.disabled = false; }
+  });
+
+  // ---- slot order ---------------------------------------------------------------------------------------------
+  // Eden sorts a group's units alphabetically by class when they are placed or grouped, and the lobby lists
+  // them in mission.sqm order. This rewrites the order of each JANTAC group's units in a text mission.sqm.
+  // Same rule as tools/slot_order.py: leader, command, red (TL first), blue (TL first), medics, the rest.
+  const LEADER_ROLES = new Set(["PL", "SL", "CO", "XO", "PSG", "RTO", "RTO1", "RTO2", "FO", "JTAC", "FAC"]);
+  function slotTier(desc, role, color) {
+    if (desc.includes("@")) return [0, 0];
+    const tl = role === "TL" || /team leader|\bTL\b/i.test(desc) ? 0 : 1;
+    if (color === "RED") return [2, tl];
+    if (color === "BLUE") return [3, tl];
+    if (color === "GREEN") return [4, 0];
+    if (LEADER_ROLES.has(role) || /leader|sergeant|commander|officer|\bRTO\b|radio/i.test(desc)) return [1, 0];
+    return [5, 0];
+  }
+  // A light reader for text mission.sqm: class blocks with their spans and direct value statements.
+  function sqmTree(s) {
+    let i = 0;
+    const ws = () => { while (i < s.length && /\s/.test(s[i])) i++; };
+    const str = () => { i++; while (i < s.length) { if (s[i] === '"') { if (s[i + 1] === '"') { i += 2; continue; } i++; return; } i++; } };
+    function body() {
+      const kids = [], vals = [];
+      for (;;) {
+        ws();
+        if (i >= s.length || s[i] === "}") return { kids, vals };
+        const st = i, m = /^class\s+(\w+)\s*(?::\s*\w+\s*)?/.exec(s.slice(i, i + 160));
+        if (m) {
+          i += m[0].length;
+          if (s[i] === ";") { i++; continue; }
+          if (s[i] !== "{") throw new Error("unexpected text after class " + m[1]);
+          i++;
+          const b = body();
+          if (s[i] !== "}") throw new Error("class " + m[1] + " is not closed");
+          i++; ws(); if (s[i] === ";") i++;
+          kids.push({ name: m[1], start: st, end: i, kids: b.kids, vals: b.vals });
+          continue;
+        }
+        let depth = 0;
+        while (i < s.length) {
+          const c = s[i];
+          if (c === '"') { str(); continue; }
+          if (c === "{") depth++;
+          else if (c === "}") { if (!depth) break; depth--; }
+          else if (c === ";" && !depth) { i++; break; }
+          i++;
+        }
+        vals.push(s.slice(st, i));
+      }
+    }
+    const top = body();
+    if (i < s.length) throw new Error("unbalanced braces");
+    return top;
+  }
+  const sqmVal = (node, name) => {
+    if (!node) return "";
+    const re = new RegExp("^" + name + "\\s*=\\s*([\\s\\S]*?)\\s*;?$");
+    for (const v of node.vals) { const m = re.exec(v); if (m) return m[1].startsWith('"') ? m[1].slice(1, -1).replace(/""/g, '"') : m[1]; }
+    return "";
+  };
+  const kid = (node, name) => node && node.kids.find((k) => k.name === name);
+  function fixSlotOrder(text) {
+    if (/^\0raP/.test(text)) throw new Error("This mission.sqm is binarized. In Eden open Scenario > Save As (or the save options), untick Binarize the scenario file, save, and try again.");
+    const tree = sqmTree(text), edits = [], res = { groups: 0, fixed: 0, skipped: 0, units: 0 };
+    const tplKey = (u) => u.desc + "|" + u.role + "|" + u.color;
+    function rankGroup(units) {
+      const keys = units.map(tplKey).sort().join("\n");
+      for (const P of Object.values(LIB.packages)) for (const g of P.groups) {
+        const t = g.units.map((u) => ({ desc: u.desc, role: u.role, color: u.color }));
+        if (t.length !== units.length || t.map(tplKey).sort().join("\n") !== keys) continue;
+        const used = new Set();
+        return units.map((u) => { const k = t.findIndex((x, j) => !used.has(j) && tplKey(x) === tplKey(u)); used.add(k); return [k]; });
+      }
+      return units.map((u, j) => {
+        const P = LIB.packages[u.prefix];
+        let pos = 99;
+        if (P) for (const g of P.groups) { const k = g.units.findIndex((x) => tplKey(x) === tplKey(u)); if (k >= 0) { pos = k; break; } }
+        return [...slotTier(u.full, u.role, u.color), pos, j];
+      });
+    }
+    const cmp = (a, b) => { for (let k = 0; k < Math.max(a.length, b.length); k++) if ((a[k] || 0) !== (b[k] || 0)) return (a[k] || 0) - (b[k] || 0); return 0; };
+    (function walk(nodes) {
+      for (const n of nodes) {
+        if (sqmVal(n, "dataType") === "Group") {
+          const items = (kid(n, "Entities") || { kids: [] }).kids.filter((k) => /^Item\d+$/.test(k.name));
+          const units = items.map((it) => {
+            const a = kid(it, "Attributes"), init = sqmVal(a, "init"), full = sqmVal(a, "description");
+            const m = /\[this,\s*"(\w+?_)(\w+)"\]\s*call FNC_GearScript/.exec(init), c = /"(RED|BLUE|GREEN)"\]\s*call FNC_Autocolor/.exec(init);
+            return m && sqmVal(it, "dataType") === "Object" ? { prefix: m[1], role: m[2], color: c ? c[1] : "", full, desc: full.split("@")[0] } : null;
+          });
+          if (!units.length) continue;
+          if (units.some((u) => !u)) { if (units.some((u) => u)) res.skipped++; continue; }
+          res.groups++;
+          const rank = rankGroup(units);
+          const order = items.map((_, j) => j).sort((x, y) => cmp(rank[x], rank[y]) || x - y);
+          if (order.every((x, j) => x === j)) continue;
+          res.fixed++;
+          order.forEach((from, j) => {
+            if (from !== j) res.units++;
+            const src = items[from], txt = text.slice(src.start, src.end).replace(/^class\s+Item\d+/, "class Item" + j);
+            edits.push({ start: items[j].start, end: items[j].end, txt });
+          });
+        } else walk(n.kids);
+      }
+    })(tree.kids);
+    let out = text;
+    edits.sort((a, b) => b.start - a.start).forEach((e) => { out = out.slice(0, e.start) + e.txt + out.slice(e.end); });
+    return { text: out, res };
+  }
+  window.__jantacSlotOrder = fixSlotOrder; // exposed for testing
+  function reportSlots(res) {
+    if (!res.groups) { log("warn", "No JANTAC groups found (units with FNC_GearScript in their init)."); return; }
+    log("ok", res.groups + " JANTAC group" + (res.groups === 1 ? "" : "s") + " found; " +
+      (res.fixed ? res.fixed + " reordered (" + res.units + " slots moved)." : "all were already in the standard order."));
+    if (res.skipped) log("warn", res.skipped + " group" + (res.skipped === 1 ? " mixes" : "s mix") + " JANTAC and other units and " + (res.skipped === 1 ? "was" : "were") + " left as is.");
+  }
+  $("so-dir").hidden = !canFS;
+  $("so-dir").addEventListener("click", async () => {
+    clearLog();
+    let dir;
+    try { dir = await window.showDirectoryPicker({ id: "jantac-mission", mode: "readwrite" }); }
+    catch (e) { if (!aborted(e)) log("err", "Could not open the folder: " + e.message); return; }
+    try {
+      const text = await readFile(dir, "mission.sqm");
+      if (text === null) { log("err", "'" + dir.name + "' has no mission.sqm. Pick the mission folder itself (e.g. MyMission.Altis) after saving it in Eden."); return; }
+      const { text: out, res } = fixSlotOrder(text);
+      reportSlots(res);
+      if (res.fixed) {
+        await replaceWithBackup(dir, "mission.sqm", out, "mission.sqm");
+        log("ok", "Reopen the mission in Eden (or restart the server) to see the new order in the lobby.");
+      }
+    } catch (e) { log("err", "Could not fix the slot order: " + e.message); }
+  });
+  $("so-file").addEventListener("change", async (e) => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!f) return;
+    clearLog();
+    try {
+      const { text: out, res } = fixSlotOrder(await f.text());
+      reportSlots(res);
+      if (!res.fixed) return;
+      const blob = new Blob([out], { type: "text/plain" });
+      if (hasViewer) {
+        const zip = new JSZip(); zip.file("mission.sqm", blob);
+        await saveFile("mission.sqm (slot order).zip", await zip.generateAsync({ type: "blob", compression: "DEFLATE" }));
+      } else await saveFile("mission.sqm", blob);
+      log("ok", "Put it in your mission folder in place of the old mission.sqm (keep a copy of the old one).");
+    } catch (err) { log("err", "Could not fix the slot order: " + err.message); }
   });
 
   $("inst-miss").addEventListener("click", async () => {

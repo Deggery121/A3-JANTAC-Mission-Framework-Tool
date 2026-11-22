@@ -16,6 +16,13 @@ https://deggery121.github.io/A3-JANTAC-Mission-Framework-Tool/
    a changed loadout file is backed up as `.bak` first).
 3. In any other browser, press **Download zip** and follow `INSTALL.txt` inside it.
 4. In Eden open **Compositions → JANTAC Mission Framework** and place the package.
+5. Eden sorts a group's units alphabetically when it places them, and the lobby shows that
+   order. After your last save in Eden (with *Binarize the scenario file* unticked), press
+   **Fix slot order in a mission…** (Chrome/Edge) or **Fix a mission.sqm file** on the Units tab.
+   It puts every JANTAC group back in the standard order and keeps the old file as `mission.sqm.bak`.
+
+**Install all compositions…** (Chrome/Edge) or **Download all compositions** puts every package
+at every size, plus JANTAC SYSTEM, into your profile's `compositions` folder in one go.
 
 The **Briefing** tab first asks whether the mission is **COOP** or **TVT**. COOP gives your side
 one briefing; TVT gives each team its own (`case WEST/EAST/RESISTANCE` blocks, team 2's side is
@@ -31,7 +38,8 @@ folder), game type and player limits. `maxPlayers` fills in from the package: pl
 plus the headless client.
 
 The **Framework settings** tab builds `customization\settings.sqf`. It starts as the framework's
-own default (BLUFOR, OPFOR and civilians as player teams, no time limit, view distance 2000/1200)
+own default (BLUFOR, OPFOR and civilians as player teams, no time limit, view distance 2000/1200),
+except that debug messages start off,
 and only changes what you change: team names per side and whether players or AI play them,
 respawn tickets per player team, time limit and message, view distances, debug messages, forced
 terrain detail and the ACE cook-off switches. The old file is kept as `settings.sqf.bak`.
@@ -119,6 +127,9 @@ python tools/build_site.py              # output in build/site/index.html
   `[this, "RED"|"BLUE"|"GREEN"] call FNC_Autocolor;`, and the role exists in the loadout.
 - Medics (`MD`) are GREEN; `SL`/`PL` roles have no color; GREEN is only for medics.
 - Each group has one leader tagged `@1'N`; HQ is 1'0; squads are 1'1..1'N with no gaps.
+- Groups are in callsign order (1'0 first) and units in the standard slot order
+  (`tools/slot_order.py`): leader, command slots, red team (TL first), blue team (TL first),
+  medics, then everyone else. `tools/normalize_layer.py` sorts a new layer into this order.
 - Every unit is playable, has an empty inventory, and carries only the ACRE radio
   setup attribute with PRC-343 on the right channel (squad N → N, HQ → squads + 1).
 

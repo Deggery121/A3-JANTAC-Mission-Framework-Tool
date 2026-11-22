@@ -24,6 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sqm  # noqa: E402
+import slot_order  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MASTER = os.path.join(ROOT, "master", "UnitLibrary.VR", "mission.sqm")
@@ -64,6 +65,25 @@ def clean_desc(desc):
     d = re.sub(r"\s*@\s*", "@", d)
     d = re.sub(r"@1-(\d+)", r"@1'\1", d)
     return d.strip()
+
+
+def order_units(group):
+    ents = sqm.get(group["body"], "Entities")["body"]
+    units = classes(ents)
+    key = lambda u: slot_order.tier(*slot_order.unit_info(sval(sub(u, "Attributes"), "init"), sval(sub(u, "Attributes"), "description")))
+    ordered = sorted(units, key=key)  # stable
+    for i, u in enumerate(ordered):
+        u["name"] = f"Item{i}"
+    ents[:] = [n for n in ents if n["k"] != "class"] + ordered
+
+
+def order_groups(layer, squad_of):
+    ents = sqm.get(layer["body"], "Entities")["body"]
+    groups = sorted(classes(ents), key=lambda g: squad_of[id(g)])
+    for i, g in enumerate(groups):
+        g["name"] = f"Item{i}"
+        order_units(g)
+    ents[:] = [n for n in ents if n["k"] != "class"] + groups
 
 
 def main():
@@ -137,6 +157,9 @@ def main():
             else:
                 u["body"].append(new_ca)
             report.append(f"   {nd:28} {prefix + role:18} {color or '':6}" + (" +ace_isEngineer" if extra else ""))
+
+    # standard slot order: groups by callsign, units leader / command / red / blue / medics / others
+    order_groups(layer, squad_of)
 
     sqm.set_val(layer["body"], "name", sqm.encode_str(f"{prefix} | {loadout[:-4]} | HQ + {nsq} squad{'s' if nsq != 1 else ''}"))
     open(MASTER, "w", newline="").write(sqm.dumps(root))

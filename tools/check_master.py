@@ -11,6 +11,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sqm  # noqa: E402
+import slot_order  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MASTER = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "master", "UnitLibrary.VR")
@@ -164,12 +165,19 @@ for layer in layers:
                 err(f"{who}: ACRE setup has no PRC-343 [1,channel] entry")
             else:
                 channels.add(int(cm.group(1)))
+        keys = [slot_order.tier(*slot_order.unit_info(val(sub(u, "Attributes"), "init"), val(sub(u, "Attributes"), "description")))
+                for u in units]
+        if keys != sorted(keys):
+            err(f"{where} 1'{sq}: units are not in the standard slot order (leader, command, red, blue, medics, others); "
+                "run tools/normalize_layer.py on the layer")
         if sq is None:
             err(f"{where} a group has no leader tagged @1'N")
             continue
         if sq in squads:
             err(f"{where} two groups tagged 1'{sq}")
         squads[sq] = channels
+    if list(squads) != sorted(squads):
+        err(f"{where} groups must be in callsign order (1'0 first), found {list(squads)}")
     if 0 not in squads:
         err(f"{where} no HQ group (1'0)")
     numbered = sorted(k for k in squads if k)

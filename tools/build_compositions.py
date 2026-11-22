@@ -16,6 +16,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sqm  # noqa: E402
+import slot_order  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MASTER = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "master", "UnitLibrary.VR")
@@ -53,6 +54,19 @@ def squad_of(group):
         if m:
             return int(m.group(1))
     return None
+
+
+def order_units(group):
+    """Units in the standard slot order (see slot_order.py); the lobby lists them in file order."""
+    ents = sub(group, "Entities")
+    def key(u):
+        a = sub(u, "Attributes")
+        g = lambda k: sqm.decode_str(sqm.get(a, k)["raw"]) if sqm.get(a, k) else ""
+        return slot_order.tier(*slot_order.unit_info(g("init"), g("description")))
+    ordered = sorted(classes(ents), key=key)
+    for i, u in enumerate(ordered):
+        u["name"] = f"Item{i}"
+    ents[:] = [n for n in ents if n["k"] != "class"] + ordered
 
 
 def set_channel(group, channel):
@@ -147,6 +161,8 @@ def main():
             for g in chosen[1:]:
                 set_channel(g, squad_of(g))
             strip_player(chosen)
+            for g in chosen:
+                order_units(g)
             for i, g in enumerate(chosen):
                 g["name"] = f"Item{i}"
             l2 = copy.deepcopy(layer)
