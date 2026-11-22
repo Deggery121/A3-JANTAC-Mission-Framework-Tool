@@ -337,6 +337,11 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 .pal-target b { color: var(--fg); font-family: var(--font-mono); }
 
 .dboard { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.teamrow { display: grid; grid-template-columns: minmax(110px, auto) minmax(0, 1.4fr) minmax(0, .9fr) minmax(0, .8fr); gap: 10px; align-items: end; padding: 10px 0; border-top: 1px solid var(--line); }
+.teamrow:first-of-type { border-top: 0; }
+.teamrow .check { align-self: center; font-weight: 600; }
+.teamrow.off .field { opacity: .5; }
+@media (max-width: 560px) { .teamrow { grid-template-columns: 1fr 1fr; } .teamrow .check { grid-column: 1 / -1; } }
 .resetbar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; margin: 0 0 12px; font-size: 13px; color: var(--muted); }
 .tbtn.armed, .btn.armed { border-color: #c0392b; color: #c0392b; }
 .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
@@ -417,6 +422,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     <a href="#loadout-builder" id="tab-builder">Loadout builder</a>
     <a href="#briefing" id="tab-briefing">Briefing</a>
     <a href="#mission-settings" id="tab-settings">Mission settings</a>
+    <a href="#framework-settings" id="tab-fwsettings">Framework settings</a>
     <a href="#mission-folder" id="tab-folder">Mission folder</a>
     <a href="#addon-settings" id="tab-addons">Addon settings</a>
   </nav>
@@ -452,6 +458,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       <ul class="fwlist" id="fw-list" hidden></ul>
       <label class="check"><input type="checkbox" id="brief-inc"><span>Include briefing.sqf<small>Replaces the mission's customization\briefing.sqf. <a href="#briefing">Write the briefing</a></small></span></label>
       <label class="check"><input type="checkbox" id="set-inc"><span>Include missionSettings.hpp<small>Replaces the mission's customization\missionSettings.hpp. <a href="#mission-settings">Edit settings</a></small></span></label>
+      <label class="check"><input type="checkbox" id="fset-inc"><span>Include settings.sqf<small>Replaces the mission's customization\settings.sqf (teams, time limit, view distance, respawn tickets). <a href="#framework-settings">Edit settings</a></small></span></label>
       <label class="check"><input type="checkbox" id="mf-inc"><span>Put it in a mission folder<small id="mf-note"></small></span></label>
       <div class="actions">
         <button class="btn" id="zip" type="button">Download zip</button>
@@ -716,6 +723,51 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         </div>
         <p class="hint" id="s-status"></p>
         <pre class="code" id="s-out"></pre>
+      </section>
+    </div>
+  </div>
+  <div id="view-fwsettings" hidden>
+    <div class="resetbar"><span>Your framework settings are saved in this browser between visits. They start as the framework's defaults.</span><button type="button" class="tbtn" id="fs-reset">Reset framework settings</button></div>
+    <p class="note fw" id="fs-fwnote" hidden></p>
+    <div class="brief">
+      <form class="form" id="fsform" autocomplete="off">
+        <fieldset>
+          <legend>Teams</legend>
+          <p class="hint" style="margin:0">Each ticked team becomes an <code>FNC_AddTeam</code> line. The name is what the end screen and debug messages call that side. <span id="fs-sidehint"></span></p>
+          <div id="fs-teams"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Server</legend>
+          <div class="own-grid">
+            <div class="field"><label for="fs-svd">AI view distance (m)</label><input id="fs-svd" type="number" min="200" step="100"></div>
+            <div class="field"><label for="fs-tl">Time limit (min, 0 = off)</label><input id="fs-tl" type="number" min="0" step="1"></div>
+          </div>
+          <div class="field"><label for="fs-tlmsg">Time limit message</label><input id="fs-tlmsg"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Players</legend>
+          <div class="own-grid">
+            <div class="field"><label for="fs-pvd">Player view distance (m)</label><input id="fs-pvd" type="number" min="200" step="100"></div>
+          </div>
+          <label class="check"><input type="checkbox" id="fs-debug"><span>Debug messages<small>Turn them off when the mission is released.</small></span></label>
+          <label class="check"><input type="checkbox" id="fs-grid"><span>Force high terrain detail<small>Stops faraway objects from floating. Useful for long sightlines; should always be on in TvTs.</small></span></label>
+        </fieldset>
+        <fieldset>
+          <legend>ACE cook-off</legend>
+          <label class="check"><input type="checkbox" id="fs-cook"><span>Disable the cook-off fire effect<small><code>ace_cookoff_enable = false;</code></small></span></label>
+          <label class="check"><input type="checkbox" id="fs-ammo"><span>Disable secondary explosions<small><code>ace_cookoff_enableAmmoCookoff = false;</code></small></span></label>
+        </fieldset>
+      </form>
+
+      <section class="preview" aria-labelledby="fsv-h">
+        <div class="preview-head">
+          <h2 class="m-title" id="fsv-h">customization\settings.sqf</h2>
+          <div class="preview-actions">
+            <button class="copy" id="fs-copy" type="button">Copy</button>
+          </div>
+        </div>
+        <p class="hint" id="fs-status"></p>
+        <pre class="code" id="fs-out"></pre>
       </section>
     </div>
   </div>
@@ -1279,7 +1331,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (state.source === "none") {
       $("facts").innerHTML = '<dt>Units</dt><dd>pick a package, or Custom options</dd>';
       ["sys-row", "incl-box", "inst-comp"].forEach((id) => ($(id).hidden = true));
-      $("brief-inc").checked = brief.include; $("set-inc").checked = sett.include;
+      $("brief-inc").checked = brief.include; $("set-inc").checked = sett.include; $("fset-inc").checked = fsd.include;
       $("zip").disabled = true; $("inst-miss").disabled = true; $("inst-new").hidden = true;
       $("fs-hint").textContent = "Pick a package above, or under Custom options build a platoon or choose My mission already has units.";
       $("inst-comp").hidden = true;
@@ -1306,8 +1358,9 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("incl").textContent = L.map((P) => includeLine(P.loadout)).join("\n");
     $("brief-inc").checked = brief.include;
     $("set-inc").checked = sett.include;
+    $("fset-inc").checked = fsd.include;
     $("inst-comp").hidden = !canFS || own;
-    const nothing = own && !brief.include && !sett.include;
+    const nothing = own && !brief.include && !sett.include && !fsd.include;
     const broken = state.source === "custom" && (!chosen() || issuesFor(chosen()).length);
     $("zip").disabled = nothing || broken;
     const folderBad = mf.include && !folderValid();
@@ -1333,6 +1386,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     renderDesigner();
     updateBriefing();
     updateSettings();
+    updateFwSettings();
     updateFolder();
   }
   $("sys").addEventListener("change", (e) => { state.sys = e.target.checked; remember(); render(); });
@@ -1940,6 +1994,124 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     bindClear("s-clear", resetSett);
   }
 
+  // ---- framework settings (customization\settings.sqf) ---------------------------------------------
+  // Starts as the framework's own settings.sqf; the generated file matches it byte for byte until edited.
+  const FS_TEAMS = [
+    { key: "west", label: "BLUFOR", sqf: "west", resp: "west", side: "West", note: "Blugyswood Police Department" },
+    { key: "east", label: "OPFOR", sqf: "east", resp: "east", side: "East", note: "Redguys" },
+    { key: "civilian", label: "Civilian", sqf: "civilian", resp: "civ", side: "", note: "Civguys" },
+    { key: "resistance", label: "INDFOR", sqf: "resistance", resp: "guer", side: "Independent", note: "Local Militia", extra: " (aka independent aka greenfor)" },
+  ];
+  const fsDefaults = () => ({
+    cook: false, ammo: false, svd: "2000", tl: "0", tlmsg: "TIME LIMIT REACHED!", debug: true, pvd: "1200", grid: true,
+    teams: {
+      west: { on: true, name: "BLUFOR", type: "player", tickets: "0" },
+      east: { on: true, name: "OPFOR", type: "player", tickets: "0" },
+      civilian: { on: true, name: "civilians", type: "player", tickets: "0" },
+      resistance: { on: false, name: "green goblin mask", type: "ai", tickets: "0" },
+    },
+  });
+  const fsd = Object.assign({ include: false, includeTouched: false }, fsDefaults(), load("jantac-sfs") || {});
+  fsd.teams = Object.assign(fsDefaults().teams, fsd.teams || {});
+  const saveFsd = () => store("jantac-sfs", fsd);
+  const sqfStr = (x) => '"' + String(x).replace(/[\r\n]+/g, " ").replace(/"/g, '""') + '"';
+  const intOr = (x, d) => (/^\s*\d+\s*$/.test(String(x)) ? String(parseInt(x, 10)) : d);
+  const fsTeamsOn = () => FS_TEAMS.filter((T) => fsd.teams[T.key].on && (fsd.teams[T.key].name || "").trim());
+  function genFwSettings() {
+    const D = fsDefaults(), out = [];
+    out.push((fsd.cook ? "" : "//") + "ace_cookoff_enable = false; //uncommenting this disables cookoff fire effect");
+    out.push((fsd.ammo ? "" : "//") + "ace_cookoff_enableAmmoCookoff = false; //uncommenting this disables secondary explosions");
+    out.push("", "if (isServer) then {", "");
+    out.push("\tsetViewDistance " + intOr(fsd.svd, "2000") + "; //View distance for the server (the ai's)", "");
+    out.push("\tFW_TimeLimit = " + intOr(fsd.tl, "0") + "; //Time limit in minutes, to disable the time limit set it to 0");
+    out.push("\tFW_TimeLimitMessage = " + sqfStr(fsd.tlmsg || "") + "; //The message displayed when the time runs out", "");
+    FS_TEAMS.forEach((T) => {
+      const t = fsd.teams[T.key], d = D.teams[T.key], name = (t.name || "").trim() || d.name, type = t.type === "ai" ? "ai" : "player";
+      const same = name === d.name && type === d.type;
+      const who = same ? T.note : name;
+      out.push("\t" + (t.on && (t.name || "").trim() ? "" : "//") + "[" + T.sqf + ", " + sqfStr(name) + ", " + sqfStr(type) + "] call FNC_AddTeam; //Adds " +
+        (type === "ai" ? "an ai" : "a player") + " team called " + who + " on side " + T.sqf + (T.extra || ""));
+    });
+    out.push("", "};", "", "if (!isDedicated) then {", "");
+    out.push("\tFW_DebugMessagesEnabled = " + (fsd.debug ? "true" : "false") + "; //Only disable debug messages when the mission is released", "");
+    out.push("\tsetViewDistance " + intOr(fsd.pvd, "1200") + "; //View distance for the player, they can override this with MCC but it's useful to set a base", "");
+    out.push("\t" + (fsd.grid ? "" : "//") + "call FNC_forceTerrainGrid; //uncomment this to force high terrain setting. This will prevent faraway objects from appearing as floating. Useful for missions with long sightlines. Should always be used in TvTs.");
+    out.push("\t", "\tswitch (side player) do { //Checks what team the player is on");
+    const cases = ["east", "west", "civilian", "resistance"].map((k) => FS_TEAMS.find((T) => T.key === k))
+      .filter((T) => fsd.teams[T.key].on && (fsd.teams[T.key].name || "").trim() && fsd.teams[T.key].type !== "ai");
+    if (!cases.length) out.push("\t\t//add more cases for other factions here");
+    cases.forEach((T, i) => {
+      out.push("\t\tcase " + T.sqf + ": {",
+        "\t\t\tFW_RespawnTickets = " + intOr(fsd.teams[T.key].tickets, "0") + "; //If respawn is enabled you must create empty game logics, for respawn points, following the name format fw_side_respawn. Example: fw_" + T.resp + "_respawn",
+        "\t\t};");
+      if (i === 0) out.push("\t\t//add more cases for other factions here");
+    });
+    out.push("\t};", "};");
+    return out.join("\r\n");
+  }
+  window.__jantacFwSettings = { gen: genFwSettings, fsd }; // exposed for testing
+  // Sides the Units tab puts players on, as settings.sqf keys.
+  function unitSides() {
+    if (state.source === "none") return [];
+    const map = { West: "west", East: "east", Independent: "resistance" };
+    const s = [sideNow()];
+    if (t2On()) s.push(t2Side());
+    if (t3On()) s.push(t3Side());
+    return s.map((x) => map[x]).filter(Boolean);
+  }
+  function renderFsTeams() {
+    $("fs-teams").innerHTML = FS_TEAMS.map((T) => {
+      const t = fsd.teams[T.key];
+      return '<div class="teamrow' + (t.on ? "" : " off") + '" data-k="' + T.key + '">' +
+        '<label class="check"><input type="checkbox" data-f="on"' + (t.on ? " checked" : "") + "><span>" + esc(T.label) + " <small><code>" + T.sqf + "</code></small></span></label>" +
+        '<div class="field"><label>Team name</label><input data-f="name" value="' + esc(t.name) + '"></div>' +
+        '<div class="field"><label>Played by</label><select data-f="type"><option value="player"' + (t.type !== "ai" ? " selected" : "") + '>Players</option><option value="ai"' + (t.type === "ai" ? " selected" : "") + ">AI</option></select></div>" +
+        '<div class="field"><label>Respawn tickets</label><input data-f="tickets" type="number" min="0" step="1" value="' + esc(t.tickets) + '"' + (t.type === "ai" ? " disabled" : "") + "></div></div>";
+    }).join("");
+  }
+  function updateFwSettings() {
+    const need = unitSides().filter((k) => !fsd.teams[k].on);
+    $("fs-sidehint").textContent = need.length
+      ? "Your units are on " + need.map((k) => FS_TEAMS.find((T) => T.key === k).label).join(" and ") + ", which has no team here yet. Tick it so the framework tracks those players."
+      : "";
+    $("fs-out").textContent = genFwSettings();
+    $("fs-status").textContent = fsd.include
+      ? "Included in your download and in “Add to a mission…”. It replaces the mission's settings.sqf."
+      : "Not included yet. Tick “Include settings.sqf” on the Units tab to add it.";
+    const req = fwOn() && !fsTeamsOn().length;
+    $("fs-fwnote").hidden = !req;
+    $("fs-fwnote").textContent = "Required: Get the framework is ticked, so the mission needs settings.sqf with at least one named team.";
+  }
+  function bindFwSettings() {
+    const touched = () => { if (!fsd.includeTouched) fsd.include = true; saveFsd(); updateFwSettings(); renderManifest(); };
+    const fill = () => {
+      ["svd", "tl", "tlmsg", "pvd"].forEach((k) => ($("fs-" + k).value = fsd[k]));
+      ["cook", "ammo", "debug", "grid"].forEach((k) => ($("fs-" + k).checked = !!fsd[k]));
+      renderFsTeams();
+    };
+    fill();
+    ["svd", "tl", "tlmsg", "pvd"].forEach((k) => $("fs-" + k).addEventListener("input", (e) => { fsd[k] = e.target.value; touched(); }));
+    ["cook", "ammo", "debug", "grid"].forEach((k) => $("fs-" + k).addEventListener("change", (e) => { fsd[k] = e.target.checked; touched(); }));
+    const onTeam = (e) => {
+      const row = e.target.closest(".teamrow"), f = e.target.dataset.f;
+      if (!row || !f) return;
+      const t = fsd.teams[row.dataset.k];
+      t[f] = f === "on" ? e.target.checked : e.target.value;
+      if (f === "on") row.classList.toggle("off", !t.on);
+      if (f === "type") row.querySelector('[data-f="tickets"]').disabled = t.type === "ai";
+      touched();
+    };
+    $("fs-teams").addEventListener("input", onTeam);
+    $("fs-teams").addEventListener("change", (e) => { if (e.target.dataset.f === "on" || e.target.dataset.f === "type") onTeam(e); });
+    $("fsform").addEventListener("submit", (e) => e.preventDefault());
+    $("fset-inc").addEventListener("change", (e) => { fsd.include = e.target.checked; fsd.includeTouched = true; saveFsd(); updateFwSettings(); renderManifest(); });
+    bindCopy("fs-copy", "fs-out", genFwSettings);
+    bindClear("fs-reset", () => {
+      Object.assign(fsd, fsDefaults(), { include: fwOn(), includeTouched: fwOn() });
+      fill(); saveFsd(); updateFwSettings(); renderManifest();
+    }, "Reset framework settings", "Click again to restore the defaults");
+  }
+
   // ---- mission folder ------------------------------------------------------------------------------
   // Arma matches a mission to its map by the folder's suffix: MissionName.WorldName.
   const mf = Object.assign({ type: "CO", slots: "", slotsEdited: false, name: "", world: "", other: "", include: false, includeTouched: false }, load("jantac-folder") || {});
@@ -1966,6 +2138,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       { ok: briefReady(), href: "#briefing", text: briefReady() ? "briefing.sqf (" + (tvt() ? "TVT" : "COOP") + ")" : "briefing.sqf: " + briefMissing() },
       { ok: !!(sett.v.name || "").trim(), href: "#mission-settings",
         text: (sett.v.name || "").trim() ? "missionSettings.hpp" : "missionSettings.hpp: give the mission a name in the Mission settings tab." },
+      { ok: fsTeamsOn().length > 0, href: "#framework-settings",
+        text: fsTeamsOn().length ? "settings.sqf (" + fsTeamsOn().map((T) => fsd.teams[T.key].name.trim()).join(", ") + ")" : "settings.sqf: tick at least one team in the Framework settings tab." },
     ];
   }
   const fwReady = () => fwChecks().every((c) => c.ok);
@@ -1977,8 +2151,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("fw-inc").checked = fw.include;
     $("fw-var").value = fw.id;
     $("fw-note").textContent = (FW.description ? FW.description + " " : "Adds the complete " + fwLabel() + ". ") +
-      FW.files + " files. Needs units with a loadout, the briefing and the mission settings.";
-    $("brief-inc").disabled = $("set-inc").disabled = fwOn();
+      FW.files + " files. Needs units with a loadout, the briefing, the mission settings and the framework settings.";
+    $("brief-inc").disabled = $("set-inc").disabled = $("fset-inc").disabled = fwOn();
     const list = $("fw-list");
     list.hidden = !fwOn();
     list.innerHTML = fwOn() ? fwChecks().map((c) => '<li><span class="' + (c.ok ? "ok" : "no") + '">' + (c.ok ? "✓" : "✕") + "</span>" +
@@ -2061,10 +2235,10 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     $("fw-inc").addEventListener("change", (e) => {
       fw.include = e.target.checked; saveFw();
       if (fw.include) {
-        brief.include = sett.include = true; brief.includeTouched = sett.includeTouched = true;
-        saveBrief(); saveSett();
+        brief.include = sett.include = fsd.include = true; brief.includeTouched = sett.includeTouched = fsd.includeTouched = true;
+        saveBrief(); saveSett(); saveFsd();
       }
-      updateBriefing(); updateSettings(); renderManifest();
+      updateBriefing(); updateSettings(); updateFwSettings(); renderManifest();
     });
     $("mf-inc").addEventListener("change", (e) => { mf.include = e.target.checked; mf.includeTouched = true; saveMf(); updateFolder(); renderManifest(); });
     bindCopy("f-copy", "f-out", () => folderName() || "");
@@ -2585,8 +2759,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
 
   // ---- views ---------------------------------------------------------------------------------------
   function route() {
-    const view = { "#briefing": "briefing", "#mission-settings": "settings", "#custom-units": "custom", "#mission-folder": "folder", "#addon-settings": "addons", "#loadout-builder": "builder" }[location.hash] || "units";
-    ["units", "custom", "builder", "briefing", "settings", "folder", "addons"].forEach((v) => {
+    const view = { "#briefing": "briefing", "#mission-settings": "settings", "#framework-settings": "fwsettings", "#custom-units": "custom", "#mission-folder": "folder", "#addon-settings": "addons", "#loadout-builder": "builder" }[location.hash] || "units";
+    ["units", "custom", "builder", "briefing", "settings", "fwsettings", "folder", "addons"].forEach((v) => {
       $("view-" + v).hidden = v !== view;
       $("tab-" + v).setAttribute("aria-current", v === view ? "page" : "false");
     });
@@ -2650,14 +2824,14 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (fwOn()) {
       const F = useFolder() ? folderName() : "mission";
       out.push(k++ + ". The '" + F + "' folder is a complete mission: " + fwLabel() + " with your gear.sqf, loadout" + (L.length > 1 ? "s" : "") +
-          ", briefing.sqf and missionSettings.hpp.",
+          ", briefing.sqf, missionSettings.hpp and settings.sqf.",
         "   Copy it into Documents\\Arma 3 - Other Profiles\\<profile>\\missions   (or Documents\\Arma 3\\missions).");
       if (!useFolder()) out.push("   Rename it to MissionName.WorldName first, e.g. MyMission.Altis (the part after the dot is the map).");
       if (comps.length) out.push(k++ + ". Copy the folders in 'compositions' into your Arma profile's compositions folder:",
         "   Documents\\Arma 3 - Other Profiles\\<profile>\\compositions   (or Documents\\Arma 3\\compositions)");
       out.push(k++ + ". In Eden, open " + (useFolder() ? mapLabel(worldNow()) : "the map") + (comps.length ? ", place Compositions > JANTAC Mission Framework > " + placeList() : "") +
         ", and save the scenario as " + (useFolder() ? scenarioName() : "the folder's name (without the .WorldName)") + " so it saves into the same folder.",
-        k++ + ". Set the team names in customization\\settings.sqf (the FNC_addTeam lines) and check customization\\endConditions.sqf.", "");
+        k++ + ". Check customization\\endConditions.sqf. The teams in settings.sqf are " + fsTeamsOn().map((T) => fsd.teams[T.key].name.trim() + " (" + T.sqf + ")").join(", ") + ".", "");
       return out.join("\r\n");
     }
     if (useFolder()) {
@@ -2665,7 +2839,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       out.push(k++ + ". Mission folder: " + F + "  (" + mapLabel(worldNow()) + ")",
         "   Copy your JANTAC framework files into Documents\\Arma 3 - Other Profiles\\<profile>\\missions\\" + F,
         "   (or Documents\\Arma 3\\missions\\" + F + "), then copy the " + F + " folder from this zip over it, replacing files.",
-        "   Everything for gear" + (brief.include ? ", the briefing" : "") + (sett.include ? ", the mission settings" : "") + " is already inside.");
+        "   Everything for gear" + (brief.include ? ", the briefing" : "") + (sett.include ? ", the mission settings" : "") + (fsd.include ? ", the framework settings" : "") + " is already inside.");
       if (!own && comps.length) {
         out.push(k++ + ". Copy the folders in 'compositions' into your Arma profile's compositions folder:",
           "   Documents\\Arma 3 - Other Profiles\\<profile>\\compositions   (or Documents\\Arma 3\\compositions)");
@@ -2689,6 +2863,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
     if (sett.include) out.push(k++ + ". Copy customization\\missionSettings.hpp over your mission's customization\\missionSettings.hpp" + (shot ? ", and the images folder into the mission folder." : "."));
     else out.push(k++ + ". Set maxPlayers in customization\\missionSettings.hpp to " + (maxAuto() || "your playable slot count") + (own ? "." : " (player slots plus the headless client)."));
     if (brief.include) out.push(k++ + ". Copy customization\\briefing.sqf over your mission's customization\\briefing.sqf.");
+    if (fsd.include) out.push(k++ + ". Copy customization\\settings.sqf over your mission's customization\\settings.sqf.");
     out.push("");
     return out.join("\r\n");
   }
@@ -2713,7 +2888,8 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
       zip.file(base + "customization/missionSettings.hpp", genSettings());
       if (shot) zip.file(base + "images/" + shot.name, shot.blob);
     }
-    if (base && !L.length && !brief.include && !sett.include) zip.folder(folderName());
+    if (fsd.include) zip.file(base + "customization/settings.sqf", genFwSettings());
+    if (base && !L.length && !brief.include && !sett.include && !fsd.include) zip.folder(folderName());
     zip.file("INSTALL.txt", installText());
     return zip.generateAsync({ type: "blob", compression: "DEFLATE" });
   }
@@ -2899,6 +3075,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
         }
       }
       if (brief.include) await replaceWithBackup(cust, "briefing.sqf", genBriefing(), "customization\\briefing.sqf");
+      if (fsd.include) await replaceWithBackup(cust, "settings.sqf", genFwSettings(), "customization\\settings.sqf");
       if (sett.include) {
         await replaceWithBackup(cust, "missionSettings.hpp", genSettings(), "customization\\missionSettings.hpp (maxPlayers " + maxPlayers() + ")");
         if (shot) {
@@ -2915,6 +3092,7 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 17px; pa
   renderPalette();
   bindBriefing();
   bindSettings();
+  bindFwSettings();
   bindFolder();
   route();
   render();

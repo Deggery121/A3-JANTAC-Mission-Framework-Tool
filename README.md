@@ -30,16 +30,23 @@ screen name and messages, the loading image (`images\janfulogo.paa` from the fra
 folder), game type and player limits. `maxPlayers` fills in from the package: player slots
 plus the headless client.
 
+The **Framework settings** tab builds `customization\settings.sqf`. It starts as the framework's
+own default (BLUFOR, OPFOR and civilians as player teams, no time limit, view distance 2000/1200)
+and only changes what you change: team names per side and whether players or AI play them,
+respawn tickets per player team, time limit and message, view distances, debug messages, forced
+terrain detail and the ACE cook-off switches. The old file is kept as `settings.sqf.bak`.
+
 **Custom units** tab: build your own HQ and squads from every unit in the library, mixing
 packages if you like. Start from a package or from empty, add slots from the list, reorder,
 rename, set red/blue teams and duplicate squads. The page builds the Eden composition and adds
 every loadout the design uses to `gear.sqf`.
 
 **Get the framework**: tick it on the Units tab to get a complete mission, the stripped JANTAC
-framework (`framework/`) plus the four files it needs from this page: `gear.sqf` and the loadout
-(from your units), `briefing.sqf` (Briefing tab) and `missionSettings.hpp` (Mission settings tab).
-While it's ticked the briefing and settings are always included, and the download stays off until
-units are picked, the briefing has content and the mission has a name. **Create mission folder…**
+framework (`framework/`) plus the files it needs from this page: `gear.sqf` and the loadout
+(from your units), `briefing.sqf` (Briefing tab), `missionSettings.hpp` (Mission settings tab) and
+`settings.sqf` (Framework settings tab). While it's ticked the briefing and both settings files are
+always included, and the download stays off until units are picked, the briefing has content, the
+mission has a name and settings.sqf has at least one team. **Create mission folder…**
 writes the framework into the new folder; existing files are never overwritten.
 
 **My mission already has units**: pick this on the Units tab to use only the briefing and

@@ -8,9 +8,9 @@ if (isServer) then {
 	FW_TimeLimit = 0; //Time limit in minutes, to disable the time limit set it to 0
 	FW_TimeLimitMessage = "TIME LIMIT REACHED!"; //The message displayed when the time runs out
 
-	[west, "Bluguys", "player"] call FNC_AddTeam; //Adds a player team called Blugyswood Police Department on side west
-	[east, "Redguys", "player"] call FNC_AddTeam; //Adds a player team called Redguys on side east
-	[civilian, "Civguys", "player"] call FNC_AddTeam; //Adds a player team called Civguys on side civilian
+	[west, "BLUFOR", "player"] call FNC_AddTeam; //Adds a player team called Blugyswood Police Department on side west
+	[east, "OPFOR", "player"] call FNC_AddTeam; //Adds a player team called Redguys on side east
+	[civilian, "civilians", "player"] call FNC_AddTeam; //Adds a player team called Civguys on side civilian
 	//[resistance, "green goblin mask", "ai"] call FNC_AddTeam; //Adds an ai team called Local Militia on side resistance (aka independent aka greenfor)
 
 };
